@@ -1,0 +1,7 @@
+DataSet: /home/toni/git/HDBSCAN_Star/experiments/data/2d-2c-no0.dat, Max MinPoints: 100, Time: 156
+DataSet: /home/toni/git/HDBSCAN_Star/experiments/data/2d-4c-no0.dat, Max MinPoints: 100, Time: 267
+DataSet: /home/toni/git/HDBSCAN_Star/experiments/data/2d-8c-no0.dat, Max MinPoints: 100, Time: 600
+DataSet: /home/toni/git/HDBSCAN_Star/experiments/data/2d-16c-no0.dat, Max MinPoints: 100, Time: 1649
+DataSet: /home/toni/git/HDBSCAN_Star/experiments/data/2d-32c-no0.dat, Max MinPoints: 100, Time: 4370
+DataSet: /home/toni/git/HDBSCAN_Star/experiments/data/2d-64c-no0.dat, Max MinPoints: 100, Time: 14726
+DataSet: /home/toni/git/HDBSCAN_Star/experiments/data/2d-128c-no0.dat, Max MinPoints: 100, Time: 69909
