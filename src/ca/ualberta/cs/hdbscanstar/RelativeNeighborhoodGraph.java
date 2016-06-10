@@ -49,16 +49,18 @@ public class RelativeNeighborhoodGraph extends Graph {
 					int closest = 0;
 
 					for (Integer e : w.get(k)) {
-						d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, v, e, minPoints);
-												
-						if (d < min) {
-							cache.clear();
-						}
-						
-						if (d <= min && e != v) {							
-							closest = e;
-							min = d;
-							cache.add(e);
+						if (e != v) {
+							d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, v, e, minPoints);
+							
+							if (d < min) {
+								cache.clear();
+							}
+							
+							if (d <= min) {							
+								closest = e;
+								min = d;
+								cache.add(e);
+							}	
 						}
 					}
 										

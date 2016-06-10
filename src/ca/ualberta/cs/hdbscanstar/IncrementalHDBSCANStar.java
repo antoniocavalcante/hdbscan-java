@@ -55,7 +55,7 @@ public class IncrementalHDBSCANStar {
 			}
 		}
 		
-		if (uf.count() > 1) System.err.println("Disconnected input graph!");
+		if (uf.count() > 1) System.err.println("Disconnected input graph: " + uf.count() + " components!");
 		
 		if (selfEdges) {
 			for (int i = n-1; i < n*2-1; i++) {

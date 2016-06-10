@@ -14,7 +14,7 @@ import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 
 /**
- * @author toni
+ * @author Antonio Cavalcante
  *
  */
 public class Test {
@@ -23,7 +23,7 @@ public class Test {
 		Double[][] dataSet = null;
 
 		try {
-			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#1/2d-128c-no1.dat", " ");
+			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#2/2d-4c-no00.dat", " ");
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
