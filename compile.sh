@@ -14,7 +14,7 @@ echo "[$(date)] Creating build directory, if one does not exist..."
 
 # Compiles the files.
 echo "[$(date)] Compiling the source files..."
-javac -classpath "lib/*" -d bin @sources.txt
+javac -classpath ".:lib/*" -d bin @sources.txt
 
 # Removes the file source.txt, that contains the list of the Java sources files.
 echo "[$(date)] Removing temporary file sources.txt..."

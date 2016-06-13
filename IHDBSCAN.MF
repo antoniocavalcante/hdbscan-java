@@ -1,3 +1,3 @@
 Manifest-version: 1.0
 Main-Class: ca.ualberta.cs.experiments.ExperimentIncrementalHDBSCANStar
-
+Class-Path: lib/combinatorics-0.2.0.jar lib/combinatoricslib-2.0.jar
