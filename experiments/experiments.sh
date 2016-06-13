@@ -12,7 +12,7 @@ do
     	do
     		for i in $(seq 1)
     		do
-    			java -jar -Xmx2g -Xmx7g Incremental_HDBSCAN_Star.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} >> incremental_hdbscan_star.results
+    			java -jar -Xmx2g -Xmx7g IHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} >> ihdbscan.results
     		done
     	done
     done
@@ -26,7 +26,7 @@ do
     	do
     		for i in $(seq 1)
     		do
-    			java -jar -Xmx2g -Xmx7g HDBSCAN_Star.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} >> hdbscan_star_results
+    			java -jar -Xmx2g -Xmx7g HDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} >> hdbscan.results
     		done
     	done
     done

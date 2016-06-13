@@ -26,3 +26,15 @@ Thumbs.db
 # Data #
 ########
 experiments/data*
+
+# Jar Files #
+############
+experiments/HDBSCAN.jar
+experiments/IHDBSCAN.jar
+
+HDBSCAN.jar
+IHDBSCAN.jar
+
+# Results #
+###########
+experiments/*.results
