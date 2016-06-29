@@ -29,7 +29,6 @@ public class RelativeNeighborhoodGraph extends Graph {
 		ArrayList<Double> W = new ArrayList<Double>();
 
 		for (int i = 0; i < dataSet.length; i++) {
-			if (i % 1000 == 0) System.out.println("Computing for point " + i);
 			for (int j = i + 1; j < dataSet.length; j++) {
 				if (neighbors(dataSet, coreDistances, i, j, k)) {
 					A.add(i);
@@ -63,14 +62,14 @@ public class RelativeNeighborhoodGraph extends Graph {
 		double d;
 
 		// Builds the Fair Split Tree T from dataSet.
-		long startTree = System.currentTimeMillis();
+//		long startTree = System.currentTimeMillis();
 		FairSplitTree T = FairSplitTree.build(dataSet);
-		System.out.println("Fair Split Tree construction: " + (System.currentTimeMillis() - startTree));
+//		System.out.println("Fair Split Tree construction: " + (System.currentTimeMillis() - startTree));
 
 		// Finds all the Well-separated Pairs from T.
-		long startWSPD = System.currentTimeMillis();
+//		long startWSPD = System.currentTimeMillis();
 		WSPD.build(T, T, s, method);
-		System.out.println("WSPD construction: " + (System.currentTimeMillis() - startWSPD));
+//		System.out.println("WSPD construction: " + (System.currentTimeMillis() - startWSPD));
 
 		ArrayList<Integer> A = new ArrayList<Integer>();
 		ArrayList<Integer> B = new ArrayList<Integer>();

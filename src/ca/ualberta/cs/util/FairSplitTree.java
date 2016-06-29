@@ -31,8 +31,8 @@ public class FairSplitTree {
 		FairSplitTree.S = S;
 		FairSplitTree.dimensions = S[0].length;
 		
-		System.out.println("Data set size: " + S.length);
-		System.out.println("Dimensions: " + dimensions);
+//		System.out.println("Data set size: " + S.length);
+//		System.out.println("Dimensions: " + dimensions);
 		
 		ArrayList<Integer> P = new ArrayList<Integer>();
 
