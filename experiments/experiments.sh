@@ -12,7 +12,7 @@ do
     	do
     		for i in $(seq 1)
     		do
-    			java -jar -Xmx2g -Xmx7g IHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} >> ihdbscan.results
+    			java -jar -Xmx2g -Xmx7g IHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} 1 true SS >> ihdbscan.results
     		done
     	done
     done
