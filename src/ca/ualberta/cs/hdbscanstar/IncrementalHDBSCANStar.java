@@ -34,7 +34,7 @@ public class IncrementalHDBSCANStar {
 
 		sortedEdges = G.timSort();
 
-		//Kruskal
+		// Kruskal
 		UF uf = new UF(n);
 		int m = 0;
 		
@@ -55,7 +55,10 @@ public class IncrementalHDBSCANStar {
 			}
 		}
 		
-		if (uf.count() > 1) System.err.println("Disconnected input graph: " + uf.count() + " components!");
+		if (uf.count() > 1){
+			System.err.println("Disconnected input graph: " + uf.count() + " components!");
+//			System.exit(1);
+		}
 		
 		if (selfEdges) {
 			for (int i = n-1; i < n*2-1; i++) {
