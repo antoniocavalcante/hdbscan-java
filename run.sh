@@ -5,7 +5,7 @@ git fetch --all
 git reset --hard origin/master
 
 # Compiles the source files and generates the jar files.
-source compile.sh
+# source compile.sh
 
 # Changes to the experiments directory.
 cd experiments
