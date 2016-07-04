@@ -1,6 +1,8 @@
 package ca.ualberta.cs.util;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 public class WSPD {
 
@@ -15,6 +17,12 @@ public class WSPD {
 	
 	public static void build(FairSplitTree T1, FairSplitTree T2, double s, int level, String method){
 		
+		List<Integer> P1 = T1.P;
+		List<Integer> P2 = T2.P;
+		
+		int id1 = T1.id;
+		int id2 = T2.id;
+		
 		// Check the case where both trees are distinct leafs.
 		if (T1.isLeaf() && T2.isLeaf()) {
 			// Output T1 and T2 as a WSP.
@@ -26,8 +34,9 @@ public class WSPD {
 				} else {
 					pairs.add(new SeparatedPair(T2, T1));
 				}
+				
 			}
-			
+
 			return;
 		}
 
@@ -36,8 +45,14 @@ public class WSPD {
 			FairSplitTree tmp = T2;
 			T2 = T1;
 			T1 = tmp;
+		} else {
+			if (T1.diameter() == T2.diameter() && T1.id < T2.id) {
+				FairSplitTree tmp = T2;
+				T2 = T1;
+				T1 = tmp;
+			}
 		}
-
+		
 		// Check if T1 and T2 are well-separated.
 		if (separated(T1, T2, s, method)) {
 
@@ -74,8 +89,9 @@ public class WSPD {
 	 * @return true if T1 and T2 are well separated, false otherwise. 
 	 */
 	public static boolean ws(FairSplitTree T1, FairSplitTree T2, double s){
-
-		if (FairSplitTree.boxDistance(T1, T2) >= s*Math.max(T1.diameter(), T2.diameter())) {
+		double d = FairSplitTree.boxDistance(T1, T2);
+		
+		if (d >= s*Math.max(T1.diameter(), T2.diameter())) {
 			return true;
 		} else {
 			return false;
@@ -97,39 +113,6 @@ public class WSPD {
 			return true;
 		} else {
 			return false;
-		}
-	}
-	
-	public static void findPairs(FairSplitTree T1, FairSplitTree T2, double s) {
-		
-		if (ws(T1, T2, s)) {
-
-			if (T1.id < T2.id) {
-				pairs.add(new SeparatedPair(T1, T2));
-			} else {
-				pairs.add(new SeparatedPair(T2, T1));
-			}
-
-			return;
-
-		} else {
-			if (T1.diameter() <= T2.diameter()) {
-				findPairs(T1, T2.getLeft(), s);
-				findPairs(T1, T2.getRight(), s);
-			} else {
-				findPairs(T1.getLeft(), T2, s);
-				findPairs(T1.getRight(), T2, s);
-			}
-		}
-	}
-	
-	public static void findWSPD(FairSplitTree T, double s) {
-		System.out.println("Calling for " + T.getLeft().id + " and " + T.getRight().id);
-		findPairs(T.getLeft(), T.getRight(), s);
-
-		if (!T.getLeft().isLeaf() && !T.getRight().isLeaf()) {
-			findWSPD(T.getLeft(), s);
-			findWSPD(T.getRight(), s);
 		}
 	}
 }

@@ -13,29 +13,35 @@ public class Test2{
 		Double[][] dataSet = null;
 
 		try {
-			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#2/2d-4c-no0.dat", " ");
+			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#2/2d-2c-no0.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#2/3d-32c-no0.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/test.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/jad.dat", ",");
+//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/j.dat", ",");
+
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
 			System.exit(-1);
 		}
 
+		int numPoints = dataSet.length;
+		System.out.println("Dataset size: " + numPoints);
+		System.out.println("Dimensions: " + dataSet[0].length);
+		
 		long start = System.currentTimeMillis();
-		FSP(dataSet);
+		
+		wspd(dataSet, 1);
+		
 		System.out.println("Time: " + (System.currentTimeMillis() - start));
 	}
 	
-	public static void FSP(Double[][] data){
+	public static void wspd(Double[][] data, double s){
 		FairSplitTree T = FairSplitTree.build(data);
 
 //		FairSplitTree.print(T);
 		
-		WSPD.build(T, T, 1, WSPD.SS);
-
-//		WSPD.findWSPD(T, 2);
+		WSPD.build(T, T, s, WSPD.WS);
 		
 //		for (SeparatedPair pair : WSPD.pairs) {
 //			FairSplitTree T1 = pair.T1;
@@ -58,7 +64,11 @@ public class Test2{
 //					count = count + T1.P.size();
 //				}
 //			}
-//			System.out.println("Pairs containing " + i + ": " + count);
+////			System.out.println("Pairs containing " + i + ": " + count);
+//			if (count < data.length - 1) {
+//				System.out.println("ERROR!");
+//				break;
+//			}
 //		}
 		
 		System.out.println("Number of WSP: " + WSPD.pairs.size());

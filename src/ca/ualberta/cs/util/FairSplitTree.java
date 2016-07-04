@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
+import ca.ualberta.cs.hdbscanstar.MutualReachabilityGraph;
 
 public class FairSplitTree {
 
@@ -151,7 +152,7 @@ public class FairSplitTree {
 			System.out.print("-");
 		}
 		System.out.print(" ");
-		System.out.println("id " + T.id + ": " + T.P);
+		System.out.println("id " + T.id + ": " + T.P + " - diameter: " + T.diameter());
 		if (!T.isLeaf()) print(T.left);
 		if (!T.isLeaf()) print(T.right);
 	}
@@ -225,14 +226,6 @@ public class FairSplitTree {
 		}
 
 		return center;
-	}
-	
-	public static void BCP() {
-		
-	}
-	
-	public static boolean relatives(FairSplitTree T1, FairSplitTree T2) {
-		return false;
 	}
 	
 	public int getDimensions() {
