@@ -29,11 +29,11 @@ experiments/data*
 
 # Jar Files #
 ############
-experiments/HDBSCAN.jar
-experiments/IHDBSCAN.jar
+#experiments/HDBSCAN.jar
+#experiments/IHDBSCAN.jar
 
-HDBSCAN.jar
-IHDBSCAN.jar
+#HDBSCAN.jar
+#IHDBSCAN.jar
 
 # Results #
 ###########
