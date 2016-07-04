@@ -65,14 +65,14 @@ public class RelativeNeighborhoodGraph extends Graph {
 		// Builds the Fair Split Tree T from dataSet.
 		long startTree = System.currentTimeMillis();
 		FairSplitTree T = FairSplitTree.build(dataSet);
-		System.out.println("Fair Split Tree construction: " + (System.currentTimeMillis() - startTree));
+//		System.out.println("Fair Split Tree construction: " + (System.currentTimeMillis() - startTree));
 
 		// Finds all the Well-separated Pairs from T.
 		long startWSPD = System.currentTimeMillis();
 		WSPD.build(T, T, s, method);
 		
-		System.out.println("WSPD construction: " + (System.currentTimeMillis() - startWSPD));
-		System.out.println("--- Number of pairs: " + WSPD.pairs.size());
+//		System.out.println("WSPD construction: " + (System.currentTimeMillis() - startWSPD));
+//		System.out.println("--- Number of pairs: " + WSPD.pairs.size());
 		
 		ArrayList<Integer> A = new ArrayList<Integer>();
 		ArrayList<Integer> B = new ArrayList<Integer>();
@@ -84,7 +84,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		temp = BCN(dataSet, coreDistances, distanceFunction, k);
 		
-		System.out.println("BCN: " + (System.currentTimeMillis() - bcnStart));
+//		System.out.println("BCN: " + (System.currentTimeMillis() - bcnStart));
 
 		for (Pair p : temp.keySet()) {
 			A.add(p.a);
@@ -92,7 +92,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 			W.add(temp.get(p));
 		}
 		
-		System.out.println("Edges to filter: " + A.size());
+//		System.out.println("Edges to filter: " + A.size());
 		if (filter) {
 			long startFilter = System.currentTimeMillis();
 
@@ -112,9 +112,9 @@ public class RelativeNeighborhoodGraph extends Graph {
 					}
 				}
 			}
-			System.out.println("Filtering: " + (System.currentTimeMillis() - startFilter));
+//			System.out.println("Filtering: " + (System.currentTimeMillis() - startFilter));
 		}
-		System.out.println("Edges after filtering: " + A.size());
+//		System.out.println("Edges after filtering: " + A.size());
 
 		numOfEdgesMRG = A.size();
 		edgesA =  new Integer[numOfEdgesMRG];

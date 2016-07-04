@@ -1,8 +1,6 @@
 package ca.ualberta.cs.util;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 public class WSPD {
 
@@ -16,12 +14,6 @@ public class WSPD {
 	}
 	
 	public static void build(FairSplitTree T1, FairSplitTree T2, double s, int level, String method){
-		
-		List<Integer> P1 = T1.P;
-		List<Integer> P2 = T2.P;
-		
-		int id1 = T1.id;
-		int id2 = T2.id;
 		
 		// Check the case where both trees are distinct leafs.
 		if (T1.isLeaf() && T2.isLeaf()) {
