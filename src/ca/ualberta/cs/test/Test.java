@@ -40,9 +40,9 @@ public class Test {
 		System.out.println("Dimensions: " + dataSet[0].length);
 
 //		single(dataSet, 1, 1, WSPD.SS, true);
-//		performance(dataSet, 100, 1, WSPD.SS, false);
+		performance(dataSet, 100, 1, WSPD.WS, false);
 //		performanceRNG(dataSet, 1, false, 1, WSPD.WS);
-		correct(dataSet, 1, true, 1, WSPD.WS);
+//		correct(dataSet, 1, true, 1, WSPD.WS);
 	
 	}
 	
@@ -271,23 +271,23 @@ public class Test {
 		/**
 		 *  HDBSCAN* 
 		 **/
-		System.out.println("--------------------");
-		System.out.println("HDBSCAN*");
-		start = System.currentTimeMillis();
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
-		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
-
-		for (int k = maxK; k > 0; k--) {
-			//System.out.print(k + " ");
-			UndirectedGraph mst1 = HDBSCANStar.constructMST(dataSet, coreDistances, maxK, false, new EuclideanDistance());
-			mst1.quicksortByEdgeWeight();
-		}
-
-		duration = System.currentTimeMillis() - start;
-
-		System.out.println();
-		System.out.println("Total Running Time: " + duration);
-		System.out.println();
+//		System.out.println("--------------------");
+//		System.out.println("HDBSCAN*");
+//		start = System.currentTimeMillis();
+//		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
+//		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
+//
+//		for (int k = maxK; k > 0; k--) {
+//			//System.out.print(k + " ");
+//			UndirectedGraph mst1 = HDBSCANStar.constructMST(dataSet, coreDistances, maxK, false, new EuclideanDistance());
+//			mst1.quicksortByEdgeWeight();
+//		}
+//
+//		duration = System.currentTimeMillis() - start;
+//
+//		System.out.println();
+//		System.out.println("Total Running Time: " + duration);
+//		System.out.println();
 
 		/**
 		 *  Incremental HDBSCAN* 

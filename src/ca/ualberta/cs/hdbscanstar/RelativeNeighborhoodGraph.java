@@ -71,8 +71,8 @@ public class RelativeNeighborhoodGraph extends Graph {
 		long startWSPD = System.currentTimeMillis();
 		WSPD.build(T, T, s, method);
 		
-		System.out.println("WSPD construction: " + (System.currentTimeMillis() - startWSPD));
-		System.out.println("--- Number of pairs: " + WSPD.pairs.size());
+//		System.out.println("WSPD construction: " + (System.currentTimeMillis() - startWSPD));
+//		System.out.println("--- Number of pairs: " + WSPD.pairs.size());
 		
 		ArrayList<Integer> A = new ArrayList<Integer>();
 		ArrayList<Integer> B = new ArrayList<Integer>();
