@@ -39,8 +39,8 @@ public class Test {
 		System.out.println("Dataset size: " + numPoints);
 		System.out.println("Dimensions: " + dataSet[0].length);
 
-//		single(dataSet, 1, 1, WSPD.WS, true);
-//		performance(dataSet, 100, 1, WSPD.WS, false);
+//		single(dataSet, 1, 1, WSPD.SS, true);
+//		performance(dataSet, 100, 1, WSPD.SS, false);
 //		performanceRNG(dataSet, 1, false, 1, WSPD.WS);
 		correct(dataSet, 1, true, 1, WSPD.WS);
 	
