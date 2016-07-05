@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
-import ca.ualberta.cs.hdbscanstar.MutualReachabilityGraph;
 
 public class FairSplitTree {
 

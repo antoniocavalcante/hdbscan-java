@@ -21,7 +21,7 @@ public class ExperimentIncrementalHDBSCANStar {
 			System.err.println("Error reading input data set file.");
 			System.exit(-1);
 		}
-
+		
 		start = System.currentTimeMillis();
 		
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
@@ -38,6 +38,8 @@ public class ExperimentIncrementalHDBSCANStar {
 		
 		end = System.currentTimeMillis();
 		duration = end - start;
-		System.out.println("DataSet: " + args[0] + ", Max MinPoints: " + args[1] + ", Time: " + duration);
+		
+		// Data set, minPts, Time, RNG size, filter
+		System.out.println(args[0] + " " + args[1] + " " + duration + " " + RNG.numOfEdgesMRG + " " + args[3]);
 	}
 }
