@@ -30,9 +30,9 @@ def norm(x, y, i):
     return math.sqrt(x[i]*x[i] + y[i]*y[i])
 
 grid, s = "S.dat", " "
-data, s = "/home/toni/git/HDBSCAN_Star/experiments/data#2/2d-4c-no0.dat", " "
+# data, s = "/home/toni/git/HDBSCAN_Star/experiments/data#2/2d-4c-no0.dat", " "
 # data, s = "/home/toni/git/HDBSCAN_Star/jad.dat", ","
-# data, s = "/home/toni/git/HDBSCAN_Star/4.dat", " "
+data, s = "/home/toni/git/HDBSCAN_Star/j.dat", ","
 
 
 # x, y, z = plotdata(grid, s)
@@ -44,7 +44,7 @@ a, b, c = plotdata(data, s)
 plt.scatter(a, b, marker='.', c=c, label='Data')
 # plt.axes().set_aspect(1)
 
-#for i, txt in enumerate(range(len(a))):
-#    plt.annotate(txt, (a[i],b[i]))
+for i, txt in enumerate(range(len(a))):
+   plt.annotate(txt, (a[i],b[i]))
 
 plt.show()

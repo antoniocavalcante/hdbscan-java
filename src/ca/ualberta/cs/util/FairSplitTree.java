@@ -11,6 +11,7 @@ public class FairSplitTree {
 	private static int dimensions;
 
 	private Double[][] boundingBox;
+	private FairSplitTree parent;
 	private FairSplitTree left;
 	private FairSplitTree right;
 	private int count;
@@ -31,16 +32,13 @@ public class FairSplitTree {
 		FairSplitTree.S = S;
 		FairSplitTree.dimensions = S[0].length;
 		
-//		System.out.println("Data set size: " + S.length);
-//		System.out.println("Dimensions: " + dimensions);
-		
 		ArrayList<Integer> P = new ArrayList<Integer>();
 
 		for (int i = 0; i < S.length; i++) {
 			P.add(i);
 		}
 		
-		return new FairSplitTree(P, 0, 1);
+		return new FairSplitTree(null, P, 0, 1);
 	}
 
 	
@@ -50,7 +48,13 @@ public class FairSplitTree {
 	 * @param P Set of points IDs.
 	 * @param level Current level of the tree.
 	 */
-	public FairSplitTree(ArrayList<Integer> P, int level, int id){
+	public FairSplitTree(FairSplitTree parent, ArrayList<Integer> P, int level, int id){
+		// Update parent.
+		if (id == 1)
+			this.parent = this;
+		else
+			this.parent = parent;
+		
 		// Update the id of the tree.
 		this.id = id;
 		
@@ -131,8 +135,8 @@ public class FairSplitTree {
 				}
 				
 				// Recursive call for left and right children.
-				this.left  = new FairSplitTree(left,  this.level + 1, this.id*2);
-				this.right = new FairSplitTree(right, this.level + 1, this.id*2 + 1);
+				this.left  = new FairSplitTree(this, left,  this.level + 1, this.id*2);
+				this.right = new FairSplitTree(this, right, this.level + 1, this.id*2 + 1);
 			}
 		}
 	}
@@ -195,14 +199,48 @@ public class FairSplitTree {
 		
 		return Math.sqrt(d);
 	}
-	
-//	public static double distance(FairSplitTree T1, FairSplitTree T2) {
-//		return (new EuclideanDistance()).computeDistance(T1.center(), T2.center()) - T1.diameter/2 - T2.diameter/2;
-//	}
-//	
-//	public double distance(FairSplitTree T) {
-//		return distance(this, T);
-//	}
+
+	public static double boxDistance(Double[] point, FairSplitTree T) {
+
+		boolean[] overlap = new boolean[FairSplitTree.dimensions];
+		double[] distance = new double[FairSplitTree.dimensions];
+		
+		int count = 0;
+		
+		for (int i = 0; i < FairSplitTree.dimensions; i++) {
+			if (point[i] >= T.boundingBox[0][i] && point[i] <= T.boundingBox[1][i]) {
+				overlap[i] = true;
+				count++;
+			} else {
+				overlap[i] = false;
+			}
+			
+			distance[i] = Math.min(Math.abs(point[i]-T.boundingBox[1][i]), Math.abs(point[i]-T.boundingBox[0][i]));
+		}
+		
+		// There is overlapping.
+		if (count == dimensions - 1) {
+			for (int i = 0; i < overlap.length; i++) {
+				if (!overlap[i]) {
+					return distance[i];
+				}
+			}
+		}
+
+		// Point is inside the FairSplitTree.
+		if (count == dimensions) {
+			return 0;
+		}
+		
+		double d = 0;
+
+		for (int i = 0; i < distance.length; i++) {
+			d = d + Math.pow(distance[i], 2);
+		}
+		
+		return Math.sqrt(d);
+	}
+
 	
 	public double diameter() {
 
@@ -213,7 +251,7 @@ public class FairSplitTree {
 				this.diameter = (new EuclideanDistance()).computeDistance(boundingBox[0], boundingBox[1]);
 			}
 		}
-
+		
 		return diameter;		
 	}
 	
@@ -225,6 +263,44 @@ public class FairSplitTree {
 		}
 
 		return center;
+	}
+	
+	public static FairSplitTree parent(FairSplitTree T1, FairSplitTree T2) {
+		FairSplitTree T1P = parent(T1);
+		FairSplitTree T2P = parent(T2);
+		
+		if (T1P == T2P) return T1P;
+		
+		return parent(T1P, T2P);
+	}
+	
+	public static FairSplitTree parent(FairSplitTree T) {
+		return T.parent;
+	}
+	
+	public static ArrayList<Integer> rangeSearch(FairSplitTree root, Double[] queryPoint, double r, ArrayList<Integer> results) {
+		double left  = boxDistance(queryPoint, root.left);
+		double right = boxDistance(queryPoint, root.right);
+
+		if (left <= r) {
+			if (root.left.isLeaf()) {
+				// Add to the results.
+				results.addAll(root.left.P);
+			} else {
+				rangeSearch(root.left, queryPoint, r, results);
+			}
+		}
+		
+		if (right <= r) {
+			if (root.right.isLeaf()) {
+				// Add to the results
+				results.addAll(root.right.P);
+			} else {
+				rangeSearch(root.right, queryPoint, r, results);
+			}
+		}
+		
+		return results;
 	}
 	
 	public int getDimensions() {

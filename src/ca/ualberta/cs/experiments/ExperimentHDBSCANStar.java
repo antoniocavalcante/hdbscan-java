@@ -27,13 +27,13 @@ public class ExperimentHDBSCANStar {
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
 		
 		for (int k = Integer.parseInt(args[1]); k > 1; k--) {
-
 			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
 			mst.quicksortByEdgeWeight();
+			Experiments.writeMSTweight(args[0], k, mst);
 		}
 
 		end = System.currentTimeMillis();
 		duration = end - start;
-		System.out.println("DataSet: " + args[0] + ", Max MinPoints: " + args[1] + ", Time: " + duration);
+		System.out.println(args[0] + " " + args[1] + " " + duration);
 	}
 }

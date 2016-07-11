@@ -8,6 +8,10 @@ import ca.ualberta.cs.distance.EuclideanDistance;
 
 public class IncrementalHDBSCANStar {
 
+	public static int[][] kNN;
+	public static double[][] coreDistances;
+	public static int k;
+	
 	/**
 	 * Constructs the minimum spanning tree of mutual reachability distances for the data set, given
 	 * the core distances for each point.
@@ -57,7 +61,6 @@ public class IncrementalHDBSCANStar {
 		
 		if (uf.count() > 1){
 			System.err.println("Disconnected input graph: " + uf.count() + " components!");
-//			System.exit(1);
 		}
 		
 		if (selfEdges) {
@@ -211,7 +214,10 @@ public class IncrementalHDBSCANStar {
 		int numNeighbors = k + 1;
 		MutualReachabilityGraph.neighbors = new HashMap<Integer, ArrayList<Integer>>(dataSet.length);
 		double[][] coreDistances = new double[dataSet.length][numNeighbors];
-
+		int[][] kNN = new int[dataSet.length][numNeighbors];
+		
+		IncrementalHDBSCANStar.k = k;
+		
 		if (k == 1) {
 			for (int point = 0; point < dataSet.length; point++) {
 				coreDistances[point][0] = 0;
@@ -221,11 +227,10 @@ public class IncrementalHDBSCANStar {
 
 		for (int point = 0; point < dataSet.length; point++) {
 			double[] kNNDistances = new double[numNeighbors];	//Sorted nearest distances found so far
-			int[] kNN = new int[numNeighbors];
 
 			for (int i = 0; i < numNeighbors; i++) {
 				kNNDistances[i] = Double.MAX_VALUE;
-				kNN[i] = Integer.MAX_VALUE;
+				kNN[point][i] = Integer.MAX_VALUE;
 			}
 
 			for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
@@ -242,17 +247,19 @@ public class IncrementalHDBSCANStar {
 				if (neighborIndex < numNeighbors) {
 					for (int shiftIndex = numNeighbors-1; shiftIndex > neighborIndex; shiftIndex--) {
 						kNNDistances[shiftIndex] = kNNDistances[shiftIndex-1];
-						kNN[shiftIndex] = kNN[shiftIndex-1];
+						kNN[point][shiftIndex] = kNN[point][shiftIndex-1];
 					}
 					kNNDistances[neighborIndex] = distance;
-					kNN[neighborIndex] = neighbor;
+					kNN[point][neighborIndex] = neighbor;
 				}
 			}
 
 			coreDistances[point] = kNNDistances;
-
 		}
-
+		
+		IncrementalHDBSCANStar.kNN = kNN;
+		IncrementalHDBSCANStar.coreDistances = coreDistances;
+		
 		return coreDistances;
 	}
 }
