@@ -29,7 +29,6 @@ public class ExperimentHDBSCANStar {
 		for (int k = Integer.parseInt(args[1]); k > 1; k--) {
 			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
 			mst.quicksortByEdgeWeight();
-			Experiments.writeMSTweight(args[0], k, mst);
 		}
 
 		end = System.currentTimeMillis();

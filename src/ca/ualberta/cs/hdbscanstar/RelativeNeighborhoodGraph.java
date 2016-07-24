@@ -90,6 +90,8 @@ public class RelativeNeighborhoodGraph extends Graph {
 			W.add(mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p.a, p.b, k));
 		}
 
+		long startFilter = System.currentTimeMillis();
+
 		if (filter) {
 			
 			for (int e = A.size() - 1; e >= 0; e--) {
@@ -100,6 +102,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 				double w = W.get(e);
 
 				if (w == Math.max(cdA, cdB)) {
+
 					int[] kNN;
 
 					if (cdA > cdB) {
@@ -122,6 +125,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 							break;
 						}							
 					}
+					
 				} else {
 					
 					// Tries to find a point in the smaller ancestor on the FairSplitTree for the nodes that contains both points.
@@ -166,6 +170,8 @@ public class RelativeNeighborhoodGraph extends Graph {
 			}
 		}
 
+		System.out.println("Filter Time: " + (System.currentTimeMillis() - startFilter));
+		
 		numOfEdgesMRG = A.size();
 		edgesA =  new Integer[numOfEdgesMRG];
 		edgesB =  new Integer[numOfEdgesMRG];

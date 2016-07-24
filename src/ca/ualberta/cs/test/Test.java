@@ -40,8 +40,8 @@ public class Test {
 		System.out.println("Dimensions: " + dataSet[0].length);
 
 //		single(dataSet, 4, 1, WSPD.WS, true);
-		performance(dataSet, 20, 1, WSPD.WS, false);
-//		performanceRNG(dataSet, 2, false, 1, WSPD.WS, true);
+//		performance(dataSet, 10, 1, WSPD.WS, true);
+		performanceRNG(dataSet, 10, false, 1, WSPD.WS, true);
 //		correct(dataSet, 10, true, 1, WSPD.WS);
 	
 	}
@@ -191,21 +191,21 @@ public class Test {
 		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 
 		long start = System.currentTimeMillis();
-		RelativeNeighborhoodGraph RNG1 = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK);
-		System.out.println("Naive RNG construction: " + (System.currentTimeMillis() - start));
-		RNG1.timSort();
-		
-		System.out.println("-----------------------------");
+//		RelativeNeighborhoodGraph RNG1 = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK);
+//		System.out.println("Naive RNG construction: " + (System.currentTimeMillis() - start));
+//		RNG1.timSort();
+//		
+//		System.out.println("-----------------------------");
 		
 		start = System.currentTimeMillis();
 		RelativeNeighborhoodGraph RNG2 = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, filter, s, method);
 		System.out.println("WSPD RNG construction: " + (System.currentTimeMillis() - start));
 		RNG2.timSort();
 
-		System.out.println("RNG #1: " + RNG1.numOfEdgesMRG);
+//		System.out.println("RNG #1: " + RNG1.numOfEdgesMRG);
 		System.out.println("RNG #2: " + RNG2.numOfEdgesMRG);
 		
-		if (debug) printGraphs(RNG1, RNG2);
+//		if (debug) printGraphs(RNG1, RNG2);
 	}
 	
 	/** Receives two Relative Neighborhood Graphs and print them.
@@ -271,22 +271,22 @@ public class Test {
 		/**
 		 *  HDBSCAN* 
 		 **/
-		System.out.println("--------------------");
-		System.out.println("HDBSCAN*");
-		start = System.currentTimeMillis();
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
-		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
-
-		for (int k = maxK; k > 0; k--) {
-			UndirectedGraph mst1 = HDBSCANStar.constructMST(dataSet, coreDistances, maxK, false, new EuclideanDistance());
-			mst1.quicksortByEdgeWeight();
-		}
-
-		duration = System.currentTimeMillis() - start;
-
-		System.out.println();
-		System.out.println("Total Running Time: " + duration);
-		System.out.println();
+//		System.out.println("--------------------");
+//		System.out.println("HDBSCAN*");
+//		start = System.currentTimeMillis();
+//		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
+//		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
+//
+//		for (int k = maxK; k > 0; k--) {
+//			UndirectedGraph mst1 = HDBSCANStar.constructMST(dataSet, coreDistances, maxK, false, new EuclideanDistance());
+//			mst1.quicksortByEdgeWeight();
+//		}
+//
+//		duration = System.currentTimeMillis() - start;
+//
+//		System.out.println();
+//		System.out.println("Total Running Time: " + duration);
+//		System.out.println();
 
 		/**
 		 *  Incremental HDBSCAN* 
@@ -300,12 +300,12 @@ public class Test {
 
 		long start1 = System.currentTimeMillis();
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, filter, s, method);
-		System.out.println("RNG: " + (System.currentTimeMillis() - start1));
+		System.out.println("RNG time: " + (System.currentTimeMillis() - start1));
+		System.out.println("RNG size: " + RNG.numOfEdgesMRG);
 
 		UndirectedGraph mst2 = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances2, false, new EuclideanDistance(), maxK);
 
 		for (int k = maxK - 1; k > 1; k--) {
-			//System.out.print(k + " ");
 			RNG.updateWeights(dataSet, coreDistances2, new EuclideanDistance(), k);
 			UndirectedGraph mst1 = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances2, false, new EuclideanDistance(), k);
 		}
