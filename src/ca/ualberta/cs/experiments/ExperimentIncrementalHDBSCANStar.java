@@ -24,7 +24,7 @@ public class ExperimentIncrementalHDBSCANStar {
 		
 		start = System.currentTimeMillis();
 	
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, 10, new EuclideanDistance());
+		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
 		
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, 
 				coreDistances, new EuclideanDistance(), Integer.parseInt(args[1]), Boolean.parseBoolean(args[3]), Double.parseDouble(args[2]), args[4]);

@@ -90,8 +90,6 @@ public class RelativeNeighborhoodGraph extends Graph {
 			W.add(mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p.a, p.b, k));
 		}
 
-		long startFilter = System.currentTimeMillis();
-
 		if (filter) {
 			
 			for (int e = A.size() - 1; e >= 0; e--) {
@@ -169,8 +167,6 @@ public class RelativeNeighborhoodGraph extends Graph {
 				}
 			}
 		}
-
-		System.out.println("Filter Time: " + (System.currentTimeMillis() - startFilter));
 		
 		numOfEdgesMRG = A.size();
 		edgesA =  new Integer[numOfEdgesMRG];
@@ -297,6 +293,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		if (coreDistances[i][k - 1] > mutualReachabiltiyDistance)
 			mutualReachabiltiyDistance = coreDistances[i][k - 1];
+		
 		if (coreDistances[j][k - 1] > mutualReachabiltiyDistance)
 			mutualReachabiltiyDistance = coreDistances[j][k - 1];
 
