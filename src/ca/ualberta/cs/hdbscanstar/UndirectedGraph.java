@@ -2,6 +2,8 @@ package ca.ualberta.cs.hdbscanstar;
 
 import java.util.ArrayList;
 
+import ca.ualberta.cs.distance.DistanceCalculator;
+
 /**
  * An undirected graph, with weights assigned to each edge.  Vertices in the graph are 0 indexed.
  * @author zjullion
@@ -16,7 +18,6 @@ public class UndirectedGraph {
 	private double[] edgeWeights;
 	private Object[] edges;		//Each Object in this array in an ArrayList<Integer>
 
-
 	// ------------------------------ CONSTANTS ------------------------------
 
 	// ------------------------------ CONSTRUCTORS ------------------------------
@@ -30,7 +31,6 @@ public class UndirectedGraph {
 	 * @param verticesB An array of vertices corresponding to the array of edges
 	 * @param edgeWeights An array of edges corresponding to the arrays of vertices
 	 */
-	@SuppressWarnings("unchecked")
 	public UndirectedGraph(int numVertices, int[] verticesA, int[] verticesB, double edgeWeights[]) {
 		this.numVertices = numVertices;
 		this.verticesA = verticesA;
@@ -38,6 +38,13 @@ public class UndirectedGraph {
 		this.edgeWeights = edgeWeights;
 
 		this.edges = new Object[numVertices];
+		
+		this.setEdges();
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	public void setEdges() {
 		for (int i = 0; i < this.edges.length; i++) {
 			this.edges[i] = new ArrayList<Integer>(1 + edgeWeights.length/numVertices);
 		}
@@ -46,12 +53,13 @@ public class UndirectedGraph {
 			int vertexOne = this.verticesA[i];
 			int vertexTwo = this.verticesB[i];
 			((ArrayList<Integer>)(this.edges[vertexOne])).add(vertexTwo);
-			if (vertexOne != vertexTwo)
+
+			if (vertexOne != vertexTwo){
 				((ArrayList<Integer>)(this.edges[vertexTwo])).add(vertexOne);
+			}
 		}
 	}
-
-
+	
 	// ------------------------------ PUBLIC METHODS ------------------------------
 
 	/**
@@ -190,6 +198,20 @@ public class UndirectedGraph {
 	}
 
 
+	/**
+	 * Updates the edge weights with regard to a minPoints = k.
+	 * @param dataSet
+	 * @param coreDistances
+	 * @param distanceFunction
+	 * @param k
+	 */
+	public void updateWeights(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
+		for (int i = 0; i < getNumEdges(); i++) {
+			this.edgeWeights[i] = RelativeNeighborhoodGraph.mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, this.verticesA[i], this.verticesB[i], k);
+		}
+	}
+	
+	
 	// ------------------------------ GETTERS & SETTERS ------------------------------
 
 	public int getNumVertices() {
@@ -216,4 +238,30 @@ public class UndirectedGraph {
 	public ArrayList<Integer> getEdgeListForVertex(int vertex) {
 		return (ArrayList<Integer>)this.edges[vertex];
 	}
+	
+	public void restoreEdges(){
+		this.setEdges();
+	}
+	
+	public double getTotalWeight() {
+		double total = 0;
+		
+		for (int i = 0; i < edgeWeights.length; i++) {
+			total += edgeWeights[i];
+		}
+		
+		return total;
+	}
+	
+	public static void compare(UndirectedGraph g1, UndirectedGraph g2) {
+		g1.quicksortByEdgeWeight();
+		g2.quicksortByEdgeWeight();
+		
+		for (int i = 0; i < g1.getNumEdges(); i++) {
+			System.out.print(g1.getFirstVertexAtIndex(i) + "\t" + g2.getFirstVertexAtIndex(i) + "\t");
+			System.out.print(g1.getSecondVertexAtIndex(i) + "\t" + g2.getSecondVertexAtIndex(i) + "\t");
+			System.out.println(g1.getEdgeWeightAtIndex(i) + "\t" + g2.getEdgeWeightAtIndex(i));
+		}
+	}
+	
 }

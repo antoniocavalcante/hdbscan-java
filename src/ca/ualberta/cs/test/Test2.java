@@ -7,7 +7,6 @@ import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.util.FairSplitTree;
-import ca.ualberta.cs.util.SeparatedPair;
 import ca.ualberta.cs.util.WSPD;
 
 public class Test2{

@@ -288,7 +288,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 		return true;
 	}
 
-	private static double mutualReachabilityDistance(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int i, int j, int k) {
+	public static double mutualReachabilityDistance(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int i, int j, int k) {
 		double mutualReachabiltiyDistance = distanceFunction.computeDistance(dataSet[i], dataSet[j]);
 
 		if (coreDistances[i][k - 1] > mutualReachabiltiyDistance)

@@ -7,7 +7,7 @@ import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 
-public class ExperimentIncrementalHDBSCANStar {
+public class ExperimentIHDBSCANStar {
 
 	public static void main(String[] args) {
 		long start, end, duration;

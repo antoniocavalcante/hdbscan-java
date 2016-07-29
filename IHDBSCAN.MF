@@ -1,3 +1,2 @@
 Manifest-version: 1.0
-Main-Class: ca.ualberta.cs.experiments.ExperimentIncrementalHDBSCANStar
-
+Main-Class: ca.ualberta.cs.experiments.ExperimentIHDBSCANStar
