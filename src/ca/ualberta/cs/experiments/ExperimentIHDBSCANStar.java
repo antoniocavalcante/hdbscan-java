@@ -27,14 +27,19 @@ public class ExperimentIHDBSCANStar {
 		
 		start = System.currentTimeMillis();
 	
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
+		int minPoints = Integer.parseInt(args[1]);
+		if (minPoints > dataSet.length) {
+			minPoints = dataSet.length;
+		}
+		
+		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
 		
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, 
 				coreDistances, new EuclideanDistance(), Integer.parseInt(args[1]), Boolean.parseBoolean(args[3]), Double.parseDouble(args[2]), args[4]);
 
 		IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), Integer.parseInt(args[1]));
 		
-		for (int k = Integer.parseInt(args[1]) - 1; k >= 1; k--) {
+		for (int k = minPoints - 1; k >= 1; k--) {
 			RNG.updateWeights(dataSet, coreDistances, new EuclideanDistance(), k);
 
 			UndirectedGraph mst = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), k);

@@ -26,9 +26,15 @@ public class ExperimentHDBSCANStar {
 		String inputFile = args[0].split("/")[args[0].split("/").length - 1];
 		
 		start = System.currentTimeMillis();
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
 		
-		for (int k = Integer.parseInt(args[1]); k >= 1; k--) {
+		int minPoints = Integer.parseInt(args[1]);
+		if (minPoints > dataSet.length) {
+			minPoints = dataSet.length;
+		}
+		
+		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+		
+		for (int k = minPoints; k >= 1; k--) {
 			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
 			mst.quicksortByEdgeWeight();
 			

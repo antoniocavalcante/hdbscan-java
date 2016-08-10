@@ -21,21 +21,25 @@ public class ExperimentMST {
 		}
 		
 		start = System.currentTimeMillis();
-	
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
+
+		int minPoints = Integer.parseInt(args[1]);
+		if (minPoints > dataSet.length) {
+			minPoints = dataSet.length;
+		}
+		
+		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
 		
 		// Computes the first MST w.r.t minPoints = 1 (same as Euclidean Distance).
 		UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, 1, false, new EuclideanDistance());
 		mst.quicksortByEdgeWeight();
+
+		String inputFile = args[0].split("/")[args[0].split("/").length - 1];		
 		
-		String inputFile = args[0].split("/")[args[0].split("/").length - 1];
-		
-		
-		for (int k = Integer.parseInt(args[1]); k >= 1; k--) {
+		for (int k = minPoints; k >= 1; k--) {
 			// Updates weights of the MST.
 			mst.updateWeights(dataSet, coreDistances, new EuclideanDistance(), k);
 			mst.quicksortByEdgeWeight();
-			
+
 			// Outputs the weight of the MST being generated in a file for comparison purposes.
 			Experiments.writeMSTweight(inputFile, k, mst);
 			
