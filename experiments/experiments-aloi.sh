@@ -44,7 +44,7 @@ mstihdbscan() {
         done
 }
 
-#ihdbscannofilter
-#ihdbscanfilter
-#hdbscan
 mstihdbscan
+ihdbscannofilter
+ihdbscanfilter
+hdbscan
