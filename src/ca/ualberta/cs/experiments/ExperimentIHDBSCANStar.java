@@ -6,6 +6,7 @@ import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
+import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 
 public class ExperimentIHDBSCANStar {
 
@@ -22,6 +23,8 @@ public class ExperimentIHDBSCANStar {
 			System.exit(-1);
 		}
 		
+		String inputFile = args[0].split("/")[args[0].split("/").length - 1];
+		
 		start = System.currentTimeMillis();
 	
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
@@ -31,9 +34,17 @@ public class ExperimentIHDBSCANStar {
 
 		IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), Integer.parseInt(args[1]));
 		
-		for (int k = Integer.parseInt(args[1]) - 1; k > 0; k--) {
+		for (int k = Integer.parseInt(args[1]) - 1; k >= 1; k--) {
 			RNG.updateWeights(dataSet, coreDistances, new EuclideanDistance(), k);
-			IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), k);
+
+			UndirectedGraph mst = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), k);
+		
+			// Outputs the weight of the MST being generated in a file for comparison purposes.
+			Experiments.writeMSTweight(inputFile, k, mst);
+			
+			// Generates the hierarchy for mst.
+			String h = "RNG_" + inputFile;
+			Experiments.computeOutputFiles(dataSet, mst, k, h);
 		}
 		
 		end = System.currentTimeMillis();

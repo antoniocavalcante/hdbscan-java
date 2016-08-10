@@ -23,12 +23,21 @@ public class ExperimentHDBSCANStar {
 			System.exit(-1);
 		}
 
+		String inputFile = args[0].split("/")[args[0].split("/").length - 1];
+		
 		start = System.currentTimeMillis();
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
 		
-		for (int k = Integer.parseInt(args[1]); k > 1; k--) {
+		for (int k = Integer.parseInt(args[1]); k >= 1; k--) {
 			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
 			mst.quicksortByEdgeWeight();
+			
+			// Outputs the weight of the MST being generated in a file for comparison purposes.
+			Experiments.writeMSTweight(inputFile, k, mst);
+			
+			// Generates the hierarchy for mst.
+			String h = "ORI_" + inputFile;
+			Experiments.computeOutputFiles(dataSet, mst, k, h);
 		}
 
 		end = System.currentTimeMillis();

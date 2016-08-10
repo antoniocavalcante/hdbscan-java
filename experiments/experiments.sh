@@ -61,7 +61,7 @@ mstihdbscan() {
         	do
         		for i in $(seq 1)
         		do
-        			java -jar -Xms2g -Xmx7g MSTIHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} >> ${minPoints}-mstihdbscan.results
+        			java -jar -Xms2g -Xmx7g MSTIHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} >> ${d}d-${c}c-no0-${minPoints}-mstihdbscan.results
         		done
         	done
         done
