@@ -42,8 +42,8 @@ public class ExperimentHDBSCANStar {
 			Experiments.writeMSTweight("HDBSCAN", inputFile, k, mst);
 			
 			// Generates the hierarchy for mst.
-			String h = "ORI_" + inputFile;
-			Experiments.computeOutputFiles(dataSet, mst, k, h);
+//			String h = "ORI_" + inputFile;
+//			Experiments.computeOutputFiles(dataSet, mst, k, h);
 		}
 
 		end = System.currentTimeMillis();

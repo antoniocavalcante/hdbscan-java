@@ -50,8 +50,8 @@ public class ExperimentIHDBSCANStar {
 			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
 			
 			// Generates the hierarchy for mst.
-			String h = "RNG_" + inputFile;
-			Experiments.computeOutputFiles(dataSet, mst, k, h);
+//			String h = "RNG_" + inputFile;
+//			Experiments.computeOutputFiles(dataSet, mst, k, h);
 		}
 		
 		end = System.currentTimeMillis();

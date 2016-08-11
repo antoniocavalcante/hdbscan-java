@@ -44,9 +44,9 @@ public class ExperimentMST {
 			Experiments.writeMSTweight("MST", inputFile, k, mst);
 			
 			// Generates the hierarchy for mst.
-			String h = "MST_" + inputFile;
-			Experiments.computeOutputFiles(dataSet, mst, k, h);
-			mst.restoreEdges();			
+//			String h = "MST_" + inputFile;
+//			Experiments.computeOutputFiles(dataSet, mst, k, h);
+//			mst.restoreEdges();
 		}
 
 		end = System.currentTimeMillis();
