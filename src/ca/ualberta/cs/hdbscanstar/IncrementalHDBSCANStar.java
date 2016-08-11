@@ -211,7 +211,7 @@ public class IncrementalHDBSCANStar {
 	 * @return An array of core distances
 	 */
 	public static double[][] calculateCoreDistances(Double[][] dataSet, int k, DistanceCalculator distanceFunction) {
-		int numNeighbors = k + 1;
+		int numNeighbors = k;
 		MutualReachabilityGraph.neighbors = new HashMap<Integer, ArrayList<Integer>>(dataSet.length);
 		double[][] coreDistances = new double[dataSet.length][numNeighbors];
 		int[][] kNN = new int[dataSet.length][numNeighbors];

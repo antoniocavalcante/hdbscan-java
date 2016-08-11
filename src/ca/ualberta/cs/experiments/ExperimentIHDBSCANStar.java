@@ -37,12 +37,14 @@ public class ExperimentIHDBSCANStar {
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, 
 				coreDistances, new EuclideanDistance(), minPoints, Boolean.parseBoolean(args[3]), Double.parseDouble(args[2]), args[4]);
 
-		IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), minPoints);
-		
+		UndirectedGraph mst = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), minPoints);
+		// Outputs the weight of the MST being generated in a file for comparison purposes.
+		Experiments.writeMSTweight("IHDBSCAN", inputFile, minPoints, mst);
+					
 		for (int k = minPoints - 1; k >= 1; k--) {
 			RNG.updateWeights(dataSet, coreDistances, new EuclideanDistance(), k);
 
-			UndirectedGraph mst = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), k);
+			mst = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), k);
 		
 			// Outputs the weight of the MST being generated in a file for comparison purposes.
 			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
