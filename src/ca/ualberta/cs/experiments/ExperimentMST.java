@@ -41,7 +41,7 @@ public class ExperimentMST {
 			mst.quicksortByEdgeWeight();
 
 			// Outputs the weight of the MST being generated in a file for comparison purposes.
-			Experiments.writeMSTweight(inputFile, k, mst);
+			Experiments.writeMSTweight("MST", inputFile, k, mst);
 			
 			// Generates the hierarchy for mst.
 			String h = "MST_" + inputFile;

@@ -12,12 +12,12 @@ import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 
 public class Experiments {
 	
-	public static void writeMSTweight(String file, int minPoints, UndirectedGraph MST) {
+	public static void writeMSTweight(String method, String file, int minPoints, UndirectedGraph MST) {
 		
-		String f = file + "-" + minPoints + ".w";
+		String f = method + ".w";
 				
 		try {
-			Files.write(Paths.get(f), (Double.toString(MST.getTotalWeight()) + "\n").getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+			Files.write(Paths.get(f), (file + " " + Integer.toString(minPoints) + " " + Double.toString(MST.getTotalWeight()) + "\n").getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

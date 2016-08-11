@@ -45,7 +45,7 @@ public class ExperimentIHDBSCANStar {
 			UndirectedGraph mst = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), k);
 		
 			// Outputs the weight of the MST being generated in a file for comparison purposes.
-			Experiments.writeMSTweight(inputFile, k, mst);
+			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
 			
 			// Generates the hierarchy for mst.
 			String h = "RNG_" + inputFile;

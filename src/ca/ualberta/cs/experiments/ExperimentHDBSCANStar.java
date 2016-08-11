@@ -39,7 +39,7 @@ public class ExperimentHDBSCANStar {
 			mst.quicksortByEdgeWeight();
 			
 			// Outputs the weight of the MST being generated in a file for comparison purposes.
-			Experiments.writeMSTweight(inputFile, k, mst);
+			Experiments.writeMSTweight("HDBSCAN", inputFile, k, mst);
 			
 			// Generates the hierarchy for mst.
 			String h = "ORI_" + inputFile;
