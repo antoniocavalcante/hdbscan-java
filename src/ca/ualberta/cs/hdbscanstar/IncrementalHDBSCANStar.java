@@ -245,6 +245,7 @@ public class IncrementalHDBSCANStar {
 
 				//Shift elements in the array to make room for the current distance:
 				if (neighborIndex < numNeighbors) {
+					
 					for (int shiftIndex = numNeighbors-1; shiftIndex > neighborIndex; shiftIndex--) {
 						kNNDistances[shiftIndex] = kNNDistances[shiftIndex-1];
 						kNN[point][shiftIndex] = kNN[point][shiftIndex-1];
@@ -256,7 +257,7 @@ public class IncrementalHDBSCANStar {
 
 			coreDistances[point] = kNNDistances;
 		}
-		
+
 		IncrementalHDBSCANStar.kNN = kNN;
 		IncrementalHDBSCANStar.coreDistances = coreDistances;
 		

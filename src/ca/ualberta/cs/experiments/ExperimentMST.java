@@ -6,7 +6,9 @@ import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 
+
 public class ExperimentMST {
+	
 	public static void main(String[] args) throws IOException {
 		long start, end, duration;
 		
@@ -20,37 +22,46 @@ public class ExperimentMST {
 			System.exit(-1);
 		}
 		
-		start = System.currentTimeMillis();
-
+		String inputFile = args[0].split("/")[args[0].split("/").length - 1];		
+		
 		int minPoints = Integer.parseInt(args[1]);
 		if (minPoints > dataSet.length) {
 			minPoints = dataSet.length;
 		}
 		
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+		// Prints data set, minPoints, Run
+		System.out.print(args[0] + " " + args[1] + " " + args[2]);
 		
-		// Computes the first MST w.r.t minPoints = 1 (same as Euclidean Distance).
+		start = System.currentTimeMillis();
+		
+		// Computes all the core-distances from 1 to minPoints
+		long startcore = System.currentTimeMillis();
+		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+		System.out.print(" " + (System.currentTimeMillis() - startcore));
+		
+		//  Constructs the MST w.r.t Euclidean Distance (e.g. minPoints = 1)
+		long startmst = System.currentTimeMillis();
 		UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, 1, false, new EuclideanDistance());
 		mst.quicksortByEdgeWeight();
+		System.out.print(" " + (System.currentTimeMillis() - startmst));
 
-		String inputFile = args[0].split("/")[args[0].split("/").length - 1];		
-		
+		// Updates this the edges weights of the MST w.r.t. minPoints = k
+		long startupdate = System.currentTimeMillis();
 		for (int k = minPoints; k >= 1; k--) {
-			// Updates weights of the MST.
 			mst.updateWeights(dataSet, coreDistances, new EuclideanDistance(), k);
 			mst.quicksortByEdgeWeight();
 
-			// Outputs the weight of the MST being generated in a file for comparison purposes.
 			Experiments.writeMSTweight("MST", inputFile, k, mst);
 			
-			// Generates the hierarchy for mst.
-//			String h = "MST_" + inputFile;
-//			Experiments.computeOutputFiles(dataSet, mst, k, h);
-//			mst.restoreEdges();
+			if (Boolean.parseBoolean(args[3])) {
+				Experiments.computeOutputFiles(dataSet, mst, k, "MST_" + inputFile);
+				mst.restoreEdges();
+			}
 		}
+		System.out.print(" " + (System.currentTimeMillis() - startupdate));
 
 		end = System.currentTimeMillis();
 		duration = end - start;
-		System.out.println(args[0] + " " + args[1] + " " + duration);
+		System.out.println(" " + duration);
 	}
 }

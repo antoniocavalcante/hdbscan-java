@@ -12,6 +12,21 @@ import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 
 public class Experiments {
 	
+	
+	public static Double[][] loadData(String file) {
+		Double[][] dataSet = null;
+
+		try {
+			dataSet = HDBSCANStar.readInDataSet(file, " ");
+		}
+		catch (IOException ioe) {
+			System.err.println("Error reading input data set file.");
+			System.exit(-1);
+		}
+
+		return dataSet;
+	}
+	
 	public static void writeMSTweight(String method, String file, int minPoints, UndirectedGraph MST) {
 		
 		String f = method + ".w";

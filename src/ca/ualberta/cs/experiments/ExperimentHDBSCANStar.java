@@ -7,7 +7,6 @@ import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 
-
 public class ExperimentHDBSCANStar {
 
 	public static void main(String[] args) {
@@ -24,30 +23,39 @@ public class ExperimentHDBSCANStar {
 		}
 
 		String inputFile = args[0].split("/")[args[0].split("/").length - 1];
-		
-		start = System.currentTimeMillis();
-		
+				
 		int minPoints = Integer.parseInt(args[1]);
 		if (minPoints > dataSet.length) {
 			minPoints = dataSet.length;
 		}
+
+		// Prints data set, minPoints, Run
+		System.out.print(args[0] + " " + args[1] + " " + args[2]);
+
+		start = System.currentTimeMillis();
 		
+		// Computes all the core-distances from 1 to minPoints
+		long startcore = System.currentTimeMillis();
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+		System.out.print(" " + (System.currentTimeMillis() - startcore));
 		
+		//  Constructs all the the MST
+		long startmst = System.currentTimeMillis();
 		for (int k = minPoints; k >= 1; k--) {
 			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
 			mst.quicksortByEdgeWeight();
 			
-			// Outputs the weight of the MST being generated in a file for comparison purposes.
 			Experiments.writeMSTweight("HDBSCAN", inputFile, k, mst);
 			
-			// Generates the hierarchy for mst.
-//			String h = "ORI_" + inputFile;
-//			Experiments.computeOutputFiles(dataSet, mst, k, h);
+			if (Boolean.parseBoolean(args[3])) {
+				Experiments.computeOutputFiles(dataSet, mst, k, "ORI_" + inputFile);
+			}
 		}
-
+		
+		System.out.print(" " + (System.currentTimeMillis() - startmst));
+		
 		end = System.currentTimeMillis();
 		duration = end - start;
-		System.out.println(args[0] + " " + args[1] + " " + duration);
+		System.out.println(" " + duration);
 	}
 }

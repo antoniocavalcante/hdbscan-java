@@ -14,11 +14,15 @@ echo "[$(date)] Creating build directory, if one does not exist..."
 
 # Compiles the files.
 echo "[$(date)] Compiling the source files..."
-javac -classpath ".:lib/*" -d bin @sources.txt
+javac -d bin @sources.txt
 
 # Removes the file source.txt, that contains the list of the Java sources files.
 echo "[$(date)] Removing temporary file sources.txt..."
 rm -f sources.txt
+
+# Creates jar file for MSTIHDBSCAN*.
+echo "[$(date)] Creating jar file for MSTIHDBSCAN*..."
+jar -cfm MSTIHDBSCAN.jar MSTIHDBSCAN.MF -C bin/ .
 
 # Creates jar file for Incremental HDBSCAN*.
 echo "[$(date)] Creating jar file for Incremental HDBSCAN*..."
@@ -26,10 +30,10 @@ jar -cfm IHDBSCAN.jar IHDBSCAN.MF -C bin/ .
 
 # Creates jar file for HDBSCAN*.
 echo "[$(date)] Creating jar file for HDBSCAN*..."
-jar -cfm HDBSCAN.jar IHDBSCAN.MF -C bin/ .
+jar -cfm HDBSCAN.jar HDBSCAN.MF -C bin/ .
 
 # Copies the jar files to the experiments directory.
 echo "[$(date)] Copying the jar files to the experiments directory..."
-cp *.jar experiments/
+mv *.jar experiments/
 
 echo "[$(date)] DONE!"
