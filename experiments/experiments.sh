@@ -1,30 +1,60 @@
 #!/bin/sh
 
-DIR="data#3"
+DIR="data#6"
 
 # rm -rf *.results
 
-run() {
-    for c in 2 4 8 16 32 64 128;
+dataset() {
+    for c in 16 32 64 128 256 512 1024;
     do
-        for d in 2 4 8 16 32 64 128;
-        do
-        	for minPoints in 10 20 30 40 50 60 70 80 90 100;
-        	do
-        		for i in $(seq 5)
-        		do
-                    # MSTIHDBSCAN
-                    java -jar -Xms2g -Xmx7g MSTIHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false >> ${d}d-${minPoints}-mstihdbscan.results
+		for i in $(seq 1)
+		do
+            # MSTIHDBSCAN
+            # java -jar -Xms2g -Xmx7g MSTIHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false >> ${d}d-${minPoints}-mstihdbscan.results
 
-                    # IHDBSCAN
-        			java -jar -Xms2g -Xmx7g IHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false false >> ${d}d-${minPoints}-ihdbscan.results
+            # IHDBSCAN
+			# java -jar -Xms2g -Xmx7g IHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false false >> ${d}d-${minPoints}-ihdbscan.results
 
-                    # HDBSCAN
-                    java -jar -Xms2g -Xmx7g HDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false >> ${d}d-${minPoints}-hdbscan.results
-        		done
-        	done
+            # HDBSCAN
+            java -jar -Xms2g -Xmx7g HDBSCAN.jar "${DIR}/16d-${c}.dat" 16 $i false >> hdbscan-dataset.results
         done
     done
 }
 
-run
+minpoints() {
+    for minpoints in 16 32 64 128 256 512 1024;
+    do
+		for i in $(seq 1)
+		do
+            # MSTIHDBSCAN
+            # java -jar -Xms2g -Xmx7g MSTIHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false >> ${d}d-${minPoints}-mstihdbscan.results
+
+            # IHDBSCAN
+			# java -jar -Xms2g -Xmx7g IHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false false >> ${d}d-${minPoints}-ihdbscan.results
+
+            # HDBSCAN
+            java -jar -Xms2g -Xmx7g HDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false >> hdbscan-minpoints.results
+        done
+    done
+}
+
+dimensions() {
+    for d in 16 32 64 128 256 512 1024;
+    do
+		for i in $(seq 1)
+		do
+            # MSTIHDBSCAN
+            # java -jar -Xms2g -Xmx7g MSTIHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false >> ${d}d-${minPoints}-mstihdbscan.results
+
+            # IHDBSCAN
+			# java -jar -Xms2g -Xmx7g IHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false false >> ${d}d-${minPoints}-ihdbscan.results
+
+            # HDBSCAN
+            java -jar -Xms2g -Xmx7g HDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false >> hdbscan-dimensions.results
+        done
+    done
+}
+
+dataset
+minpoints
+dimensions

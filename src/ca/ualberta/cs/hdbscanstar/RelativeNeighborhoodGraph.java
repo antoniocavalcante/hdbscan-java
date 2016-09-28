@@ -81,6 +81,9 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		temp = BCN(dataSet, coreDistances, distanceFunction, k, filter);
 
+		// cleaning variable
+		WSPD.pairs = null;
+		
 		for (Pair p : temp.keySet()) {
 			A.add(p.a);
 			B.add(p.b);
@@ -90,6 +93,10 @@ public class RelativeNeighborhoodGraph extends Graph {
 			W.add(mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p.a, p.b, k));
 		}
 
+		// cleaning variable
+		temp = null;
+		WSPD.pairs = null;
+		
 		if (filter) {
 			
 			for (int e = A.size() - 1; e >= 0; e--) {

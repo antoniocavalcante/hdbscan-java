@@ -33,13 +33,36 @@ public class RunHAIonALOI {
 		}
 	}
 
+//	public static void run(String method, String set, int k, String setNumber) {
+//		
+//		int minPoints = Math.min(25*k, 100) - 1;
+//
+//		String h1 = baseDir + 1 + method + "_" + set + k + "_" + setNumber + suffix;
+//		
+//		for (int i = 2; i < minPoints; i++) {
+//			String h2 = baseDir + i + method + "_" + set + k + "_" + setNumber + suffix;
+//			
+//			double hai = HAI.evaluate(h1, h2);
+//						
+//			try {
+//				Files.write(Paths.get(outputDir + k + "_" + method + ".HAI"), (Integer.toString(i) + " " + Double.toString(hai) + "\n").getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			
+//			h1 = h2;
+//		}
+//
+//	}
+
 	public static void run(String method, String set, int k, String setNumber) {
 		
 		int minPoints = Math.min(25*k, 100) - 1;
 
 		String h1 = baseDir + 1 + method + "_" + set + k + "_" + setNumber + suffix;
 		
-		for (int i = 2; i < minPoints; i++) {
+		for (int i = 2; i < 49; i++) {
 			String h2 = baseDir + i + method + "_" + set + k + "_" + setNumber + suffix;
 			
 			double hai = HAI.evaluate(h1, h2);
@@ -54,6 +77,5 @@ public class RunHAIonALOI {
 			h1 = h2;
 		}
 
-	}
-	
+	}	
 }
