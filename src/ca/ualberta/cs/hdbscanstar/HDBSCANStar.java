@@ -69,8 +69,8 @@ public class HDBSCANStar {
 			else if (lineContents.length != numAttributes)
 				System.err.println("Line " + lineIndex + " of data set has incorrect number of attributes.");
 
-			Double[] attributes = new Double[numAttributes-1];
-			for (int i = 0; i < numAttributes-1; i++) {
+			Double[] attributes = new Double[numAttributes];
+			for (int i = 0; i < numAttributes; i++) {
 				try {
 					//If an exception occurs, the attribute will remain 0:
 					attributes[i] = Double.parseDouble(lineContents[i]);

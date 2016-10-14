@@ -1,10 +1,14 @@
 package ca.ualberta.cs.test;
-
 import java.io.IOException;
+import java.lang.instrument.ClassDefinition;
+import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.JarFile;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
@@ -12,6 +16,7 @@ import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.MutualReachabilityGraph;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
+import ca.ualberta.cs.util.SeparatedPair;
 import ca.ualberta.cs.util.WSPD;
 
 /**
@@ -20,14 +25,18 @@ import ca.ualberta.cs.util.WSPD;
  */
 public class Test {
 
+	private static volatile Instrumentation globalInstrumentation;
+	
 	public static void main(String[] args) {
 		Double[][] dataSet = null;
 
 		try {
-			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#2/2d-2c-no0.dat", " ");
+			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#6/4d-128.dat", " ");
+//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/4d-16.dat", " ");
+//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#2/2d.data", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/test2.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/4.dat", " ");
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/jad.dat", ",");
+//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/jad.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/j.dat", ",");
 		}
 		catch (IOException ioe) {
@@ -38,11 +47,11 @@ public class Test {
 		int numPoints = dataSet.length;
 		System.out.println("Dataset size: " + numPoints);
 		System.out.println("Dimensions: " + dataSet[0].length);
-
-//		single(dataSet, 4, 1, WSPD.WS, true);
-//		performance(dataSet, 10, 1, WSPD.WS, true);
-		performanceRNG(dataSet, 10, false, 1, WSPD.WS, true);
-//		correct(dataSet, 10, true, 1, WSPD.WS);
+		
+//		single(dataSet, 10, 1, WSPD.WS, true);
+//		performance(dataSet, 16, 1, WSPD.WS, false);
+		performanceRNG(dataSet, 16, false, 1, WSPD.WS, false);
+//		correct(dataSet, 16, false, 1, WSPD.WS);
 	
 	}
 	
@@ -127,6 +136,7 @@ public class Test {
 		 */
 		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, true, s, method);
+//		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK);
 		UndirectedGraph mst2 = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances2, false, new EuclideanDistance(), maxK);
 
 		correct(mst1, mst2, debug);
@@ -191,21 +201,19 @@ public class Test {
 		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 
 		long start = System.currentTimeMillis();
-//		RelativeNeighborhoodGraph RNG1 = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK);
-//		System.out.println("Naive RNG construction: " + (System.currentTimeMillis() - start));
-//		RNG1.timSort();
-//		
-//		System.out.println("-----------------------------");
+		RelativeNeighborhoodGraph RNG1 = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK);
+		System.out.println("Naive RNG construction: " + (System.currentTimeMillis() - start));
+		RNG1.timSort();
+		
+		System.out.println("-----------------------------");
 		
 		start = System.currentTimeMillis();
 		RelativeNeighborhoodGraph RNG2 = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, filter, s, method);
 		System.out.println("WSPD RNG construction: " + (System.currentTimeMillis() - start));
 		RNG2.timSort();
 
-//		System.out.println("RNG #1: " + RNG1.numOfEdgesMRG);
-		System.out.println("RNG #2: " + RNG2.numOfEdgesMRG);
-		
-//		if (debug) printGraphs(RNG1, RNG2);
+		System.out.println("RNG #1 (NAIVE): " + RNG1.numOfEdgesMRG);
+		System.out.println("RNG #2 (sWSPD): " + RNG2.numOfEdgesMRG);
 	}
 	
 	/** Receives two Relative Neighborhood Graphs and print them.
@@ -271,22 +279,22 @@ public class Test {
 		/**
 		 *  HDBSCAN* 
 		 **/
-//		System.out.println("--------------------");
-//		System.out.println("HDBSCAN*");
-//		start = System.currentTimeMillis();
-//		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
-//		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
-//
-//		for (int k = maxK; k > 0; k--) {
-//			UndirectedGraph mst1 = HDBSCANStar.constructMST(dataSet, coreDistances, maxK, false, new EuclideanDistance());
-//			mst1.quicksortByEdgeWeight();
-//		}
-//
-//		duration = System.currentTimeMillis() - start;
-//
-//		System.out.println();
-//		System.out.println("Total Running Time: " + duration);
-//		System.out.println();
+		System.out.println("--------------------");
+		System.out.println("HDBSCAN*");
+		start = System.currentTimeMillis();
+		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
+		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
+
+		for (int k = maxK; k > 0; k--) {
+			UndirectedGraph mst1 = HDBSCANStar.constructMST(dataSet, coreDistances, maxK, false, new EuclideanDistance());
+			mst1.quicksortByEdgeWeight();
+		}
+
+		duration = System.currentTimeMillis() - start;
+
+		System.out.println();
+		System.out.println("Total Running Time: " + duration);
+		System.out.println();
 
 		/**
 		 *  Incremental HDBSCAN* 

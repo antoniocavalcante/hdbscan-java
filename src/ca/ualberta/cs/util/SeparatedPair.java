@@ -1,22 +1,37 @@
 package ca.ualberta.cs.util;
 
-public class SeparatedPair {
+import java.io.Serializable;
 
-	public FairSplitTree T1;
-	public FairSplitTree T2;
+public class SeparatedPair implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	
-	public SeparatedPair(FairSplitTree t1, FairSplitTree t2) {
+	public int T1;
+	public int T2;
+	
+	public SeparatedPair(int t1, int t2) {
 		super();
 		T1 = t1;
 		T2 = t2;
+	}
+	
+	public FairSplitTree getT1() {
+		return FairSplitTree.root.get(T1);
+	}
+
+	public FairSplitTree getT2() {
+		return FairSplitTree.root.get(T2);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((T1 == null) ? 0 : T1.hashCode());
-		result = prime * result + ((T2 == null) ? 0 : T2.hashCode());
+		result = prime * result + T1;
+		result = prime * result + T2;
 		return result;
 	}
 
@@ -29,15 +44,9 @@ public class SeparatedPair {
 		if (getClass() != obj.getClass())
 			return false;
 		SeparatedPair other = (SeparatedPair) obj;
-		if (T1 == null) {
-			if (other.T1 != null)
-				return false;
-		} else if (!T1.equals(other.T1))
+		if (T1 != other.T1)
 			return false;
-		if (T2 == null) {
-			if (other.T2 != null)
-				return false;
-		} else if (!T2.equals(other.T2))
+		if (T2 != other.T2)
 			return false;
 		return true;
 	}

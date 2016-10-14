@@ -1,19 +1,24 @@
 package ca.ualberta.cs.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
+import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 
 public class FairSplitTree {
 
-	private static Double[][] S;
+	public static Double[][] S;
 	private static int dimensions;
+	public static HashMap<Integer, FairSplitTree> root;
 
 	private Double[][] boundingBox;
-	private FairSplitTree parent;
-	private FairSplitTree left;
-	private FairSplitTree right;
+	private int parent;
+	private int left;
+	private int right;
 	private int count;
 	private int level;
 	private boolean leaf;
@@ -31,14 +36,17 @@ public class FairSplitTree {
 	public static FairSplitTree build(Double[][] S) {
 		FairSplitTree.S = S;
 		FairSplitTree.dimensions = S[0].length;
-		
+		FairSplitTree.root = new HashMap<Integer, FairSplitTree>();
 		ArrayList<Integer> P = new ArrayList<Integer>();
 
 		for (int i = 0; i < S.length; i++) {
 			P.add(i);
 		}
+
+		FairSplitTree T = new FairSplitTree(null, P, 0, 1);
+		root.put(1, T);
 		
-		return new FairSplitTree(null, P, 0, 1);
+		return T;
 	}
 
 	
@@ -50,11 +58,11 @@ public class FairSplitTree {
 	 */
 	public FairSplitTree(FairSplitTree parent, ArrayList<Integer> P, int level, int id){
 		// Update parent.
-		if (id == 1)
-			this.parent = this;
-		else
-			this.parent = parent;
-		
+		if (id == 1){
+			this.parent = id;
+		} else {
+			this.parent = parent.id;
+		}
 		// Update the id of the tree.
 		this.id = id;
 		
@@ -69,8 +77,8 @@ public class FairSplitTree {
 		
 		if (this.count == 0) {
 			this.leaf = true;
-			this.right = null;
-			this.left = null;
+			this.right = -1;
+			this.left = -1;
 		
 		} else {
 
@@ -85,8 +93,8 @@ public class FairSplitTree {
 			
 			if (this.count == 1) {
 				this.leaf = true;
-				this.right = null;
-				this.left = null;
+				this.right = -1;
+				this.left = -1;
 				this.p = P.get(0);
 				
 			} else {
@@ -104,13 +112,16 @@ public class FairSplitTree {
 							this.boundingBox[1][i] = S[p][i];
 						}
 					}
+					this.diameter = Math.max(this.diameter, IncrementalHDBSCANStar.coreDistances[p][IncrementalHDBSCANStar.k-1]);
 				}
+				
+				this.diameter = Math.max(this.diameter, (new EuclideanDistance()).computeDistance(boundingBox[0], boundingBox[1]));
 				
 				// Find the dimension j where the hyper-rectangle edge is larger.
 				int j = 0;
 				double max = 0;
 
-				for (int i = 0; i < boundingBox.length; i++) {
+				for (int i = 0; i < boundingBox[0].length; i++) {
 
 					double d = (boundingBox[1][i] - boundingBox[0][i]);
 					
@@ -135,8 +146,10 @@ public class FairSplitTree {
 				}
 				
 				// Recursive call for left and right children.
-				this.left  = new FairSplitTree(this, left,  this.level + 1, this.id*2);
-				this.right = new FairSplitTree(this, right, this.level + 1, this.id*2 + 1);
+				this.left  = this.id*2;
+				root.put(this.left, new FairSplitTree(this, left,  this.level + 1, this.left));
+				this.right = this.id*2 + 1;
+				root.put(this.right, new FairSplitTree(this, right, this.level + 1, this.right));
 			}
 		}
 	}
@@ -146,6 +159,23 @@ public class FairSplitTree {
 	 * @return List containing the IDs of the points under the tree.
 	 */
 	public List<Integer> retrieve() {
+//		PriorityQueue<Integer> q = new PriorityQueue<Integer>();
+//		List<Integer> P = new ArrayList<Integer>();
+//
+//		q.add(this.id);
+//		
+//		while (!q.isEmpty()) {
+//			FairSplitTree T = FairSplitTree.root.get(q.poll());
+//			
+//			if (T.isLeaf()) {
+//				P.add(T.p);
+//			} else {
+//				q.add(T.left);
+//				q.add(T.right);
+//			}
+//			
+//		}
+		
 		return this.P;
 	}
 
@@ -156,8 +186,8 @@ public class FairSplitTree {
 		}
 		System.out.print(" ");
 		System.out.println("id " + T.id + ": " + T.P + " - diameter: " + T.diameter());
-		if (!T.isLeaf()) print(T.left);
-		if (!T.isLeaf()) print(T.right);
+		if (!T.isLeaf()) print(T.getLeft());
+		if (!T.isLeaf()) print(T.getRight());
 	}
 	
 	public static double boxDistance(FairSplitTree T1, FairSplitTree T2) {
@@ -177,27 +207,37 @@ public class FairSplitTree {
 			
 			distance[i] = Math.min(Math.abs(T1.boundingBox[0][i]-T2.boundingBox[1][i]), Math.abs(T1.boundingBox[1][i]-T2.boundingBox[0][i]));
 		}
-		
-		// There is overlapping.
-		if (count == dimensions - 1) {
-			for (int i = 0; i < overlap.length; i++) {
-				if (!overlap[i]) {
-					return distance[i];
-				}
-			}
-		}
 
+		// There is overlapping in all dimensions, meaning a portion of the boxes are inside the other one. Distance is 0 in this case.
 		if (count == dimensions) {
 			return 0;
 		}
-		
+
+		// There is overlapping in zero dimensions. In this case, Pitagoras is applied.
+
 		double d = 0;
 
-		for (int i = 0; i < distance.length; i++) {
-			d = d + Math.pow(distance[i], 2);
+		if (count == 0) {
+			for (int i = 0; i < overlap.length; i++) {
+				d = d + Math.pow(distance[i], 2);
+			}
+			return Math.sqrt(d);
 		}
 		
-		return Math.sqrt(d);
+		// There is overlapping in more than one dimension. Distance between plans.
+		double min = Double.MAX_VALUE;
+		
+		if (count > 0) {
+			for (int i = 0; i < distance.length; i++) {
+				if (overlap[i]) {
+					min = Math.min(distance[i], min);
+				}
+			}
+		
+			return min;
+		}
+		System.out.println("HERE");
+		return 0;
 	}
 
 	public static double boxDistance(Double[] point, FairSplitTree T) {
@@ -241,17 +281,20 @@ public class FairSplitTree {
 		return Math.sqrt(d);
 	}
 
+	public static double circleDistance(FairSplitTree T1, FairSplitTree T2) {
+		return (new EuclideanDistance()).computeDistance(T1.center(), T2.center()) - T1.diameter()/2 - T2.diameter()/2;
+	}
+
+	public static double circleDistance(Double[] point, FairSplitTree T) {
+		return (new EuclideanDistance()).computeDistance(point, T.center()) - T.diameter()/2;
+	}
 	
 	public double diameter() {
 
-		if (diameter == -1) {
-			if (this.leaf) {
-				this.diameter = 0;
-			} else {
-				this.diameter = (new EuclideanDistance()).computeDistance(boundingBox[0], boundingBox[1]);
-			}
+		if (this.isLeaf()) {
+			return 0;
 		}
-		
+				
 		return diameter;		
 	}
 	
@@ -270,37 +313,37 @@ public class FairSplitTree {
 		FairSplitTree T2P = parent(T2);
 		
 		if (T1P == T2P) return T1P;
-		
+
 		return parent(T1P, T2P);
 	}
 	
 	public static FairSplitTree parent(FairSplitTree T) {
-		return T.parent;
+		return root.get(T.parent);
 	}
 	
-	public static ArrayList<Integer> rangeSearch(FairSplitTree root, Double[] queryPoint, double r, ArrayList<Integer> results) {
-		double left  = boxDistance(queryPoint, root.left);
-		double right = boxDistance(queryPoint, root.right);
+	public static ArrayList<Integer> rangeSearch(FairSplitTree root, Double[] queryPoint, double r, ArrayList<Integer> arrayList) {
+		double left  = circleDistance(queryPoint, FairSplitTree.root.get(root.left));
+		double right = circleDistance(queryPoint, FairSplitTree.root.get(root.right));
 
 		if (left <= r) {
-			if (root.left.isLeaf()) {
+			if (FairSplitTree.root.get(root.left).isLeaf()) {
 				// Add to the results.
-				results.addAll(root.left.P);
+				arrayList.addAll(FairSplitTree.root.get(root.left).P);
 			} else {
-				rangeSearch(root.left, queryPoint, r, results);
+				rangeSearch(FairSplitTree.root.get(root.left), queryPoint, r, arrayList);
 			}
 		}
 		
 		if (right <= r) {
-			if (root.right.isLeaf()) {
+			if (FairSplitTree.root.get(root.right).isLeaf()) {
 				// Add to the results
-				results.addAll(root.right.P);
+				arrayList.addAll(FairSplitTree.root.get(root.right).P);
 			} else {
-				rangeSearch(root.right, queryPoint, r, results);
+				rangeSearch(FairSplitTree.root.get(root.right), queryPoint, r, arrayList);
 			}
 		}
 		
-		return results;
+		return arrayList;
 	}
 	
 	public int getDimensions() {
@@ -312,19 +355,11 @@ public class FairSplitTree {
 	}
 
 	public FairSplitTree getLeft() {
-		return left;
-	}
-
-	public void setLeft(FairSplitTree left) {
-		this.left = left;
+		return FairSplitTree.root.get(left);
 	}
 
 	public FairSplitTree getRight() {
-		return right;
-	}
-
-	public void setRight(FairSplitTree right) {
-		this.right = right;
+		return FairSplitTree.root.get(right);
 	}
 
 	public int getCount() {

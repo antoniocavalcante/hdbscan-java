@@ -234,7 +234,7 @@ public class IncrementalHDBSCANStar {
 			}
 
 			for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
-
+				
 				double distance = distanceFunction.computeDistance(dataSet[point], dataSet[neighbor]);
 
 				//Check at which position in the nearest distances the current distance would fit:
