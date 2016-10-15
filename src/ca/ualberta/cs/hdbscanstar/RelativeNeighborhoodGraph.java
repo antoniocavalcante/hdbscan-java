@@ -68,11 +68,11 @@ public class RelativeNeighborhoodGraph extends Graph {
 		// Builds the Fair Split Tree T from dataSet.
 		FairSplitTree T = FairSplitTree.build(dataSet);
 
-		System.out.println("Fair Split Tree Built");
+//		System.out.println("Fair Split Tree Built");
 		
 		// Finds all the Well-separated Pairs from T.
 		WSPD.build(T, T, s, method);
-		System.out.println("WSPD built");
+//		System.out.println("WSPD built");
 
 		ArrayList<Integer> A = new ArrayList<Integer>();
 		ArrayList<Integer> B = new ArrayList<Integer>();
@@ -82,7 +82,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 		ArrayList<Double> W = new ArrayList<Double>();
 		
 		HashMap<Pair, FairSplitTree> temp = new HashMap<Pair, FairSplitTree>();
-		System.out.println("Number of pairs: " + WSPD.pairs.size());
+//		System.out.println("Number of pairs: " + WSPD.pairs.size());
 
 		temp = SBCN(dataSet, coreDistances, distanceFunction, k, filter);
 		

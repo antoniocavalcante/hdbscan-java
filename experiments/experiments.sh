@@ -13,16 +13,16 @@ dataset() {
             # java -jar -Xms2g -Xmx7g MSTIHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false >> ${d}d-${minPoints}-mstihdbscan.results
 
             # IHDBSCAN
-			# java -jar -Xms2g -Xmx7g IHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false false >> ${d}d-${minPoints}-ihdbscan.results
+            java -jar -Xms2g -Xmx7g IHDBSCAN.jar "${DIR}/16d-${c}.dat" 16 $i false false >> ihdbscan-dataset-nofilter.results
 
             # HDBSCAN
-            java -jar -Xms2g -Xmx7g HDBSCAN.jar "${DIR}/16d-${c}.dat" 16 $i false >> hdbscan-dataset.results
+            # java -jar -Xms2g -Xmx7g HDBSCAN.jar "${DIR}/16d-${c}.dat" 16 $i false >> hdbscan-dataset.results
         done
     done
 }
 
 minpoints() {
-    for minpoints in 16 32 64 128 256 512 1024;
+    for minpoints in 2 4 8 16 32 64 128;
     do
 		for i in $(seq 1)
 		do
@@ -30,16 +30,16 @@ minpoints() {
             # java -jar -Xms2g -Xmx7g MSTIHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false >> ${d}d-${minPoints}-mstihdbscan.results
 
             # IHDBSCAN
-			# java -jar -Xms2g -Xmx7g IHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false false >> ${d}d-${minPoints}-ihdbscan.results
+	        java -jar -Xms2g -Xmx7g IHDBSCAN.jar "${DIR}/16d-128.dat" ${minPoints} $i false false >> ihdbscan-minpoints-nofilter.results
 
             # HDBSCAN
-            java -jar -Xms2g -Xmx7g HDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false >> hdbscan-minpoints.results
+            # java -jar -Xms2g -Xmx7g HDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false >> hdbscan-minpoints.results
         done
     done
 }
 
 dimensions() {
-    for d in 16 32 64 128 256 512 1024;
+    for d in 4 8 16 32 64 128;
     do
 		for i in $(seq 1)
 		do
@@ -47,14 +47,11 @@ dimensions() {
             # java -jar -Xms2g -Xmx7g MSTIHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false >> ${d}d-${minPoints}-mstihdbscan.results
 
             # IHDBSCAN
-			# java -jar -Xms2g -Xmx7g IHDBSCAN.jar "${DIR}/${d}d-${c}c-no0.dat" ${minPoints} $i false false >> ${d}d-${minPoints}-ihdbscan.results
+	        java -jar -Xms2g -Xmx7g IHDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false false >> ihdbscan-dimensions-nofilter.results
 
             # HDBSCAN
-            java -jar -Xms2g -Xmx7g HDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false >> hdbscan-dimensions.results
+            # java -jar -Xms2g -Xmx7g HDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false >> hdbscan-dimensions.results
         done
     done
 }
 
-dataset
-minpoints
-dimensions
