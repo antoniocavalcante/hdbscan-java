@@ -22,7 +22,7 @@ public class WSPD {
 		File file = new File("/tmp/pairs-" + System.nanoTime() + ".map");
 	    file.deleteOnExit();
 	    
-	    ChronicleMapBuilder<Integer, SeparatedPair> builder = ChronicleMapBuilder.of(Integer.class, SeparatedPair.class).entries((long)(Math.pow(FairSplitTree.S.length, 2)));
+	    ChronicleMapBuilder<Integer, SeparatedPair> builder = ChronicleMapBuilder.of(Integer.class, SeparatedPair.class).entries((long)(FairSplitTree.S.length*(Math.pow(FairSplitTree.S[0].length, 2))));
 	    builder.averageValueSize(8);
 	    
 	    count = 1;
