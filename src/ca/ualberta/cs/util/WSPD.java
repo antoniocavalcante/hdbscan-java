@@ -22,14 +22,13 @@ public class WSPD {
 		File file = new File("/tmp/pairs-" + System.nanoTime() + ".map");
 	    file.deleteOnExit();
 	    
-	    ChronicleMapBuilder<Integer, SeparatedPair> builder = ChronicleMapBuilder.of(Integer.class, SeparatedPair.class).entries((long)(FairSplitTree.S.length*(Math.pow(FairSplitTree.S[0].length, 2))));
+	    ChronicleMapBuilder<Integer, SeparatedPair> builder = ChronicleMapBuilder.of(Integer.class, SeparatedPair.class).entries((long)(50*FairSplitTree.S.length*(Math.pow(FairSplitTree.S[0].length, 2))));
 	    builder.averageValueSize(8);
 	    
 	    count = 1;
 	    
 	    try {
 			pairs = builder.createPersistedTo(file);
-			System.out.println("AQUI");	
 			WSPD.build(T1, T2, s, 0, method);
 			
 	    } catch (IOException e) {
