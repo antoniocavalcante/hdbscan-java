@@ -34,7 +34,7 @@ public class IncrementalHDBSCANStar {
 		int[] B = new int[n - 1 + selfEdgeCapacity];
 		double[] MSTweights = new double[n - 1 + selfEdgeCapacity];
 
-		Integer[] sortedEdges =  new Integer[G.numOfEdgesMRG];
+		Integer[] sortedEdges =  new Integer[G.numOfEdgesRNG];
 
 		sortedEdges = G.timSort();
 
@@ -42,7 +42,7 @@ public class IncrementalHDBSCANStar {
 		UF uf = new UF(n);
 		int m = 0;
 		
-		for (int i = 0; i < G.numOfEdgesMRG; i++) {
+		for (int i = 0; i < G.numOfEdgesRNG; i++) {
 			int e = sortedEdges[i];
 			
 			if (!uf.connected(G.edgesA[e], G.edgesB[e])) {

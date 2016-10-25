@@ -4,18 +4,23 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.util.FairSplitTree;
 import ca.ualberta.cs.util.Pair;
-import ca.ualberta.cs.util.SeparatedPair;
-import ca.ualberta.cs.util.WSPD;
 
 public class RelativeNeighborhoodGraph extends Graph {
-	public int numOfEdgesMRG;
+	public static Double[][] dataSet;
+	public static double[][] coreDistances;
+	public static int k;
+
+	public static final String WS = "WS";
+	public static final String SS = "SS";
+
+	public int numOfEdgesRNG;
 
 	public Integer[] edgesA;
 	public Integer[] edgesB;
@@ -23,14 +28,31 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 	public Integer[] sortedEdges;
 
-	public List<Integer> parents;
-	
 	public BitSet inMST;
 
+	public List<Integer> A;
+	public List<Integer> B;
+	public List<FairSplitTree> C;
+
+	public List<Double> W;
+
+
+	/**
+	 * Relative Neighborhood Graph naive constructor. Takes O(n³) time.
+	 * 
+	 * @param dataSet
+	 * @param coreDistances
+	 * @param distanceFunction
+	 * @param k
+	 */
 	public RelativeNeighborhoodGraph(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k){
-		ArrayList<Integer> A = new ArrayList<Integer>();
-		ArrayList<Integer> B = new ArrayList<Integer>();
-		ArrayList<Double> W = new ArrayList<Double>();
+		A = new ArrayList<Integer>();
+		B = new ArrayList<Integer>();
+		W = new ArrayList<Double>();
+
+		RelativeNeighborhoodGraph.dataSet = dataSet;
+		RelativeNeighborhoodGraph.coreDistances = coreDistances;
+		RelativeNeighborhoodGraph.k = k;
 
 		for (int i = 0; i < dataSet.length; i++) {
 			for (int j = i + 1; j < dataSet.length; j++) {
@@ -43,84 +65,97 @@ public class RelativeNeighborhoodGraph extends Graph {
 			}
 		}
 
-		numOfEdgesMRG = A.size();
-		edgesA =  new Integer[numOfEdgesMRG];
-		edgesB =  new Integer[numOfEdgesMRG];
-		weights = new Double[numOfEdgesMRG];
+		numOfEdgesRNG = A.size();
+		edgesA =  new Integer[numOfEdgesRNG];
+		edgesB =  new Integer[numOfEdgesRNG];
+		weights = new Double[numOfEdgesRNG];
 
-		sortedEdges = new Integer[numOfEdgesMRG];
+		sortedEdges = new Integer[numOfEdgesRNG];
 
-		inMST = new BitSet(numOfEdgesMRG);
+		inMST = new BitSet(numOfEdgesRNG);
 		inMST.clear();
 
-		for (int i = 0; i < numOfEdgesMRG; i++) {
+		for (int i = 0; i < numOfEdgesRNG; i++) {
 			sortedEdges[i] = i;
 		}
 
 		edgesA = A.toArray(edgesA);
 		edgesB = B.toArray(edgesB);
 		weights = W.toArray(weights);
+
+		// Cleaning no longer needed structures.
+		A = null;
+		B = null;
+		W = null;
 	}
 
 
+	/**
+	 * Relative Neighborhood Graph constructor based on the Well-Separated Pair Decomposition.
+	 * 
+	 * @param dataSet
+	 * @param coreDistances
+	 * @param distanceFunction
+	 * @param k
+	 * @param filter
+	 * @param s
+	 * @param method
+	 */
 	public RelativeNeighborhoodGraph(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k, boolean filter, double s, String method) {
 
 		// Builds the Fair Split Tree T from dataSet.
 		FairSplitTree T = FairSplitTree.build(dataSet);
 
-//		System.out.println("Fair Split Tree Built");
-		
+		// Initializes attributes to store the RNG edges initially.
+		A = new ArrayList<Integer>();
+		B = new ArrayList<Integer>();
+		C = new ArrayList<FairSplitTree>();		
+		W = new ArrayList<Double>();
+
+		ArrayList<Integer> finalA = new ArrayList<Integer>();
+		ArrayList<Integer> finalB = new ArrayList<Integer>();
+		ArrayList<FairSplitTree> finalC = new ArrayList<FairSplitTree>();
+		ArrayList<Double> finalW = new ArrayList<Double>();
+
+		RelativeNeighborhoodGraph.dataSet = dataSet;
+		RelativeNeighborhoodGraph.coreDistances = coreDistances;
+		RelativeNeighborhoodGraph.k = k;
+
 		// Finds all the Well-separated Pairs from T.
-		WSPD.build(T, T, s, method);
-//		System.out.println("WSPD built");
+		findWSPD(T, s, method);
 
-		ArrayList<Integer> A = new ArrayList<Integer>();
-		ArrayList<Integer> B = new ArrayList<Integer>();
-		
-		ArrayList<FairSplitTree> C = new ArrayList<FairSplitTree>();
-		
-		ArrayList<Double> W = new ArrayList<Double>();
-		
-		HashMap<Pair, FairSplitTree> temp = new HashMap<Pair, FairSplitTree>();
-//		System.out.println("Number of pairs: " + WSPD.pairs.size());
+		System.out.println("Super RNG constructed!");
 
-		temp = SBCN(dataSet, coreDistances, distanceFunction, k, filter);
+		System.out.println("Number of edges to filter: " + W.size());
 		
-		// cleaning variable
-		WSPD.pairs = null;
+		boolean naiveFilter = false;
 		
-		for (Pair p : temp.keySet()) {
-			A.add(p.a);
-			B.add(p.b);
-			
-			C.add(temp.get(p));
-			
-			W.add(mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p.a, p.b, k));
+		if (naiveFilter) {
+			for (int e = 0; e < A.size(); e++) {
+				if (neighbors(dataSet, coreDistances, A.get(e), B.get(e), k)) {
+					finalA.add(A.get(e));
+					finalB.add(B.get(e));
+					finalW.add(W.get(e));
+					finalC.add(C.get(e));
+				}
+			}
 		}
 
-		// cleaning variable
-		temp = null;
-		
-//		if (filter) {
-//			for (int e = A.size() - 1; e >= 0; e--) {
-//				if (!neighbors(dataSet, coreDistances, A.get(e), B.get(e), k)) {
-//					A.remove(e);
-//					B.remove(e);
-//					W.remove(e);
-//					C.remove(e);
-//				}
-//			}
-//		}
-		
 		if (filter) {
 			
-			for (int e = A.size() - 1; e >= 0; e--) {
-				
+			// boolean variable that tells whether the end points of this edge are neighbors or not.
+			boolean neighbors;
+
+			for (int e = 0; e < A.size(); e++) {
+
+				neighbors = true;
+
 				double cdA = coreDistances[A.get(e)][k-1];
 				double cdB = coreDistances[B.get(e)][k-1];
 
 				double w = W.get(e);
 
+				// In this first case, we check if the points are in each other's k-neighborhood.
 				if (w == Math.max(cdA, cdB)) {
 
 					int[] kNN;
@@ -139,258 +174,189 @@ public class RelativeNeighborhoodGraph extends Graph {
 						double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, B.get(e), kNN[i], k);
 
 						if (w > Math.max(dac, dbc)) {
-							A.remove(e);
-							B.remove(e);
-							W.remove(e);
-							C.remove(e);
+							neighbors = false;
 							break;
-						}							
+						}
 					}
-					
+
+					if (neighbors) {
+						finalA.add(A.get(e));
+						finalB.add(B.get(e));
+						finalW.add(W.get(e));
+						finalC.add(C.get(e));
+					}
+
+					continue;
+				}
+
+				if (!neighbors) {
+					continue;
 				} else {
-					
 					// Tries to find a point in the smaller ancestor on the FairSplitTree for the nodes that contains both points.
-					
-					boolean keepLooking = true;
-					
+
 					for (Integer v : C.get(e).retrieve()) {
 
 						double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, A.get(e), v, k);
 						double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, B.get(e), v, k);
 
 						if (w > Math.max(dac, dbc)) {
-							A.remove(e);
-							B.remove(e);
-							W.remove(e);
-							C.remove(e);
-							keepLooking = false;
+							neighbors = false;
 							break;
 						}
 					}
-					
-					// If no point in the lune was found in the previous step, then try with the neighborhood of each point.
-					if (keepLooking) {
-//						ArrayList<Integer> neighbors = new ArrayList<>();
-						
-//						neighbors.addAll(FairSplitTree.rangeSearch(T, dataSet[A.get(e)], W.get(e), new ArrayList<Integer>()));
-//						neighbors.addAll(FairSplitTree.rangeSearch(T, dataSet[B.get(e)], W.get(e), new ArrayList<Integer>()));
 
-						
-//						for (Integer v : neighbors) {
-						for (int v = 0; v < dataSet.length; v++) {
+				}
 
-							double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, A.get(e), v, k);
-							double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, B.get(e), v, k);
+				if (!neighbors) {
+					continue;
+				} else {
 
-							if (w > Math.max(dac, dbc)) {
-								A.remove(e);
-								B.remove(e);
-								W.remove(e);
-								C.remove(e);
-								break;
-							}
+					ArrayList<Integer> nA = new ArrayList<Integer>();
+
+					FairSplitTree.rangeSearch(T, dataSet[A.get(e)], W.get(e), nA);
+
+					for (int i = 0; i < nA.size(); i++) {
+
+						double dim = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), A.get(e), nA.get(i), k);
+						double djm = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), B.get(e), nA.get(i), k);
+
+						if (W.get(e) > Math.max(dim, djm)) {
+							neighbors = false;
+							break;
 						}	
 					}
 				}
+
+				if (!neighbors) {
+					continue;
+				} else {
+
+					finalA.add(A.get(e));
+					finalB.add(B.get(e));
+					finalW.add(W.get(e));
+					finalC.add(C.get(e));
+				}
 			}
 		}
-		
-		numOfEdgesMRG = A.size();
-		edgesA =  new Integer[numOfEdgesMRG];
-		edgesB =  new Integer[numOfEdgesMRG];
-		weights = new Double[numOfEdgesMRG];
 
-		sortedEdges = new Integer[numOfEdgesMRG];
+		numOfEdgesRNG = finalW.size();
+		edgesA =  new Integer[numOfEdgesRNG];
+		edgesB =  new Integer[numOfEdgesRNG];
+		weights = new Double[numOfEdgesRNG];
 
-		inMST = new BitSet(numOfEdgesMRG);
+		sortedEdges = new Integer[numOfEdgesRNG];
+
+		inMST = new BitSet(numOfEdgesRNG);
 		inMST.clear();
 
-		for (int i = 0; i < numOfEdgesMRG; i++) {
+		for (int i = 0; i < numOfEdgesRNG; i++) {
 			sortedEdges[i] = i;
 		}
 
-		edgesA = A.toArray(edgesA);
-		edgesB = B.toArray(edgesB);
-		weights = W.toArray(weights);
+		edgesA = finalA.toArray(edgesA);
+		edgesB = finalB.toArray(edgesB);
+		weights = finalW.toArray(weights);
+
+		// Cleaning no longer needed structures.
+		A = null;
+		B = null;
+		C = null;
+		W = null;
 		
-		System.out.println(this.numOfEdgesMRG);
+		finalA = null;
+		finalB = null;
+		finalC = null;
+		finalW = null;		
 	}
 
-	public HashMap<Pair, FairSplitTree> BCN(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k, boolean filter) {
-		double d;
-
-		HashMap<Pair, FairSplitTree> tmp = new HashMap<Pair, FairSplitTree>();
-
-		for (SeparatedPair pair : WSPD.pairs.values()) {
-
-			FairSplitTree T1 = pair.getT1();
-			FairSplitTree T2 = pair.getT2();
-
-			List<Integer> P1 = T1.retrieve();
-			List<Integer> P2 = T2.retrieve();
-
-			for (Integer p1 : P1) {
-				double min = Double.MAX_VALUE;
-
-				ArrayList<Integer> tempA = new ArrayList<Integer>();
-				ArrayList<Integer> tempB = new ArrayList<Integer>();
-
-				for (Integer p2 : P2) {
-
-					d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
-
-					if (d < min) {
-						tempA.clear();
-						tempB.clear();
-					}
-
-					if (d <= min) {
-						min = d;
-						tempA.add(p1);
-						tempB.add(p2);
-					}
-				}
-
-				for (int i = 0; i < tempA.size(); i++) {
-					Pair p;
-
-					if (tempA.get(i) < tempB.get(i)) {
-						p = new Pair(tempA.get(i), tempB.get(i));
-					} else {
-						p = new Pair(tempB.get(i), tempA.get(i));
-					}
-
-					if (!tmp.containsKey(p)) tmp.put(p, FairSplitTree.parent(T1, T2));
-				}
-			}
-
-			for (Integer p2 : P2) {
-				double min = Double.MAX_VALUE;
-
-				ArrayList<Integer> tempA = new ArrayList<Integer>();
-				ArrayList<Integer> tempB = new ArrayList<Integer>();
-
-				for (Integer p1 : P1) {
-
-					d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
-
-					if (d < min) {
-						tempA.clear();
-						tempB.clear();
-					}
-
-					if (d <= min) {
-						min = d;
-						tempA.add(p2);
-						tempB.add(p1);
-					}
-				}
-
-				for (int i = 0; i < tempA.size(); i++) {
-					Pair p;
-
-					if (tempA.get(i) < tempB.get(i)) {
-						p = new Pair(tempA.get(i), tempB.get(i));
-					} else {
-						p = new Pair(tempB.get(i), tempA.get(i));
-					}
-
-					if (!tmp.containsKey(p)) tmp.put(p, FairSplitTree.parent(T1, T2));
-				}
-			}
-		}
-
-		return tmp;
-	}
-
-	public HashMap<Pair, FairSplitTree> SBCN(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k, boolean filter) {
+	public void SBCN(FairSplitTree T1, FairSplitTree T2, Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		double d;
 
 		HashMap<Pair, FairSplitTree> tmp  = new HashMap<Pair, FairSplitTree>();
 
-		for (SeparatedPair pair : WSPD.pairs.values()) {
+		List<Integer> P1 = T1.retrieve();
+		List<Integer> P2 = T2.retrieve();
 
-			FairSplitTree T1 = pair.getT1();
-			FairSplitTree T2 = pair.getT2();
+		double min = Double.MAX_VALUE;
+		ArrayList<Integer> tempA = new ArrayList<Integer>();
+		ArrayList<Integer> tempB = new ArrayList<Integer>();
 
-			List<Integer> P1 = T1.retrieve();
-			List<Integer> P2 = T2.retrieve();
+		for (Integer p1 : P1) {
 
-			double min = Double.MAX_VALUE;
-			ArrayList<Integer> tempA = new ArrayList<Integer>();
-			ArrayList<Integer> tempB = new ArrayList<Integer>();
-			
-			for (Integer p1 : P1) {
-
-				for (Integer p2 : P2) {
-
-					d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
-
-					if (d < min) {
-						tempA.clear();
-						tempB.clear();
-					}
-
-					if (d <= min) {
-						min = d;
-						tempA.add(p1);
-						tempB.add(p2);
-					}
-				}
-			}
-
-			for (int i = 0; i < tempA.size(); i++) {
-				Pair p;
-
-				if (tempA.get(i) < tempB.get(i)) {
-					p = new Pair(tempA.get(i), tempB.get(i));
-				} else {
-					p = new Pair(tempB.get(i), tempA.get(i));
-				}
-
-				if (!tmp.containsKey(p)) tmp.put(p, FairSplitTree.parent(T1, T2));
-			}
-			
-			min = Double.MAX_VALUE;
-			tempA = new ArrayList<Integer>();
-			tempB = new ArrayList<Integer>();
-			
 			for (Integer p2 : P2) {
 
-				for (Integer p1 : P1) {
+				d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
 
-					d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
-
-					if (d < min) {
-						tempA.clear();
-						tempB.clear();
-					}
-
-					if (d <= min) {
-						min = d;
-						tempA.add(p2);
-						tempB.add(p1);
-					}
+				if (d < min) {
+					tempA.clear();
+					tempB.clear();
 				}
-			}
-			
-			for (int i = 0; i < tempA.size(); i++) {
-				Pair p;
 
-				if (tempA.get(i) < tempB.get(i)) {
-					p = new Pair(tempA.get(i), tempB.get(i));
-				} else {
-					p = new Pair(tempB.get(i), tempA.get(i));
+				if (d <= min) {
+					min = d;
+					tempA.add(p1);
+					tempB.add(p2);
 				}
-				
-				if (!tmp.containsKey(p)) tmp.put(p, FairSplitTree.parent(T1, T2));
 			}
 		}
 
-		return tmp;
+		for (int i = 0; i < tempA.size(); i++) {
+			Pair p;
+
+			if (tempA.get(i) < tempB.get(i)) {
+				p = new Pair(tempA.get(i), tempB.get(i));
+			} else {
+				p = new Pair(tempB.get(i), tempA.get(i));
+			}
+
+			if (!tmp.containsKey(p)) tmp.put(p, FairSplitTree.parent(T1, T2));
+		}
+
+		min = Double.MAX_VALUE;
+		tempA = new ArrayList<Integer>();
+		tempB = new ArrayList<Integer>();
+
+		for (Integer p2 : P2) {
+
+			for (Integer p1 : P1) {
+
+				d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
+
+				if (d < min) {
+					tempA.clear();
+					tempB.clear();
+				}
+
+				if (d <= min) {
+					min = d;
+					tempA.add(p2);
+					tempB.add(p1);
+				}
+			}
+		}
+
+		for (int i = 0; i < tempA.size(); i++) {
+			Pair p;
+
+			if (tempA.get(i) < tempB.get(i)) {
+				p = new Pair(tempA.get(i), tempB.get(i));
+			} else {
+				p = new Pair(tempB.get(i), tempA.get(i));
+			}
+
+			if (!tmp.containsKey(p)) tmp.put(p, FairSplitTree.parent(T1, T2));
+		}
+
+		for (Pair p : tmp.keySet()) {
+			A.add(p.a);
+			B.add(p.b);
+
+			C.add(tmp.get(p));
+
+			W.add(mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p.a, p.b, k));
+		}
 	}
 
-	
 	public boolean neighbors(Double[][] dataSet, double[][] coreDistances, int i, int j, int k){
 		double dij = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), i, j, k);
 
@@ -400,25 +366,147 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 			if (dij > Math.max(dim, djm)) {
 				return false;
-			}	
+			}
 		}
+
 		return true;
 	}
 
+	public void findWSPD(FairSplitTree T, double s, String method) {
+		Stack<Integer> stack = new Stack<Integer>();
+
+		stack.add(T.id);
+
+		while (!stack.isEmpty()) {
+			FairSplitTree current = FairSplitTree.root.get(stack.pop());
+
+			if (!current.getLeft().isLeaf()) {
+				stack.add(current.left());
+			}
+
+			if (!current.getRight().isLeaf()) {
+				stack.add(current.right());
+			}
+
+			findPairs(current.getLeft(), current.getRight(), s, method);
+		}
+
+	}
+
+	public void findPairs(FairSplitTree T1, FairSplitTree T2, double s, String method) {
+		if (separated(T1, T2, s, method)) {
+			SBCN(T1, T2, RelativeNeighborhoodGraph.dataSet, RelativeNeighborhoodGraph.coreDistances, new EuclideanDistance(), RelativeNeighborhoodGraph.k);
+		} else {
+			if (T1.diameter() <= T2.diameter()) {
+				findPairs(T1, T2.getLeft() , s, method);
+				findPairs(T1, T2.getRight(), s, method);
+			} else {
+				findPairs(T1.getLeft(),  T2, s, method);
+				findPairs(T1.getRight(), T2, s, method);				
+			}
+		}
+	}
+
+	
+	/**
+	 * @param T1
+	 * @param T2
+	 * @param s
+	 * @return
+	 */
+	public static boolean separated(FairSplitTree T1, FairSplitTree T2, double s) {
+		return ws(T1, T2, s);
+	}
+	
+	/**
+	 * @param T1
+	 * @param T2
+	 * @param s
+	 * @param method
+	 * @return
+	 */
+	public static boolean separated(FairSplitTree T1, FairSplitTree T2, double s, String method) {
+
+		if (T1.id == T2.id) {
+			return false;
+		}
+
+		if (method == SS) {
+			return ss(T1, T2, s);
+		} else {
+			return ws(T1, T2, s);
+		}		
+	}
+
+	/**
+	 * Receives two Fair Split Trees T1 and T2 and returns whether they are
+	 * well separated or not.
+	 * 
+	 * @param T1 FairSplitTree #1.
+	 * @param T2 FairSplitTree #2.
+	 * @param s Separation factor.
+	 * @return true if T1 and T2 are well separated, false otherwise. 
+	 */
+	public static boolean ws(FairSplitTree T1, FairSplitTree T2, double s){
+
+		double d = FairSplitTree.circleDistance(T1, T2);
+
+		if (d >= s*Math.max(T1.diameter(), T2.diameter())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Receives two Fair Split Trees T1 and T2 and returns whether they are
+	 * semi-separated or not.
+	 * 
+	 * @param T1 FairSplitTree #1.
+	 * @param T2 FairSplitTree #2.
+	 * @param s Separation factor.
+	 * @return true if T1 and T2 are well separated, false otherwise. 
+	 */
+	public static boolean ss(FairSplitTree T1, FairSplitTree T2, double s){
+
+		double d = FairSplitTree.circleDistance(T1, T2);
+
+		if (d >= s*Math.min(T1.diameter(), T2.diameter())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * @param dataSet
+	 * @param coreDistances
+	 * @param distanceFunction
+	 * @param i
+	 * @param j
+	 * @param k
+	 * @return
+	 */
 	public static double mutualReachabilityDistance(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int i, int j, int k) {
 		double mutualReachabiltiyDistance = distanceFunction.computeDistance(dataSet[i], dataSet[j]);
 
 		if (coreDistances[i][k - 1] > mutualReachabiltiyDistance)
 			mutualReachabiltiyDistance = coreDistances[i][k - 1];
-		
+
 		if (coreDistances[j][k - 1] > mutualReachabiltiyDistance)
 			mutualReachabiltiyDistance = coreDistances[j][k - 1];
 
 		return mutualReachabiltiyDistance;
 	}
 
+	/**
+	 * @param dataSet
+	 * @param coreDistances
+	 * @param distanceFunction
+	 * @param k
+	 */
 	public void updateWeights(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
-		for (int i = 0; i < numOfEdgesMRG; i++) {
+		for (int i = 0; i < numOfEdgesRNG; i++) {
 			this.weights[sortedEdges[i]] = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, this.edgesA[sortedEdges[i]], this.edgesB[sortedEdges[i]], k);
 		}
 	}

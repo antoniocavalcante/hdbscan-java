@@ -3,7 +3,7 @@
 DIR="data#6"
 SUFFIX=".data"
 
-for file in "${DIR}"/*;
+for file in "${DIR}"/2d-*;
 do
     LAST=$(head -1 ${file} | sed 's/[^ ]//g' | wc -c)
     # echo ${LAST}

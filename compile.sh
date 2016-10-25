@@ -20,10 +20,6 @@ javac -d bin @sources.txt
 echo "[$(date)] Removing temporary file sources.txt..."
 rm -f sources.txt
 
-# Creates jar file for MSTIHDBSCAN*.
-echo "[$(date)] Creating jar file for MSTIHDBSCAN*..."
-jar -cfm MSTIHDBSCAN.jar MSTIHDBSCAN.MF -C bin/ .
-
 # Creates jar file for Incremental HDBSCAN*.
 echo "[$(date)] Creating jar file for Incremental HDBSCAN*..."
 jar -cfm IHDBSCAN.jar IHDBSCAN.MF -C bin/ .

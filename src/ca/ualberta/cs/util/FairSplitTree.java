@@ -1,10 +1,9 @@
 package ca.ualberta.cs.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
@@ -59,7 +58,7 @@ public class FairSplitTree {
 	public FairSplitTree(FairSplitTree parent, ArrayList<Integer> P, int level, int id){
 		// Update parent.
 		if (id == 1){
-			this.parent = id;
+			this.parent = 1;
 		} else {
 			this.parent = parent.id;
 		}
@@ -158,24 +157,7 @@ public class FairSplitTree {
 	/** Returns all the points under the tree.
 	 * @return List containing the IDs of the points under the tree.
 	 */
-	public List<Integer> retrieve() {
-//		PriorityQueue<Integer> q = new PriorityQueue<Integer>();
-//		List<Integer> P = new ArrayList<Integer>();
-//
-//		q.add(this.id);
-//		
-//		while (!q.isEmpty()) {
-//			FairSplitTree T = FairSplitTree.root.get(q.poll());
-//			
-//			if (T.isLeaf()) {
-//				P.add(T.p);
-//			} else {
-//				q.add(T.left);
-//				q.add(T.right);
-//			}
-//			
-//		}
-		
+	public List<Integer> retrieve() {		
 		return this.P;
 	}
 
@@ -214,7 +196,6 @@ public class FairSplitTree {
 		}
 
 		// There is overlapping in zero dimensions. In this case, Pitagoras is applied.
-
 		double d = 0;
 
 		if (count == 0) {
@@ -309,12 +290,39 @@ public class FairSplitTree {
 	}
 	
 	public static FairSplitTree parent(FairSplitTree T1, FairSplitTree T2) {
-		FairSplitTree T1P = parent(T1);
-		FairSplitTree T2P = parent(T2);
+		ArrayList<Integer> path1 = new ArrayList<Integer>();
+		ArrayList<Integer> path2 = new ArrayList<Integer>();
 		
-		if (T1P == T2P) return T1P;
+		path1.add(T1.parent);
+		path2.add(T2.parent);
+		
+		// Stores path from T1 to the root.
+		while (path1.get(path1.size()-1) != 1) {
+			path1.add(root.get(path1.get(path1.size()-1)).parent);
+		}
 
-		return parent(T1P, T2P);
+		while (path2.get(path2.size()-1) != 1) {
+			path2.add(root.get(path2.get(path2.size()-1)).parent);
+		}
+		
+		Collections.sort(path1);
+		Collections.sort(path2);
+				
+		for (int i = 0; i < Math.min(path1.size(), path2.size()); i++) {
+			if (path1.get(i) != path2.get(i)) {
+				int id = path1.get(i-1);
+
+				path1 = null;
+				path2 = null;
+				
+				return root.get(id);
+			}
+		}
+
+		path1 = null;
+		path2 = null;
+		
+		return root.get(1);
 	}
 	
 	public static FairSplitTree parent(FairSplitTree T) {
@@ -362,6 +370,14 @@ public class FairSplitTree {
 		return FairSplitTree.root.get(right);
 	}
 
+	public int left() {
+		return left;
+	}
+
+	public int right() {
+		return right;
+	}
+	
 	public int getCount() {
 		return count;
 	}

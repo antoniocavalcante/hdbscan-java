@@ -68,6 +68,6 @@ public class ExperimentIHDBSCANStar {
 		duration = end - start;
 		
 		// Data set, minPts, Time, RNG size
-		System.out.println(" " + duration + " " + RNG.numOfEdgesMRG);
+		System.out.println(" " + duration + " " + RNG.numOfEdgesRNG);
 	}
 }
