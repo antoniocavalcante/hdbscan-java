@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Stack;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
@@ -72,7 +73,8 @@ public class FairSplitTree {
 		this.setCount(P.size());
 	
 		// Store the id's of the points under this tree.
-		this.P = P;
+//		this.P = P;
+		this.P = null;
 		
 		if (this.count == 0) {
 			this.leaf = true;
@@ -157,10 +159,31 @@ public class FairSplitTree {
 	/** Returns all the points under the tree.
 	 * @return List containing the IDs of the points under the tree.
 	 */
-	public List<Integer> retrieve() {		
-		return this.P;
-	}
+//	public List<Integer> retrieve() {		
+//		return this.P;
+//	}
 
+	public List<Integer> retrieve() {
+		Stack<Integer> s = new Stack<>();
+
+		List<Integer> P = new ArrayList<Integer>();
+		
+		s.add(this.id);
+		
+		while (!s.isEmpty()) {
+			int e = s.pop();
+			
+			if (root.get(e).isLeaf()) {
+				P.add(root.get(e).p);
+			} else {
+				s.add(root.get(e).left());
+				s.add(root.get(e).right());
+			}
+		}
+		
+		return P;
+	}
+	
 	public static void print(FairSplitTree T) {
 		System.out.print("|");
 		for (int i = 0; i < T.level; i++) {
@@ -336,7 +359,7 @@ public class FairSplitTree {
 		if (left <= r) {
 			if (FairSplitTree.root.get(root.left).isLeaf()) {
 				// Add to the results.
-				arrayList.addAll(FairSplitTree.root.get(root.left).P);
+				arrayList.addAll(FairSplitTree.root.get(root.left).retrieve());
 			} else {
 				rangeSearch(FairSplitTree.root.get(root.left), queryPoint, r, arrayList);
 			}
@@ -345,7 +368,7 @@ public class FairSplitTree {
 		if (right <= r) {
 			if (FairSplitTree.root.get(root.right).isLeaf()) {
 				// Add to the results
-				arrayList.addAll(FairSplitTree.root.get(root.right).P);
+				arrayList.addAll(FairSplitTree.root.get(root.right).retrieve());
 			} else {
 				rangeSearch(FairSplitTree.root.get(root.right), queryPoint, r, arrayList);
 			}
