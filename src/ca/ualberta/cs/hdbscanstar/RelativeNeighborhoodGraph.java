@@ -124,9 +124,9 @@ public class RelativeNeighborhoodGraph extends Graph {
 		// Finds all the Well-separated Pairs from T.
 		findWSPD(T, s, method);
 
-		System.out.println("Super RNG constructed!");
+//		System.out.println("Super RNG constructed!");
 
-		System.out.println("Number of edges to filter: " + W.size());
+//		System.out.println("Number of edges to filter: " + W.size());
 		
 		boolean naiveFilter = false;
 		
