@@ -45,11 +45,11 @@ public class IncrementalHDBSCANStar {
 		for (int i = 0; i < G.numOfEdgesRNG; i++) {
 			int e = sortedEdges[i];
 			
-			if (!uf.connected(G.edgesA[e], G.edgesB[e])) {
-				uf.union(G.edgesA[e], G.edgesB[e]);
-				A[m] = G.edgesA[e];
-				B[m] = G.edgesB[e];
-				MSTweights[m] = G.weights[e];
+			if (!uf.connected(G.edgesA.get(e), G.edgesB.get(e))) {
+				uf.union(G.edgesA.get(e), G.edgesB.get(e));
+				A[m] = G.edgesA.get(e);
+				B[m] = G.edgesB.get(e);
+				MSTweights[m] = G.weights.get(e);
 				G.inMST.set(e);
 				m++;
 			}

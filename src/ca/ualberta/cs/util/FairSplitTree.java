@@ -8,6 +8,8 @@ import java.util.Stack;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
+import it.unimi.dsi.fastutil.BigList;
+import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 
 public class FairSplitTree {
 
@@ -163,10 +165,10 @@ public class FairSplitTree {
 //		return this.P;
 //	}
 
-	public List<Integer> retrieve() {
+	public BigList<Integer> retrieve() {
 		Stack<Integer> s = new Stack<>();
 
-		List<Integer> P = new ArrayList<Integer>();
+		BigList<Integer> P = new IntBigArrayBigList();
 		
 		s.add(this.id);
 		

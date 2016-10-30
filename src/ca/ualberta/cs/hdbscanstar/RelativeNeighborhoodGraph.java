@@ -1,10 +1,10 @@
 package ca.ualberta.cs.hdbscanstar;
 
 import java.util.ArrayList;
+
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Stack;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
@@ -12,6 +12,11 @@ import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.util.FairSplitTree;
 import ca.ualberta.cs.util.Pair;
 
+import it.unimi.dsi.fastutil.BigList;
+import it.unimi.dsi.fastutil.doubles.DoubleBigArrayBigList;
+import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
+import it.unimi.dsi.fastutil.objects.ObjectBigArrayBigList;
+ 
 public class RelativeNeighborhoodGraph extends Graph {
 	public static Double[][] dataSet;
 	public static double[][] coreDistances;
@@ -22,20 +27,19 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 	public int numOfEdgesRNG;
 
-	public Integer[] edgesA;
-	public Integer[] edgesB;
-	public Double[] weights;
+	public BigList<Integer> edgesA;
+	public BigList<Integer> edgesB;
+	public BigList<Double> weights;
 
 	public Integer[] sortedEdges;
+	
+	public BigList<Integer> A;
+	public BigList<Integer> B;
+	public BigList<FairSplitTree> C;
+	public BigList<Double> W;
 
-	public BitSet inMST;
-
-	public List<Integer> A;
-	public List<Integer> B;
-	public List<FairSplitTree> C;
-	public List<Double> W;
-
-
+	public int x = 0;
+	
 	/**
 	 * Relative Neighborhood Graph naive constructor. Takes O(n³) time.
 	 * 
@@ -45,9 +49,9 @@ public class RelativeNeighborhoodGraph extends Graph {
 	 * @param k
 	 */
 	public RelativeNeighborhoodGraph(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k){
-		A = new ArrayList<Integer>();
-		B = new ArrayList<Integer>();
-		W = new ArrayList<Double>();
+		A = new IntBigArrayBigList();
+		B = new IntBigArrayBigList();
+		W = new DoubleBigArrayBigList();
 
 		RelativeNeighborhoodGraph.dataSet = dataSet;
 		RelativeNeighborhoodGraph.coreDistances = coreDistances;
@@ -65,9 +69,10 @@ public class RelativeNeighborhoodGraph extends Graph {
 		}
 
 		numOfEdgesRNG = A.size();
-		edgesA =  new Integer[numOfEdgesRNG];
-		edgesB =  new Integer[numOfEdgesRNG];
-		weights = new Double[numOfEdgesRNG];
+
+		edgesA =  A;
+		edgesB =  B;
+		weights = W;
 
 		sortedEdges = new Integer[numOfEdgesRNG];
 
@@ -77,10 +82,6 @@ public class RelativeNeighborhoodGraph extends Graph {
 		for (int i = 0; i < numOfEdgesRNG; i++) {
 			sortedEdges[i] = i;
 		}
-
-		edgesA = A.toArray(edgesA);
-		edgesB = B.toArray(edgesB);
-		weights = W.toArray(weights);
 
 		// Cleaning no longer needed structures.
 		A = null;
@@ -94,7 +95,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 	 * 
 	 * @param dataSet
 	 * @param coreDistances
-	 * @param distanceFunction
+	 * @param distanceFunctionimport java.util.List;
 	 * @param k
 	 * @param filter
 	 * @param s
@@ -105,18 +106,18 @@ public class RelativeNeighborhoodGraph extends Graph {
 		// Builds the Fair Split Tree T from dataSet.
 		FairSplitTree T = FairSplitTree.build(dataSet);
 
-		System.out.println("Fair Split Tree: " + T.root.size() + " nodes...");
+		System.out.println("Fair Split Tree: " + FairSplitTree.root.size() + " nodes...");
 
 		// Initializes attributes to store the RNG edges initially.
-		A = new ArrayList<Integer>();
-		B = new ArrayList<Integer>();
-		C = new ArrayList<FairSplitTree>();		
-		W = new ArrayList<Double>();
-
-		ArrayList<Integer> finalA = new ArrayList<Integer>();
-		ArrayList<Integer> finalB = new ArrayList<Integer>();
-		ArrayList<FairSplitTree> finalC = new ArrayList<FairSplitTree>();
-		ArrayList<Double> finalW = new ArrayList<Double>();
+		A = new IntBigArrayBigList();
+		B = new IntBigArrayBigList();
+		C = new ObjectBigArrayBigList<FairSplitTree>();
+		W = new DoubleBigArrayBigList();
+		
+		BigList<Integer> finalA = new IntBigArrayBigList();
+		BigList<Integer> finalB = new IntBigArrayBigList();
+		BigList<FairSplitTree> finalC = new ObjectBigArrayBigList<FairSplitTree>();
+		BigList<Double> finalW = new DoubleBigArrayBigList();
 
 		RelativeNeighborhoodGraph.dataSet = dataSet;
 		RelativeNeighborhoodGraph.coreDistances = coreDistances;
@@ -124,7 +125,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		// Finds all the Well-separated Pairs from T.
 		findWSPD(T, s, method);
-
+		System.out.println(x);
 		System.out.println("Super RNG constructed!");
 
 		System.out.println("Number of edges to filter: " + W.size());
@@ -186,10 +187,9 @@ public class RelativeNeighborhoodGraph extends Graph {
 						finalW.add(W.get(e));
 						finalC.add(C.get(e));
 					}
-
+					
 					continue;
 				}
-
 
 				if (neighbors(dataSet, coreDistances, A.get(e), B.get(e), k)) {
 					finalA.add(A.get(e));
@@ -197,54 +197,6 @@ public class RelativeNeighborhoodGraph extends Graph {
 					finalW.add(W.get(e));
 					finalC.add(C.get(e));
 				}
-
-//				if (!neighbors) {
-//					continue;
-//				} else {
-//					// Tries to find a point in the smaller ancestor on the FairSplitTree for the nodes that contains both points.
-//
-//					for (Integer v : C.get(e).retrieve()) {
-//
-//						double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, A.get(e), v, k);
-//						double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, B.get(e), v, k);
-//
-//						if (w > Math.max(dac, dbc)) {
-//							neighbors = false;
-//							break;
-//						}
-//					}
-//
-//				}
-//
-//				if (!neighbors) {
-//					continue;
-//				} else {
-//
-//					ArrayList<Integer> nA = new ArrayList<Integer>();
-//
-//					FairSplitTree.rangeSearch(T, dataSet[A.get(e)], W.get(e), nA);
-//
-//					for (int i = 0; i < nA.size(); i++) {
-//
-//						double dim = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), A.get(e), nA.get(i), k);
-//						double djm = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), B.get(e), nA.get(i), k);
-//
-//						if (W.get(e) > Math.max(dim, djm)) {
-//							neighbors = false;
-//							break;
-//						}	
-//					}
-//				}
-//
-//				if (!neighbors) {
-//					continue;
-//				} else {
-//
-//					finalA.add(A.get(e));
-//					finalB.add(B.get(e));
-//					finalW.add(W.get(e));
-//					finalC.add(C.get(e));
-//				}
 			}
 		}
 
@@ -254,27 +206,20 @@ public class RelativeNeighborhoodGraph extends Graph {
 			numOfEdgesRNG = W.size();
 		}
 
-		edgesA =  new Integer[numOfEdgesRNG];
-		edgesB =  new Integer[numOfEdgesRNG];
-		weights = new Double[numOfEdgesRNG];
-
 		sortedEdges = new Integer[numOfEdgesRNG];
-
-		inMST = new BitSet(numOfEdgesRNG);
-		inMST.clear();
 
 		for (int i = 0; i < numOfEdgesRNG; i++) {
 			sortedEdges[i] = i;
 		}
-
+				
 		if (filter) {
-			edgesA = finalA.toArray(edgesA);
-			edgesB = finalB.toArray(edgesB);
-			weights = finalW.toArray(weights);			
+			edgesA = finalA;
+			edgesB = finalB;
+			weights = finalW;			
 		} else {
-			edgesA = A.toArray(edgesA);
-			edgesB = B.toArray(edgesB);
-			weights = W.toArray(weights);
+			edgesA = A;
+			edgesB = B;
+			weights = W;
 		}
 
 		// Cleaning no longer needed structures.
@@ -295,8 +240,8 @@ public class RelativeNeighborhoodGraph extends Graph {
 		HashMap<Pair, FairSplitTree> tmp  = new HashMap<Pair, FairSplitTree>();
 
 		double min = Double.MAX_VALUE;
-		ArrayList<Integer> tempA = new ArrayList<Integer>();
-		ArrayList<Integer> tempB = new ArrayList<Integer>();
+		BigList<Integer> tempA = new IntBigArrayBigList();
+		BigList<Integer> tempB = new IntBigArrayBigList();
 
 		for (Integer p1 : T1.retrieve()) {
 
@@ -330,8 +275,8 @@ public class RelativeNeighborhoodGraph extends Graph {
 		}
 
 		min = Double.MAX_VALUE;
-		tempA = new ArrayList<Integer>();
-		tempB = new ArrayList<Integer>();
+		tempA = new IntBigArrayBigList();
+		tempB = new IntBigArrayBigList();
 
 		for (Integer p2 : T2.retrieve()) {
 
@@ -377,6 +322,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 		
 		tempA = null;
 		tempB = null;
+		tmp = null;
 	}
 
 	public boolean neighbors(Double[][] dataSet, double[][] coreDistances, int i, int j, int k){
@@ -418,14 +364,15 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 	public void findPairs(FairSplitTree T1, FairSplitTree T2, double s, String method) {
 		if (separated(T1, T2, s, method)) {
-			SBCN(T1, T2, dataSet, coreDistances, new EuclideanDistance(), k);
+			x++;
+//			SBCN(T1, T2, dataSet, coreDistances, new EuclideanDistance(), k);
 		} else {
 			if (T1.diameter() <= T2.diameter()) {
 				findPairs(T1, T2.getLeft() , s, method);
 				findPairs(T1, T2.getRight(), s, method);
 			} else {
 				findPairs(T1.getLeft(),  T2, s, method);
-				findPairs(T1.getRight(), T2, s, method);				
+				findPairs(T1.getRight(), T2, s, method);
 			}
 		}
 	}
@@ -481,6 +428,28 @@ public class RelativeNeighborhoodGraph extends Graph {
 		}
 	}
 
+	public static boolean rn(FairSplitTree T1, FairSplitTree T2) {
+		double r = FairSplitTree.circleDistance(T1, T2);
+		
+		Double[] q = new Double[T1.center().length];
+		
+		for (int i = 0; i < q.length; i++) {
+			q[i] = (T1.center()[i] + T2.center()[i])/2;
+		}
+		
+		ArrayList<Integer> result = new ArrayList<>();
+		FairSplitTree.rangeSearch(FairSplitTree.root.get(1), q, r, result);
+		
+		if (result.isEmpty()) {
+			System.out.println("ffffffff");
+			return true;
+		} else {
+			System.out.println(result.size());
+		}
+		
+		return false;
+	}
+	
 	/**
 	 * Receives two Fair Split Trees T1 and T2 and returns whether they are
 	 * semi-separated or not.
@@ -530,7 +499,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 	 */
 	public void updateWeights(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		for (int i = 0; i < numOfEdgesRNG; i++) {
-			this.weights[sortedEdges[i]] = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, this.edgesA[sortedEdges[i]], this.edgesB[sortedEdges[i]], k);
+			this.weights.set(sortedEdges[i], mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, this.edgesA.get(sortedEdges[i]), this.edgesB.get(sortedEdges[i]), k));
 		}
 	}
 
@@ -539,10 +508,10 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 			@Override
 			public int compare(Integer o1, Integer o2) {
-				if (weights[o1] < weights[o2]) {
+				if (weights.get(o1) < weights.get(o2)) {
 					return -1;
 				}
-				if (weights[o1] > weights[o2]) {					
+				if (weights.get(o1) > weights.get(o2)) {					
 					return 1;
 				}
 				return 0;

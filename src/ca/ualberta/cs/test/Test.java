@@ -21,7 +21,7 @@ public class Test {
 		Double[][] dataSet = null;
 
 		try {
-			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#6/64d-16.dat", " ");
+			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-1024.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4d-16.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#2/2d.data", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/test2.dat", " ");
@@ -218,12 +218,12 @@ public class Test {
 
 		for (int i = 0; i < m; i++) {
 			if (i < RNG1.numOfEdgesRNG){
-				System.out.print("[1](" + RNG1.edgesA[RNG1.sortedEdges[i]] + ", " + RNG1.edgesB[RNG1.sortedEdges[i]] + ") : " + RNG1.weights[RNG1.sortedEdges[i]] + "\t\t");
-				w1 += RNG1.weights[RNG1.sortedEdges[i]];
+				System.out.print("[1](" + RNG1.edgesA.get(RNG1.sortedEdges[i]) + ", " + RNG1.edgesB.get(RNG1.sortedEdges[i]) + ") : " + RNG1.weights.get(RNG1.sortedEdges[i]) + "\t\t");
+				w1 += RNG1.weights.get(RNG1.sortedEdges[i]);
 			}
 			if (i < RNG2.numOfEdgesRNG){
-				System.out.print("[2] (" + RNG2.edgesA[RNG2.sortedEdges[i]] + ", " + RNG2.edgesB[RNG2.sortedEdges[i]] + ") : " + RNG2.weights[RNG2.sortedEdges[i]]);
-				w2 += RNG2.weights[RNG2.sortedEdges[i]];
+				System.out.print("[2] (" + RNG2.edgesA.get(RNG2.sortedEdges[i]) + ", " + RNG2.edgesB.get(RNG2.sortedEdges[i]) + ") : " + RNG2.weights.get(RNG2.sortedEdges[i]));
+				w2 += RNG2.weights.get(RNG2.sortedEdges[i]);
 			}
 			System.out.println();
 		}
