@@ -58,7 +58,7 @@ public class RunHAIonALOI {
 
 	public static void run(String method, String set, int k, String setNumber) {
 		
-		int minPoints = Math.min(25*k, 100) - 1;
+//		int minPoints = Math.min(25*k, 100) - 1;
 
 		String h1 = baseDir + 1 + method + "_" + set + k + "_" + setNumber + suffix;
 		

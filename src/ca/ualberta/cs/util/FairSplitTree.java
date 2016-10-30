@@ -2,21 +2,20 @@ package ca.ualberta.cs.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Stack;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import it.unimi.dsi.fastutil.BigList;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 
 public class FairSplitTree {
 
 	public static Double[][] S;
 	private static int dimensions;
-	public static HashMap<Integer, FairSplitTree> root;
-
+	public static Int2ObjectOpenHashMap<FairSplitTree> root;
+	
 	private Double[][] boundingBox;
 	private int parent;
 	private int left;
@@ -27,7 +26,7 @@ public class FairSplitTree {
 	private int p;
 	private double diameter = -1;
 	
-	public List<Integer> P;
+	public BigList<Integer> P;
 	public int id;
 	
 	/** Receives a set S of d-dimensional points and calls the constructor to build a FairSplitTree.
@@ -38,8 +37,9 @@ public class FairSplitTree {
 	public static FairSplitTree build(Double[][] S) {
 		FairSplitTree.S = S;
 		FairSplitTree.dimensions = S[0].length;
-		FairSplitTree.root = new HashMap<Integer, FairSplitTree>();
-		ArrayList<Integer> P = new ArrayList<Integer>();
+		FairSplitTree.root = new Int2ObjectOpenHashMap<FairSplitTree>();
+
+		BigList<Integer> P = new IntBigArrayBigList();
 
 		for (int i = 0; i < S.length; i++) {
 			P.add(i);
@@ -58,7 +58,7 @@ public class FairSplitTree {
 	 * @param P Set of points IDs.
 	 * @param level Current level of the tree.
 	 */
-	public FairSplitTree(FairSplitTree parent, ArrayList<Integer> P, int level, int id){
+	public FairSplitTree(FairSplitTree parent, BigList<Integer> P, int level, int id){
 		// Update parent.
 		if (id == 1){
 			this.parent = 1;
@@ -135,8 +135,8 @@ public class FairSplitTree {
 				}
 				
 				// Split this dimension in two hyper-rectangles.
-				ArrayList<Integer> right = new ArrayList<Integer>();
-				ArrayList<Integer> left  = new ArrayList<Integer>();
+				BigList<Integer> right = new IntBigArrayBigList();
+				BigList<Integer> left  = new IntBigArrayBigList();
 
 				double cutPoint = (boundingBox[0][j] + boundingBox[1][j])/2;
 				
@@ -196,96 +196,6 @@ public class FairSplitTree {
 		if (!T.isLeaf()) print(T.getLeft());
 		if (!T.isLeaf()) print(T.getRight());
 	}
-	
-	public static double boxDistance(FairSplitTree T1, FairSplitTree T2) {
-
-		boolean[] overlap = new boolean[FairSplitTree.dimensions];
-		double[] distance = new double[FairSplitTree.dimensions];
-		
-		int count = 0;
-		
-		for (int i = 0; i < FairSplitTree.dimensions; i++) {
-			if (T1.boundingBox[1][i] >= T2.boundingBox[0][i] && T1.boundingBox[0][i] <= T2.boundingBox[1][i]) {
-				overlap[i] = true;
-				count++;
-			} else {
-				overlap[i] = false;
-			}
-			
-			distance[i] = Math.min(Math.abs(T1.boundingBox[0][i]-T2.boundingBox[1][i]), Math.abs(T1.boundingBox[1][i]-T2.boundingBox[0][i]));
-		}
-
-		// There is overlapping in all dimensions, meaning a portion of the boxes are inside the other one. Distance is 0 in this case.
-		if (count == dimensions) {
-			return 0;
-		}
-
-		// There is overlapping in zero dimensions. In this case, Pitagoras is applied.
-		double d = 0;
-
-		if (count == 0) {
-			for (int i = 0; i < overlap.length; i++) {
-				d = d + Math.pow(distance[i], 2);
-			}
-			return Math.sqrt(d);
-		}
-		
-		// There is overlapping in more than one dimension. Distance between plans.
-		double min = Double.MAX_VALUE;
-		
-		if (count > 0) {
-			for (int i = 0; i < distance.length; i++) {
-				if (overlap[i]) {
-					min = Math.min(distance[i], min);
-				}
-			}
-		
-			return min;
-		}
-		System.out.println("HERE");
-		return 0;
-	}
-
-	public static double boxDistance(Double[] point, FairSplitTree T) {
-
-		boolean[] overlap = new boolean[FairSplitTree.dimensions];
-		double[] distance = new double[FairSplitTree.dimensions];
-		
-		int count = 0;
-		
-		for (int i = 0; i < FairSplitTree.dimensions; i++) {
-			if (point[i] >= T.boundingBox[0][i] && point[i] <= T.boundingBox[1][i]) {
-				overlap[i] = true;
-				count++;
-			} else {
-				overlap[i] = false;
-			}
-			
-			distance[i] = Math.min(Math.abs(point[i]-T.boundingBox[1][i]), Math.abs(point[i]-T.boundingBox[0][i]));
-		}
-		
-		// There is overlapping.
-		if (count == dimensions - 1) {
-			for (int i = 0; i < overlap.length; i++) {
-				if (!overlap[i]) {
-					return distance[i];
-				}
-			}
-		}
-
-		// Point is inside the FairSplitTree.
-		if (count == dimensions) {
-			return 0;
-		}
-		
-		double d = 0;
-
-		for (int i = 0; i < distance.length; i++) {
-			d = d + Math.pow(distance[i], 2);
-		}
-		
-		return Math.sqrt(d);
-	}
 
 	public static double circleDistance(FairSplitTree T1, FairSplitTree T2) {
 		return (new EuclideanDistance()).computeDistance(T1.center(), T2.center()) - T1.diameter()/2 - T2.diameter()/2;
@@ -323,12 +233,15 @@ public class FairSplitTree {
 		
 		// Stores path from T1 to the root.
 		while (path1.get(path1.size()-1) != 1) {
-			path1.add(root.get(path1.get(path1.size()-1)).parent);
+			int i = path1.get(path1.size()-1);
+			path1.add(root.get(i).parent);
 		}
 
 		while (path2.get(path2.size()-1) != 1) {
-			path2.add(root.get(path2.get(path2.size()-1)).parent);
+			int i = path2.get(path2.size()-1);
+			path2.add(root.get(i).parent);
 		}
+		
 		
 		Collections.sort(path1);
 		Collections.sort(path2);
@@ -354,11 +267,11 @@ public class FairSplitTree {
 		return root.get(T.parent);
 	}
 	
-	public static ArrayList<Integer> rangeSearch(FairSplitTree root, Double[] queryPoint, double r, ArrayList<Integer> arrayList) {
+	public static BigList<Integer> rangeSearch(FairSplitTree root, Double[] queryPoint, double r, BigList<Integer> arrayList) {
 		double left  = circleDistance(queryPoint, FairSplitTree.root.get(root.left));
 		double right = circleDistance(queryPoint, FairSplitTree.root.get(root.right));
 
-		if (left <= r) {
+		if (left < r) {
 			if (FairSplitTree.root.get(root.left).isLeaf()) {
 				// Add to the results.
 				arrayList.addAll(FairSplitTree.root.get(root.left).retrieve());
@@ -367,7 +280,7 @@ public class FairSplitTree {
 			}
 		}
 		
-		if (right <= r) {
+		if (right < r) {
 			if (FairSplitTree.root.get(root.right).isLeaf()) {
 				// Add to the results
 				arrayList.addAll(FairSplitTree.root.get(root.right).retrieve());

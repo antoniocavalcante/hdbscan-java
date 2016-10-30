@@ -4,11 +4,9 @@ import java.io.IOException;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
-import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 
 public class Test3 {
 	
-	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 
 		long start, end, duration;
@@ -41,8 +39,5 @@ public class Test3 {
 		duration = end - start;
 		
 		System.out.println(inputFile + " " + minPoints + " " + duration);
-
-		
-	
 	}
 }

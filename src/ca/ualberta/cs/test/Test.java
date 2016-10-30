@@ -21,8 +21,9 @@ public class Test {
 		Double[][] dataSet = null;
 
 		try {
-			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-1024.dat", " ");
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4d-16.dat", " ");
+//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-1024.dat", " ");
+			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4d-16.dat", " ");
+//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/jad.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#2/2d.data", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/test2.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/4.dat", " ");
@@ -38,9 +39,9 @@ public class Test {
 		System.out.println("Dataset size: " + numPoints);
 		System.out.println("Dimensions: " + dataSet[0].length);
 		
-		single(dataSet, 10, 1, RelativeNeighborhoodGraph.WS, true);
+//		single(dataSet, 10, 1, RelativeNeighborhoodGraph.WS, true);
 //		performance(dataSet, 16, 1, WSPD.WS, false);
-//		performanceRNG(dataSet, 10, false, 1, RelativeNeighborhoodGraph.WS, true);
+		performanceRNG(dataSet, 10, false, 1, RelativeNeighborhoodGraph.WS, true);
 //		correct(dataSet, 16, false, 1, WSPD.WS);
 	
 	}

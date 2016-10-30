@@ -1,7 +1,5 @@
 package ca.ualberta.cs.hdbscanstar;
 
-import java.util.ArrayList;
-
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -14,9 +12,10 @@ import ca.ualberta.cs.util.Pair;
 
 import it.unimi.dsi.fastutil.BigList;
 import it.unimi.dsi.fastutil.doubles.DoubleBigArrayBigList;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 import it.unimi.dsi.fastutil.objects.ObjectBigArrayBigList;
- 
+
 public class RelativeNeighborhoodGraph extends Graph {
 	public static Double[][] dataSet;
 	public static double[][] coreDistances;
@@ -32,14 +31,16 @@ public class RelativeNeighborhoodGraph extends Graph {
 	public BigList<Double> weights;
 
 	public Integer[] sortedEdges;
-	
+
 	public BigList<Integer> A;
 	public BigList<Integer> B;
 	public BigList<FairSplitTree> C;
 	public BigList<Double> W;
 
 	public int x = 0;
-	
+
+	public Int2ObjectOpenHashMap<BigList<Integer>> pairs;
+
 	/**
 	 * Relative Neighborhood Graph naive constructor. Takes O(n³) time.
 	 * 
@@ -56,6 +57,8 @@ public class RelativeNeighborhoodGraph extends Graph {
 		RelativeNeighborhoodGraph.dataSet = dataSet;
 		RelativeNeighborhoodGraph.coreDistances = coreDistances;
 		RelativeNeighborhoodGraph.k = k;
+
+		pairs = new Int2ObjectOpenHashMap<BigList<Integer>>();
 
 		for (int i = 0; i < dataSet.length; i++) {
 			for (int j = i + 1; j < dataSet.length; j++) {
@@ -106,18 +109,13 @@ public class RelativeNeighborhoodGraph extends Graph {
 		// Builds the Fair Split Tree T from dataSet.
 		FairSplitTree T = FairSplitTree.build(dataSet);
 
-		System.out.println("Fair Split Tree: " + FairSplitTree.root.size() + " nodes...");
-
 		// Initializes attributes to store the RNG edges initially.
 		A = new IntBigArrayBigList();
 		B = new IntBigArrayBigList();
 		C = new ObjectBigArrayBigList<FairSplitTree>();
 		W = new DoubleBigArrayBigList();
-		
-		BigList<Integer> finalA = new IntBigArrayBigList();
-		BigList<Integer> finalB = new IntBigArrayBigList();
-		BigList<FairSplitTree> finalC = new ObjectBigArrayBigList<FairSplitTree>();
-		BigList<Double> finalW = new DoubleBigArrayBigList();
+
+		pairs = new Int2ObjectOpenHashMap<BigList<Integer>>();
 
 		RelativeNeighborhoodGraph.dataSet = dataSet;
 		RelativeNeighborhoodGraph.coreDistances = coreDistances;
@@ -125,14 +123,16 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		// Finds all the Well-separated Pairs from T.
 		findWSPD(T, s, method);
-		System.out.println(x);
-		System.out.println("Super RNG constructed!");
-
-		System.out.println("Number of edges to filter: " + W.size());
 
 		boolean naiveFilter = false;
 
+		BigList<Integer> finalA = new IntBigArrayBigList();
+		BigList<Integer> finalB = new IntBigArrayBigList();
+		BigList<FairSplitTree> finalC = new ObjectBigArrayBigList<FairSplitTree>();
+		BigList<Double> finalW = new DoubleBigArrayBigList();
+
 		if (naiveFilter) {
+
 			for (int e = 0; e < A.size(); e++) {
 				if (neighbors(dataSet, coreDistances, A.get(e), B.get(e), k)) {
 					finalA.add(A.get(e));
@@ -187,7 +187,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 						finalW.add(W.get(e));
 						finalC.add(C.get(e));
 					}
-					
+
 					continue;
 				}
 
@@ -211,7 +211,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 		for (int i = 0; i < numOfEdgesRNG; i++) {
 			sortedEdges[i] = i;
 		}
-				
+
 		if (filter) {
 			edgesA = finalA;
 			edgesB = finalB;
@@ -317,9 +317,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 			W.add(mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p.a, p.b, k));
 		}
-		
-		if (A.size() % 1000000 == 0) System.out.println(A.size());
-		
+
 		tempA = null;
 		tempB = null;
 		tmp = null;
@@ -346,7 +344,9 @@ public class RelativeNeighborhoodGraph extends Graph {
 		stack.add(T.id);
 
 		while (!stack.isEmpty()) {
-			FairSplitTree current = FairSplitTree.root.get(stack.pop());
+			int i = stack.pop();
+			
+			FairSplitTree current = FairSplitTree.root.get(i);
 
 			if (!current.getLeft().isLeaf()) {
 				stack.add(current.left());
@@ -364,8 +364,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 	public void findPairs(FairSplitTree T1, FairSplitTree T2, double s, String method) {
 		if (separated(T1, T2, s, method)) {
-			x++;
-//			SBCN(T1, T2, dataSet, coreDistances, new EuclideanDistance(), k);
+			SBCN(T1, T2, dataSet, coreDistances, new EuclideanDistance(), k);				
 		} else {
 			if (T1.diameter() <= T2.diameter()) {
 				findPairs(T1, T2.getLeft() , s, method);
@@ -428,28 +427,57 @@ public class RelativeNeighborhoodGraph extends Graph {
 		}
 	}
 
+
+	/** Method to check whether two FairSplitTrees might emit a RNG edge.
+	 * It does not work currently, the core-distance of the points in each subtree would have to be checked.
+	 * @param T1
+	 * @param T2
+	 * @return
+	 */
 	public static boolean rn(FairSplitTree T1, FairSplitTree T2) {
-		double r = FairSplitTree.circleDistance(T1, T2);
-		
+		double r = FairSplitTree.circleDistance(T1, T2)/2;
+
 		Double[] q = new Double[T1.center().length];
-		
+
 		for (int i = 0; i < q.length; i++) {
 			q[i] = (T1.center()[i] + T2.center()[i])/2;
 		}
-		
-		ArrayList<Integer> result = new ArrayList<>();
-		FairSplitTree.rangeSearch(FairSplitTree.root.get(1), q, r, result);
-		
+
+		BigList<Integer> result = FairSplitTree.rangeSearch(FairSplitTree.root.get(1), q, r, new IntBigArrayBigList());
+
 		if (result.isEmpty()) {
-			System.out.println("ffffffff");
 			return true;
 		} else {
-			System.out.println(result.size());
+
+			double max1 = Double.MIN_VALUE;
+			for (Integer a : T1.retrieve()) {
+				if (coreDistances[a][k-1] > max1) {
+					max1 = coreDistances[a][k-1];
+				}
+			}
+
+			double max2 = Double.MIN_VALUE;
+			for (Integer a : T2.retrieve()) {
+				if (coreDistances[a][k-1] > max2) {
+					max2 = coreDistances[a][k-1];
+				}
+			}
+
+			double dab = Math.max(2*r, Math.max(max1, max2));
+
+			for (Integer i : result) {
+				double dac = Math.max(coreDistances[i][k-1], max1);
+				double dbc = Math.max(coreDistances[i][k-1], max2);
+
+				if (dab > Math.max(dac, dbc)) {
+					return false;
+				}	
+			}
+
+			return true;
 		}
-		
-		return false;
 	}
-	
+
 	/**
 	 * Receives two Fair Split Trees T1 and T2 and returns whether they are
 	 * semi-separated or not.

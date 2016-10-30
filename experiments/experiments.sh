@@ -11,10 +11,10 @@ dataset() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, filter
-            java -jar -Xms2g -Xmx13g IHDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false false >> ihdbscan-dataset-nofilter.results
+            java -jar -Xms2g -Xmx14g IHDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false false >> ihdbscan-dataset-nofilter.results
 
             # HDBSCAN
-            # java -jar -Xms2g -Xmx13g HDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false >> hdbscan-dataset.results
+            # java -jar -Xms2g -Xmx14g HDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false >> hdbscan-dataset.results
         done
     done
 }
@@ -26,25 +26,25 @@ minpoints() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, filter
-	        java -jar -Xms2g -Xmx13g IHDBSCAN.jar "${DIR}/16d-128.dat" ${minPoints} $i false false >> ihdbscan-minpoints-nofilter.results
+	        java -jar -Xms2g -Xmx14g IHDBSCAN.jar "${DIR}/16d-128.dat" ${minPoints} $i false false >> ihdbscan-minpoints-nofilter.results
 
             # HDBSCAN
-            # java -jar -Xms2g -Xmx13g HDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false >> hdbscan-minpoints.results
+            # java -jar -Xms2g -Xmx14g HDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false >> hdbscan-minpoints.results
         done
     done
 }
 
 dimensions() {
-    for d in 4 8 16 32 64 128;
+    for d in 2 4 8 16 32 64 128;
     do
 		for i in $(seq 1)
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, filter
-	        java -jar -Xms2g -Xmx13g IHDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false false >> ihdbscan-dimensions-nofilter.results
+	        java -jar -Xms2g -Xmx14g IHDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false false >> ihdbscan-dimensions-nofilter.results
 
             # HDBSCAN
-            # java -jar -Xms2g -Xmx13g HDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false >> hdbscan-dimensions.results
+            # java -jar -Xms2g -Xmx14g HDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false >> hdbscan-dimensions.results
         done
     done
 }
