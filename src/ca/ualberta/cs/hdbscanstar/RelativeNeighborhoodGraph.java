@@ -79,9 +79,6 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		sortedEdges = new Integer[numOfEdgesRNG];
 
-		inMST = new BitSet(numOfEdgesRNG);
-		inMST.clear();
-
 		for (int i = 0; i < numOfEdgesRNG; i++) {
 			sortedEdges[i] = i;
 		}

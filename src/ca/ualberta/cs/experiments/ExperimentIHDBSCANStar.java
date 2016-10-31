@@ -33,7 +33,7 @@ public class ExperimentIHDBSCANStar {
 		System.out.print(args[0] + " " + args[1] + " " + args[2]);
 		
 		start = System.currentTimeMillis();
-		
+
 		// Computes all the core-distances from 1 to minPoints
 		long startcore = System.currentTimeMillis();		
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());

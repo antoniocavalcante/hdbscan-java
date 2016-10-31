@@ -50,7 +50,6 @@ public class IncrementalHDBSCANStar {
 				A[m] = G.edgesA.get(e);
 				B[m] = G.edgesB.get(e);
 				MSTweights[m] = G.weights.get(e);
-				G.inMST.set(e);
 				m++;
 			}
 			

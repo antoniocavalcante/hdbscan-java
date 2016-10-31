@@ -13,8 +13,6 @@ public class Graph {
 	
 	public Integer[] sortedEdges;
 	
-	public BitSet inMST;
-
 	public Integer[] timSort(){
 		Comparator<Integer> c = new Comparator<Integer>() {
 
