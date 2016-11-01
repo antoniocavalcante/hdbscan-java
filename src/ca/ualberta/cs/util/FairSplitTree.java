@@ -292,7 +292,7 @@ public class FairSplitTree {
 		if (left < r) {
 			if (FairSplitTree.root.get(root.left).isLeaf()) {
 				// Add to the results.
-				arrayList.addAll(FairSplitTree.root.get(root.left).retrieve());
+				arrayList.add(FairSplitTree.root.get(root.left).p);
 			} else {
 				rangeSearch(FairSplitTree.root.get(root.left), queryPoint, r, arrayList);
 			}
@@ -301,7 +301,7 @@ public class FairSplitTree {
 		if (right < r) {
 			if (FairSplitTree.root.get(root.right).isLeaf()) {
 				// Add to the results
-				arrayList.addAll(FairSplitTree.root.get(root.right).retrieve());
+				arrayList.add(FairSplitTree.root.get(root.right).p);
 			} else {
 				rangeSearch(FairSplitTree.root.get(root.right), queryPoint, r, arrayList);
 			}

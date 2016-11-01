@@ -480,7 +480,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		double dab = Math.max(2*r, Math.max(T1.getMaxCD(), T2.getMaxCD()));
 
-		BigList<Integer> result = FairSplitTree.rangeSearch(FairSplitTree.parent(T1, T2), q, r, new IntBigArrayBigList());
+		BigList<Integer> result = FairSplitTree.rangeSearch(FairSplitTree.root.get(1), q, r, new IntBigArrayBigList());
 
 //		if (T1.retrieve().contains(4927) && T2.retrieve().contains(3766)) {
 //			System.out.println("--------------------------------------------------------");
