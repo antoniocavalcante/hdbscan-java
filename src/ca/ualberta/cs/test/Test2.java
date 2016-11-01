@@ -2,12 +2,7 @@ package ca.ualberta.cs.test;
 
 import java.io.IOException;
 
-import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
-import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
-import ca.ualberta.cs.util.FairSplitTree;
-import it.unimi.dsi.fastutil.BigList;
-import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 
 public class Test2{
 
@@ -15,7 +10,8 @@ public class Test2{
 		Double[][] dataSet = null;
 
 		try {
-			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/jad.dat", " ");
+//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/jad.dat", " ");
+			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/2p.dat", " ");
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
@@ -34,20 +30,18 @@ public class Test2{
 	}
 	
 	public static void wspd(Double[][] data, double s){
-		IncrementalHDBSCANStar.calculateCoreDistances(data, 4, new EuclideanDistance());
-		
-		FairSplitTree T = FairSplitTree.build(data);
-		
-//		Double[] q = {7.5, 1.5};
-		Double[] q = {8.0, 4.0};
+//		IncrementalHDBSCANStar.calculateCoreDistances(data, 1, new EuclideanDistance());
+//		
+//		FairSplitTree T = FairSplitTree.build(data);
+//		FairSplitTree.print(T);
+//		System.out.println(T.getLeft().getMaxCD());
+//		System.out.println(T.getRight().getMaxCD());
+//		
+//		RelativeNeighborhoodGraph.rn(T.getLeft(), T.getRight());
 
+		double a = -Double.MIN_VALUE;
+		double b = 0.0;
 		
-		BigList<Integer> results = FairSplitTree.rangeSearch(T, q, 1, new IntBigArrayBigList());
-		
-		System.out.println(results);
-		
-		if (results.isEmpty()) {
-			System.out.println("AAAAAAAAA");
-		}
+		System.out.println(Math.max(a, b));
 	}
 }

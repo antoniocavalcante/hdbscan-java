@@ -218,9 +218,13 @@ public class IncrementalHDBSCANStar {
 		IncrementalHDBSCANStar.k = k;
 		
 		if (k == 1) {
+			
 			for (int point = 0; point < dataSet.length; point++) {
 				coreDistances[point][0] = 0;
 			}
+			
+			IncrementalHDBSCANStar.coreDistances = coreDistances;
+			
 			return coreDistances;
 		}
 

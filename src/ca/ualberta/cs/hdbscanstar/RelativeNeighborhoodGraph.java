@@ -1,6 +1,5 @@
 package ca.ualberta.cs.hdbscanstar;
 
-import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Stack;
@@ -103,9 +102,6 @@ public class RelativeNeighborhoodGraph extends Graph {
 	 */
 	public RelativeNeighborhoodGraph(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k, boolean filter, double s, String method) {
 
-		// Builds the Fair Split Tree T from dataSet.
-		FairSplitTree T = FairSplitTree.build(dataSet);
-
 		// Initializes attributes to store the RNG edges initially.
 		A = new IntBigArrayBigList();
 		B = new IntBigArrayBigList();
@@ -118,8 +114,13 @@ public class RelativeNeighborhoodGraph extends Graph {
 		RelativeNeighborhoodGraph.coreDistances = coreDistances;
 		RelativeNeighborhoodGraph.k = k;
 
+		// Builds the Fair Split Tree T from dataSet.
+		FairSplitTree T = FairSplitTree.build(dataSet);
+
 		// Finds all the Well-separated Pairs from T.
 		findWSPD(T, s, method);
+
+//		System.out.println(x);
 
 		boolean naiveFilter = false;
 
@@ -235,6 +236,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 		double d;
 
 		HashMap<Pair, FairSplitTree> tmp  = new HashMap<Pair, FairSplitTree>();
+		HashMap<Pair, FairSplitTree> tmp2  = new HashMap<Pair, FairSplitTree>();
 
 		double min = Double.MAX_VALUE;
 		BigList<Integer> tempA = new IntBigArrayBigList();
@@ -245,7 +247,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 			for (Integer p2 : T2.retrieve()) {
 
 				d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
-
+				
 				if (d < min) {
 					tempA.clear();
 					tempB.clear();
@@ -257,21 +259,22 @@ public class RelativeNeighborhoodGraph extends Graph {
 					tempB.add(p2);
 				}
 			}
-		}
+			
+			for (int i = 0; i < tempA.size(); i++) {
+				Pair p;
 
-		for (int i = 0; i < tempA.size(); i++) {
-			Pair p;
+				if (tempA.get(i) < tempB.get(i)) {
+					p = new Pair(tempA.get(i), tempB.get(i));
+				} else {
+					p = new Pair(tempB.get(i), tempA.get(i));
+				}
 
-			if (tempA.get(i) < tempB.get(i)) {
-				p = new Pair(tempA.get(i), tempB.get(i));
-			} else {
-				p = new Pair(tempB.get(i), tempA.get(i));
+				if (!tmp.containsKey(p)) tmp.put(p, FairSplitTree.parent(T1, T2));
 			}
-
-			if (!tmp.containsKey(p)) tmp.put(p, FairSplitTree.parent(T1, T2));
+			
+			min = Double.MAX_VALUE;
 		}
-
-		min = Double.MAX_VALUE;
+		
 		tempA = new IntBigArrayBigList();
 		tempB = new IntBigArrayBigList();
 
@@ -280,7 +283,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 			for (Integer p1 : T1.retrieve()) {
 
 				d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
-
+				
 				if (d < min) {
 					tempA.clear();
 					tempB.clear();
@@ -292,21 +295,23 @@ public class RelativeNeighborhoodGraph extends Graph {
 					tempB.add(p1);
 				}
 			}
-		}
+			
+			for (int i = 0; i < tempA.size(); i++) {
+				Pair p;
 
-		for (int i = 0; i < tempA.size(); i++) {
-			Pair p;
+				if (tempA.get(i) < tempB.get(i)) {
+					p = new Pair(tempA.get(i), tempB.get(i));
+				} else {
+					p = new Pair(tempB.get(i), tempA.get(i));
+				}
 
-			if (tempA.get(i) < tempB.get(i)) {
-				p = new Pair(tempA.get(i), tempB.get(i));
-			} else {
-				p = new Pair(tempB.get(i), tempA.get(i));
+				if (tmp.containsKey(p)) tmp2.put(p, FairSplitTree.parent(T1, T2));
 			}
-
-			if (!tmp.containsKey(p)) tmp.put(p, FairSplitTree.parent(T1, T2));
+			
+			min = Double.MAX_VALUE;
 		}
 
-		for (Pair p : tmp.keySet()) {
+		for (Pair p : tmp2.keySet()) {
 			A.add(p.a);
 			B.add(p.b);
 
@@ -342,7 +347,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		while (!stack.isEmpty()) {
 			int i = stack.pop();
-			
+
 			FairSplitTree current = FairSplitTree.root.get(i);
 
 			if (!current.getLeft().isLeaf()) {
@@ -360,10 +365,43 @@ public class RelativeNeighborhoodGraph extends Graph {
 	}
 
 	public void findPairs(FairSplitTree T1, FairSplitTree T2, double s, String method) {
+
+
 		if (separated(T1, T2, s, method)) {
-			SBCN(T1, T2, dataSet, coreDistances, new EuclideanDistance(), k);				
+//			int a = 2860;
+//			int b = 3718;
+//			if ((T1.retrieve().contains(a) && T2.retrieve().contains(b)) || (T1.retrieve().contains(b) && T2.retrieve().contains(a))) {
+//				System.out.println("--------------------------------------------------------");
+//				System.out.println("T1: " + T1.retrieve());
+//				System.out.println("T1 diameter: " + T1.diameter());
+//				System.out.println("T1 max CD: " + T1.getMaxCD());
+//				System.out.println("T2: " + T2.retrieve());
+//				System.out.println("T2 diameter: " + T2.diameter());
+//				System.out.println("T2 max CD: " + T2.getMaxCD());
+//				System.out.println("distance(T1, T2): " + FairSplitTree.circleDistance(T1, T2));
+//				System.out.println();
+//				for (Integer integer : T1.retrieve()) {
+//					for (int i = 0; i < dataSet[0].length; i++) {
+//						System.out.print(dataSet[integer][i] + " ");
+//					}
+//					System.out.println();
+//				}
+//				for (Integer integer : T2.retrieve()) {
+//					for (int i = 0; i < dataSet[0].length; i++) {
+//						System.out.print(dataSet[integer][i] + " ");
+//					}
+//					System.out.println();
+//				}
+//				
+//				System.out.println("--------------------------------------------------------");
+//			}
+
+			if (rn(T1, T2)) {
+				x++;
+				SBCN(T1, T2, dataSet, coreDistances, new EuclideanDistance(), k);				
+			}
 		} else {
-			if (T1.diameter() <= T2.diameter()) {
+			if (T1.diameterMRD() <= T2.diameterMRD()) {
 				findPairs(T1, T2.getLeft() , s, method);
 				findPairs(T1, T2.getRight(), s, method);
 			} else {
@@ -417,7 +455,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		double d = FairSplitTree.circleDistance(T1, T2);
 
-		if (d >= s*Math.max(T1.diameter(), T2.diameter())) {
+		if (d >= s*Math.max(T1.diameterMRD(), T2.diameterMRD())) {
 			return true;
 		} else {
 			return false;
@@ -440,35 +478,69 @@ public class RelativeNeighborhoodGraph extends Graph {
 			q[i] = (T1.center()[i] + T2.center()[i])/2;
 		}
 
-		BigList<Integer> result = FairSplitTree.rangeSearch(FairSplitTree.root.get(1), q, r, new IntBigArrayBigList());
+		double dab = Math.max(2*r, Math.max(T1.getMaxCD(), T2.getMaxCD()));
+
+		BigList<Integer> result = FairSplitTree.rangeSearch(FairSplitTree.parent(T1, T2), q, r, new IntBigArrayBigList());
+
+//		if (T1.retrieve().contains(4927) && T2.retrieve().contains(3766)) {
+//			System.out.println("--------------------------------------------------------");
+//			System.out.println("T1: " + T1.retrieve());
+//			System.out.println("T1 diameter: " + T1.diameter());
+//			System.out.println("T1 max CD: " + T1.getMaxCD());
+//			System.out.println("T2: " + T2.retrieve());
+//			System.out.println("T2 diameter: " + T2.diameter());
+//			System.out.println("T2 max CD: " + T2.getMaxCD());
+//			System.out.println("distance(T1, T2): " + 2*r);
+//			System.out.println("Size: " + result.size());
+//			System.out.print("Result: ");
+//			for (Integer t : result) {
+//				System.out.print(t + " ");
+//			}
+//			System.out.println();
+//			for (Integer integer : T1.retrieve()) {
+//				for (int i = 0; i < dataSet[0].length; i++) {
+//					System.out.print(dataSet[integer][i] + " ");
+//				}
+//				System.out.println();
+//			}
+//
+//			for (Integer integer : T2.retrieve()) {
+//				for (int i = 0; i < dataSet[0].length; i++) {
+//					System.out.print(dataSet[integer][i] + " ");
+//				}
+//				System.out.println();
+//			}
+//			
+//			for (int i = 0; i < dataSet[0].length; i++) {
+//				System.out.print(dataSet[5174][i] + " ");
+//			}
+//			
+//			System.out.println();
+//
+//			System.out.println();
+//			System.out.println("--------------------------------------------------------");
+//		}
 
 		if (result.isEmpty()) {
 			return true;
 		} else {
-
-			double max1 = Double.MIN_VALUE;
-			for (Integer a : T1.retrieve()) {
-				if (coreDistances[a][k-1] > max1) {
-					max1 = coreDistances[a][k-1];
-				}
-			}
-
-			double max2 = Double.MIN_VALUE;
-			for (Integer a : T2.retrieve()) {
-				if (coreDistances[a][k-1] > max2) {
-					max2 = coreDistances[a][k-1];
-				}
-			}
-
-			double dab = Math.max(2*r, Math.max(max1, max2));
-
 			for (Integer i : result) {
-				double dac = Math.max(coreDistances[i][k-1], max1);
-				double dbc = Math.max(coreDistances[i][k-1], max2);
+//				if (!T1.retrieve().contains(i) && !T2.retrieve().contains(i)) {
 
-				if (dab > Math.max(dac, dbc)) {
-					return false;
-				}	
+					double dac = Math.max(FairSplitTree.circleDistance(dataSet[i], T1) + T1.diameter(), Math.max(coreDistances[i][k-1], T1.getMaxCD()));
+					double dbc = Math.max(FairSplitTree.circleDistance(dataSet[i], T2) + T2.diameter(), Math.max(coreDistances[i][k-1], T2.getMaxCD()));
+
+					if (dab > Math.max(dac, dbc)) {
+//						if (T1.retrieve().contains(4927) && T2.retrieve().contains(3766) && i == 5174) {
+//							System.out.println("distances: ");
+//							System.out.println("A - B: " + dab);
+//							System.out.println("A - C: " + dac);
+//							System.out.println("B - C: " + dbc);
+//							
+//						}
+						return false;
+					}
+//				}
 			}
 
 			return true;
@@ -488,7 +560,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		double d = FairSplitTree.circleDistance(T1, T2);
 
-		if (d >= s*Math.min(T1.diameter(), T2.diameter())) {
+		if (d >= s*Math.min(T1.diameterMRD(), T2.diameterMRD())) {
 			return true;
 		} else {
 			return false;

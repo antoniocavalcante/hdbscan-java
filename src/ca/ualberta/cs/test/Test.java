@@ -21,8 +21,10 @@ public class Test {
 		Double[][] dataSet = null;
 
 		try {
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-1024.dat", " ");
-			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4d-16.dat", " ");
+			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-16.dat", " ");
+//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4d-16-2.dat", " ");
+//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4d-16.dat", " ");
+//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4p.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/jad.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#2/2d.data", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/test2.dat", " ");
@@ -41,7 +43,7 @@ public class Test {
 		
 //		single(dataSet, 10, 1, RelativeNeighborhoodGraph.WS, true);
 //		performance(dataSet, 16, 1, WSPD.WS, false);
-		performanceRNG(dataSet, 10, false, 1, RelativeNeighborhoodGraph.WS, true);
+		performanceRNG(dataSet, 1, false, 1, RelativeNeighborhoodGraph.WS, true);
 //		correct(dataSet, 16, false, 1, WSPD.WS);
 	
 	}
@@ -190,7 +192,7 @@ public class Test {
 
 	public static void performanceRNG(Double[][] dataSet, int maxK, boolean debug, double s, String method, boolean filter){
 		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
-
+		
 		long start = System.currentTimeMillis();
 		RelativeNeighborhoodGraph RNG1 = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK);
 		System.out.println("Naive RNG construction: " + (System.currentTimeMillis() - start));
@@ -205,6 +207,10 @@ public class Test {
 
 		System.out.println("RNG #1 (NAIVE): " + RNG1.numOfEdgesRNG);
 		System.out.println("RNG #2 (sWSPD): " + RNG2.numOfEdgesRNG);
+		
+		if (debug) {
+			printGraphs(RNG1, RNG2);
+		}
 	}
 	
 	/** Receives two Relative Neighborhood Graphs and print them.
@@ -226,6 +232,10 @@ public class Test {
 				System.out.print("[2] (" + RNG2.edgesA.get(RNG2.sortedEdges[i]) + ", " + RNG2.edgesB.get(RNG2.sortedEdges[i]) + ") : " + RNG2.weights.get(RNG2.sortedEdges[i]));
 				w2 += RNG2.weights.get(RNG2.sortedEdges[i]);
 			}
+			if (i < Math.min(RNG1.numOfEdgesRNG, RNG2.numOfEdgesRNG)) {
+				System.out.print("\t\t" + (RNG1.weights.get(RNG1.sortedEdges[i]).compareTo(RNG2.weights.get(RNG2.sortedEdges[i]))));
+			}
+			
 			System.out.println();
 		}
 

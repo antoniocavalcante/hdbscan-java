@@ -1,6 +1,5 @@
 package ca.ualberta.cs.hdbscanstar;
 
-import java.util.BitSet;
 import java.util.Comparator;
 
 public class Graph {
