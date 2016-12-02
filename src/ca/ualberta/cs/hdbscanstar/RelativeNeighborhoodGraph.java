@@ -418,9 +418,9 @@ public class RelativeNeighborhoodGraph extends Graph {
 //				System.out.println("--------------------------------------------------------");
 //			}
 
-			if (rn(T1, T2)) {
+//			if (rn(T1, T2)) {
 				SBCN(T1, T2, dataSet, coreDistances, new EuclideanDistance(), k);				
-			}
+//			}
 		} else {
 			if (T1.diameterMRD() <= T2.diameterMRD()) {
 				findPairs(T1, T2.getLeft() , s, method);
@@ -501,9 +501,9 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		double dab = Math.max(2*r, Math.max(T1.getMaxCD(), T2.getMaxCD()));
 
-//		BigList<Integer> result = FairSplitTree.rangeSearch(FairSplitTree.root.get(1), q, r, new IntBigArrayBigList());
+		BigList<Integer> result = FairSplitTree.rangeSearch(FairSplitTree.root.get(1), q, r, new IntBigArrayBigList());
 		
-		BigList<Integer> result = VAFileRangeQuery(q, r);
+//		BigList<Integer> result = VAFileRangeQuery(q, r);
 
 		if (result.isEmpty()) {
 			return true;
