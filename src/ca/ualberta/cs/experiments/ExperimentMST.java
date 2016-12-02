@@ -12,7 +12,7 @@ public class ExperimentMST {
 	public static void main(String[] args) throws IOException {
 		long start, end, duration;
 		
-		Double[][] dataSet = null;
+		double[][] dataSet = null;
 
 		try {
 			dataSet = HDBSCANStar.readInDataSet(args[0], " ");

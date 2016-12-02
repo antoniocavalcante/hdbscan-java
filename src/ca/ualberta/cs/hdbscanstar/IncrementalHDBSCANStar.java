@@ -5,6 +5,10 @@ import java.util.HashMap;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
+import de.lmu.ifi.dbs.elki.data.DoubleVector;
+import de.lmu.ifi.dbs.elki.database.ids.DoubleDBIDListIter;
+import de.lmu.ifi.dbs.elki.database.ids.KNNList;
+import de.lmu.ifi.dbs.elki.database.query.knn.KNNQuery;
 
 public class IncrementalHDBSCANStar {
 
@@ -22,7 +26,7 @@ public class IncrementalHDBSCANStar {
 	 * @return An MST for the data set using the mutual reachability distances
 	 */
 
-	public static UndirectedGraph kruskal(Double[][] dataSet, RelativeNeighborhoodGraph G, double[][] coreDistances, boolean selfEdges, DistanceCalculator distanceFunction, int k) {
+	public static UndirectedGraph kruskal(double[][] dataSet, RelativeNeighborhoodGraph G, double[][] coreDistances, boolean selfEdges, DistanceCalculator distanceFunction, int k) {
 		int n = dataSet.length;
 
 		int selfEdgeCapacity = 0;
@@ -74,7 +78,7 @@ public class IncrementalHDBSCANStar {
 		return new UndirectedGraph(n, A, B, MSTweights);
 	}
 
-	public static UndirectedGraph kruskal(Double[][] dataSet, MutualReachabilityGraph G, double[][] coreDistances, boolean selfEdges, DistanceCalculator distanceFunction, int k) {
+	public static UndirectedGraph kruskal(double[][] dataSet, MutualReachabilityGraph G, double[][] coreDistances, boolean selfEdges, DistanceCalculator distanceFunction, int k) {
 		int n = dataSet.length;
 
 		int selfEdgeCapacity = 0;
@@ -132,7 +136,7 @@ public class IncrementalHDBSCANStar {
 	 * @param distanceFunction A DistanceCalculator to compute distances between points
 	 * @return An MST for the data set using the mutual reachability distances
 	 */
-	public static UndirectedGraph updateMST(Double[][] dataSet, MutualReachabilityGraph MRG, double[][] coreDistances, boolean selfEdges, DistanceCalculator distanceFunction, int k) {
+	public static UndirectedGraph updateMST(double[][] dataSet, MutualReachabilityGraph MRG, double[][] coreDistances, boolean selfEdges, DistanceCalculator distanceFunction, int k) {
 		int n = dataSet.length;
 
 		int selfEdgeCapacity = 0;
@@ -209,7 +213,7 @@ public class IncrementalHDBSCANStar {
 	 * @param distanceFunction A DistanceCalculator to compute distances between points
 	 * @return An array of core distances
 	 */
-	public static double[][] calculateCoreDistances(Double[][] dataSet, int k, DistanceCalculator distanceFunction) {
+	public static double[][] calculateCoreDistances(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
 		int numNeighbors = k;
 		MutualReachabilityGraph.neighbors = new HashMap<Integer, ArrayList<Integer>>(dataSet.length);
 		double[][] coreDistances = new double[dataSet.length][numNeighbors];
@@ -261,6 +265,52 @@ public class IncrementalHDBSCANStar {
 			coreDistances[point] = kNNDistances;
 		}
 
+		IncrementalHDBSCANStar.kNN = kNN;
+		IncrementalHDBSCANStar.coreDistances = coreDistances;
+		
+		return coreDistances;
+	}
+	
+	/**
+	 * Calculates the core distances for each point in the data set, given some value for k.
+	 * @param dataSet A double[][] where index [i][j] indicates the jth attribute of data point i
+	 * @param k Each point's core distance will be it's distance to the kth nearest neighbor
+	 * @param distanceFunction A DistanceCalculator to compute distances between points
+	 * @return An array of core distances
+	 */
+	public static double[][] calculateCoreDistances(double[][] dataSet, int k, DistanceCalculator distanceFunction, int a) {
+		int numNeighbors = k;
+		MutualReachabilityGraph.neighbors = new HashMap<Integer, ArrayList<Integer>>(dataSet.length);
+
+		double[][] coreDistances = new double[dataSet.length][numNeighbors];
+		int[][] kNN = new int[dataSet.length][numNeighbors];
+		
+		IncrementalHDBSCANStar.k = k;
+		
+		if (k == 1) {
+			
+			for (int point = 0; point < dataSet.length; point++) {
+				coreDistances[point][0] = 0;
+			}
+			
+			IncrementalHDBSCANStar.coreDistances = coreDistances;
+			
+			return coreDistances;
+		}
+
+		for (int point = 0; point < dataSet.length; point++) {
+			
+			KNNList ids = RelativeNeighborhoodGraph.VAFileKNN(dataSet[point], k);
+
+			int i = 0;
+			
+			for(DoubleDBIDListIter res = ids.iter(); res.valid(); res.advance(), i++) {
+				kNN[point][i] = res.getPair().internalGetIndex();
+				coreDistances[point][i] = res.getPair().doubleValue();
+			}
+			
+		}
+		
 		IncrementalHDBSCANStar.kNN = kNN;
 		IncrementalHDBSCANStar.coreDistances = coreDistances;
 		

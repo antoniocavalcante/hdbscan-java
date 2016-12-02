@@ -17,7 +17,7 @@ public class PearsonCorrelation implements DistanceCalculator {
 
 	// ------------------------------ PUBLIC METHODS ------------------------------
 	
-	public double computeDistance(Double[] attributesOne, Double[] attributesTwo) {
+	public double computeDistance(double[] attributesOne, double[] attributesTwo) {
 		double meanOne = 0;
 		double meanTwo = 0;
 		

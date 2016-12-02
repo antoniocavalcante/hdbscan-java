@@ -17,7 +17,7 @@ public class CosineSimilarity implements DistanceCalculator {
 
 	// ------------------------------ PUBLIC METHODS ------------------------------
 	
-	public double computeDistance(Double[] attributesOne, Double[] attributesTwo) {
+	public double computeDistance(double[] attributesOne, double[] attributesTwo) {
 		double dotProduct = 0;
 		double magnitudeOne = 0;
 		double magnitudeTwo = 0;

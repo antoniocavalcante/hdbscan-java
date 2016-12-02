@@ -16,12 +16,12 @@ import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
  *
  */
 public class Test {
-
+	public static double[][] dataSet = null;
+	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/4d-16.dat";
 	public static void main(String[] args) {
-		Double[][] dataSet = null;
 
 		try {
-			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-16.dat", " ");
+			dataSet = HDBSCANStar.readInDataSet(datasetFile, " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4d-16-2.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4d-16.dat", " ");
 //			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4p.dat", " ");
@@ -41,14 +41,14 @@ public class Test {
 		System.out.println("Dataset size: " + numPoints);
 		System.out.println("Dimensions: " + dataSet[0].length);
 		
-//		single(dataSet, 10, 1, RelativeNeighborhoodGraph.WS, true);
+		single(dataSet, 128, 1, RelativeNeighborhoodGraph.WS, true);
 //		performance(dataSet, 16, 1, WSPD.WS, false);
-		performanceRNG(dataSet, 1, false, 1, RelativeNeighborhoodGraph.WS, true);
+//		performanceRNG(dataSet, 1, false, 1, RelativeNeighborhoodGraph.WS, true);
 //		correct(dataSet, 16, false, 1, WSPD.WS);
 	
 	}
 	
-	public static void printData(Double[][] dataSet){
+	public static void printData(double[][] dataSet){
 		for (int i = 0; i < dataSet.length; i++) {
 			for (int j = 0; j < dataSet[i].length; j++) {
 				System.out.print(dataSet[i][j] + " ");
@@ -58,7 +58,7 @@ public class Test {
 		System.out.println("------------------------------------");
 	}
 	
-	public static void weights(Double[][] dataSet, int k) throws IOException{
+	public static void weights(double[][] dataSet, int k) throws IOException{
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, k, new EuclideanDistance());
 		MutualReachabilityGraph MRG = new MutualReachabilityGraph(dataSet, coreDistances, new EuclideanDistance(), k);
 		MRG.quicksortByEdgeWeight();
@@ -77,7 +77,7 @@ public class Test {
 		}
 	}
 
-	public static void coreDistances(Double[][] dataSet, int k){
+	public static void coreDistances(double[][] dataSet, int k){
 		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, k, new EuclideanDistance());
 
 		for (int j = 1; j <= k; j++) {
@@ -91,7 +91,7 @@ public class Test {
 		}
 	}
 
-	public static void testUpdate2(Double[][] dataSet, int k1, int k2){
+	public static void testUpdate2(double[][] dataSet, int k1, int k2){
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, k1, new EuclideanDistance());
 		MutualReachabilityGraph MRG = new MutualReachabilityGraph(dataSet, coreDistances, new EuclideanDistance(), k1);
 		System.out.println("1st weight: " + MRG.weights[10]);
@@ -110,7 +110,7 @@ public class Test {
 	 * @param dataSet The data set.
 	 * @param maxK maximum Value of MinPoints.
 	 */
-	public static void correct(Double[][] dataSet, int maxK, boolean debug, double s, String method) {
+	public static void correct(double[][] dataSet, int maxK, boolean debug, double s, String method) {
 
 		/*
 		 * Maximum minPoints cannot be higher that the size of the data set 
@@ -173,7 +173,7 @@ public class Test {
 		return fails;
 	}
 
-	public static void testRNG(Double[][] dataSet, int maxK, boolean debug, double s, String method){
+	public static void testRNG(double[][] dataSet, int maxK, boolean debug, double s, String method){
 		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, true, s, method);
 
@@ -190,7 +190,7 @@ public class Test {
 		}
 	}
 
-	public static void performanceRNG(Double[][] dataSet, int maxK, boolean debug, double s, String method, boolean filter){
+	public static void performanceRNG(double[][] dataSet, int maxK, boolean debug, double s, String method, boolean filter){
 		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		
 		long start = System.currentTimeMillis();
@@ -243,7 +243,7 @@ public class Test {
 		System.out.println("RNG #2: " + w2);
 	}
 
-	public static void correctHierarchy(Double[][] dataSet, UndirectedGraph mst1, UndirectedGraph mst2, int minPts){
+	public static void correctHierarchy(double[][] dataSet, UndirectedGraph mst1, UndirectedGraph mst2, int minPts){
 		double[] pointNoiseLevels = new double[dataSet.length];
 		int[] pointLastClusters = new int[dataSet.length];
 
@@ -273,7 +273,7 @@ public class Test {
 	}
 
 	@SuppressWarnings("unused")
-	public static void performance(Double[][] dataSet, int maxK, double s, String method, boolean filter) {
+	public static void performance(double[][] dataSet, int maxK, double s, String method, boolean filter) {
 
 		long start, end, duration;
 
@@ -325,16 +325,20 @@ public class Test {
 		System.out.println("Total Running Time: " + duration);
 	}
 
-	public static void single(Double[][] dataSet, int maxK, double s, String method, boolean filter) {
+	public static void single(double[][] dataSet, int maxK, double s, String method, boolean filter) {
 
 		/**
 		 *  Incremental HDBSCAN* 
 		 **/
 		System.out.println("--------------------");
 		System.out.println("Incremental HDBSCAN*");
-
+		
+		long startVA = System.currentTimeMillis();
+		RelativeNeighborhoodGraph.VAFileInit(datasetFile);
+		System.out.println("VA-File: " + (System.currentTimeMillis() - startVA));
+		
 		long start = System.currentTimeMillis();
-		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
+		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance(), 0);
 		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
 
 		long start1 = System.currentTimeMillis();
@@ -345,7 +349,7 @@ public class Test {
 	}
 
 	
-	public static void testSorting(Double[][] dataSet, int k){
+	public static void testSorting(double[][] dataSet, int k){
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, k, new EuclideanDistance());
 		MutualReachabilityGraph MRG = new MutualReachabilityGraph(dataSet, coreDistances, new EuclideanDistance(), k);
 

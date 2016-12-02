@@ -205,7 +205,7 @@ public class UndirectedGraph {
 	 * @param distanceFunction
 	 * @param k
 	 */
-	public void updateWeights(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
+	public void updateWeights(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		for (int i = 0; i < getNumEdges(); i++) {
 			this.edgeWeights[i] = RelativeNeighborhoodGraph.mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, this.verticesA[i], this.verticesB[i], k);
 		}

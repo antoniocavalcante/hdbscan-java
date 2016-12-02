@@ -2,8 +2,8 @@ package ca.ualberta.cs.util;
 
 public class Data {
 
-	public static Double[][] normalize(Double[][] dataSet){
-		Double[][] result = new Double[dataSet.length][dataSet[0].length];
+	public static double[][] normalize(double[][] dataSet){
+		double[][] result = new double[dataSet.length][dataSet[0].length];
 		
 		for (int i = 0; i < dataSet.length; i++) {
 			result[i] = normalize(dataSet[i]);
@@ -12,8 +12,8 @@ public class Data {
 		return result;
 	}
 
-	public static Double[] normalize(Double[] v) {
-		Double[] n = new Double[v.length];
+	public static double[] normalize(double[] v) {
+		double[] n = new double[v.length];
 		double norm = Norm(v);
 		
 		if (norm != 0) {
@@ -29,7 +29,7 @@ public class Data {
 		return n;
 	}
 
-	public static double Norm(Double[] v){
+	public static double Norm(double[] v){
 		double sum = 0;
 		
 		for (int i = 0; i < v.length; i++) {

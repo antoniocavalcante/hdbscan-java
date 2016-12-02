@@ -8,7 +8,22 @@ import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.util.FairSplitTree;
 import ca.ualberta.cs.util.Pair;
-
+import de.lmu.ifi.dbs.elki.data.DoubleVector;
+import de.lmu.ifi.dbs.elki.data.type.TypeUtil;
+import de.lmu.ifi.dbs.elki.database.Database;
+import de.lmu.ifi.dbs.elki.database.StaticArrayDatabase;
+import de.lmu.ifi.dbs.elki.database.ids.DoubleDBIDList;
+import de.lmu.ifi.dbs.elki.database.ids.DoubleDBIDListIter;
+import de.lmu.ifi.dbs.elki.database.ids.KNNList;
+import de.lmu.ifi.dbs.elki.database.query.distance.DistanceQuery;
+import de.lmu.ifi.dbs.elki.database.query.knn.KNNQuery;
+import de.lmu.ifi.dbs.elki.database.query.range.RangeQuery;
+import de.lmu.ifi.dbs.elki.database.relation.Relation;
+import de.lmu.ifi.dbs.elki.datasource.FileBasedDatabaseConnection;
+import de.lmu.ifi.dbs.elki.distance.distancefunction.minkowski.EuclideanDistanceFunction;
+import de.lmu.ifi.dbs.elki.index.vafile.VAFile;
+import de.lmu.ifi.dbs.elki.utilities.ClassGenericsUtil;
+import de.lmu.ifi.dbs.elki.utilities.optionhandling.parameterization.ListParameterization;
 import it.unimi.dsi.fastutil.BigList;
 import it.unimi.dsi.fastutil.doubles.DoubleBigArrayBigList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -16,13 +31,18 @@ import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 import it.unimi.dsi.fastutil.objects.ObjectBigArrayBigList;
 
 public class RelativeNeighborhoodGraph extends Graph {
-	public static Double[][] dataSet;
+	public static double[][] dataSet;
 	public static double[][] coreDistances;
 	public static int k;
 
 	public static final String WS = "WS";
 	public static final String SS = "SS";
 
+	public static Database db;
+	public static Relation<DoubleVector> rep;
+	public static DistanceQuery<DoubleVector> dist;
+	public static KNNQuery<DoubleVector> knnq;
+	
 	public int numOfEdgesRNG;
 
 	public BigList<Integer> edgesA;
@@ -40,6 +60,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 	public Int2ObjectOpenHashMap<BigList<Integer>> pairs;
 
+	
 	/**
 	 * Relative Neighborhood Graph naive constructor. Takes O(n³) time.
 	 * 
@@ -48,7 +69,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 	 * @param distanceFunction
 	 * @param k
 	 */
-	public RelativeNeighborhoodGraph(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k){
+	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k){
 		A = new IntBigArrayBigList();
 		B = new IntBigArrayBigList();
 		W = new DoubleBigArrayBigList();
@@ -100,16 +121,13 @@ public class RelativeNeighborhoodGraph extends Graph {
 	 * @param s
 	 * @param method
 	 */
-	public RelativeNeighborhoodGraph(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k, boolean filter, double s, String method) {
+	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k, boolean filter, double s, String method) {
 
-		// Initializes attributes to store the RNG edges initially.
 		A = new IntBigArrayBigList();
 		B = new IntBigArrayBigList();
 		C = new ObjectBigArrayBigList<FairSplitTree>();
 		W = new DoubleBigArrayBigList();
-
-		pairs = new Int2ObjectOpenHashMap<BigList<Integer>>();
-
+		
 		RelativeNeighborhoodGraph.dataSet = dataSet;
 		RelativeNeighborhoodGraph.coreDistances = coreDistances;
 		RelativeNeighborhoodGraph.k = k;
@@ -120,7 +138,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 		// Finds all the Well-separated Pairs from T.
 		findWSPD(T, s, method);
 
-//		System.out.println(x);
+		System.out.println(x);
 
 		boolean naiveFilter = false;
 
@@ -129,6 +147,10 @@ public class RelativeNeighborhoodGraph extends Graph {
 		BigList<FairSplitTree> finalC = new ObjectBigArrayBigList<FairSplitTree>();
 		BigList<Double> finalW = new DoubleBigArrayBigList();
 
+//		if (filter) {
+//			
+//		}
+		
 		if (naiveFilter) {
 
 			for (int e = 0; e < A.size(); e++) {
@@ -232,7 +254,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 		finalW = null;		
 	}
 
-	public void SBCN(FairSplitTree T1, FairSplitTree T2, Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
+	public void SBCN(FairSplitTree T1, FairSplitTree T2, double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		double d;
 
 		HashMap<Pair, FairSplitTree> tmp  = new HashMap<Pair, FairSplitTree>();
@@ -325,7 +347,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 		tmp = null;
 	}
 
-	public boolean neighbors(Double[][] dataSet, double[][] coreDistances, int i, int j, int k){
+	public boolean neighbors(double[][] dataSet, double[][] coreDistances, int i, int j, int k){
 		double dij = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), i, j, k);
 
 		for (int m = 0; m < coreDistances.length; m++) {
@@ -397,7 +419,6 @@ public class RelativeNeighborhoodGraph extends Graph {
 //			}
 
 			if (rn(T1, T2)) {
-				x++;
 				SBCN(T1, T2, dataSet, coreDistances, new EuclideanDistance(), k);				
 			}
 		} else {
@@ -472,7 +493,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 	public static boolean rn(FairSplitTree T1, FairSplitTree T2) {
 		double r = FairSplitTree.circleDistance(T1, T2)/2;
 
-		Double[] q = new Double[T1.center().length];
+		double[] q = new double[T1.center().length];
 
 		for (int i = 0; i < q.length; i++) {
 			q[i] = (T1.center()[i] + T2.center()[i])/2;
@@ -480,67 +501,22 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		double dab = Math.max(2*r, Math.max(T1.getMaxCD(), T2.getMaxCD()));
 
-		BigList<Integer> result = FairSplitTree.rangeSearch(FairSplitTree.root.get(1), q, r, new IntBigArrayBigList());
-
-//		if (T1.retrieve().contains(4927) && T2.retrieve().contains(3766)) {
-//			System.out.println("--------------------------------------------------------");
-//			System.out.println("T1: " + T1.retrieve());
-//			System.out.println("T1 diameter: " + T1.diameter());
-//			System.out.println("T1 max CD: " + T1.getMaxCD());
-//			System.out.println("T2: " + T2.retrieve());
-//			System.out.println("T2 diameter: " + T2.diameter());
-//			System.out.println("T2 max CD: " + T2.getMaxCD());
-//			System.out.println("distance(T1, T2): " + 2*r);
-//			System.out.println("Size: " + result.size());
-//			System.out.print("Result: ");
-//			for (Integer t : result) {
-//				System.out.print(t + " ");
-//			}
-//			System.out.println();
-//			for (Integer integer : T1.retrieve()) {
-//				for (int i = 0; i < dataSet[0].length; i++) {
-//					System.out.print(dataSet[integer][i] + " ");
-//				}
-//				System.out.println();
-//			}
-//
-//			for (Integer integer : T2.retrieve()) {
-//				for (int i = 0; i < dataSet[0].length; i++) {
-//					System.out.print(dataSet[integer][i] + " ");
-//				}
-//				System.out.println();
-//			}
-//			
-//			for (int i = 0; i < dataSet[0].length; i++) {
-//				System.out.print(dataSet[5174][i] + " ");
-//			}
-//			
-//			System.out.println();
-//
-//			System.out.println();
-//			System.out.println("--------------------------------------------------------");
-//		}
+//		BigList<Integer> result = FairSplitTree.rangeSearch(FairSplitTree.root.get(1), q, r, new IntBigArrayBigList());
+		
+		BigList<Integer> result = VAFileRangeQuery(q, r);
 
 		if (result.isEmpty()) {
 			return true;
 		} else {
 			for (Integer i : result) {
-//				if (!T1.retrieve().contains(i) && !T2.retrieve().contains(i)) {
 
 					double dac = Math.max(FairSplitTree.circleDistance(dataSet[i], T1) + T1.diameter(), Math.max(coreDistances[i][k-1], T1.getMaxCD()));
 					double dbc = Math.max(FairSplitTree.circleDistance(dataSet[i], T2) + T2.diameter(), Math.max(coreDistances[i][k-1], T2.getMaxCD()));
 
 					if (dab > Math.max(dac, dbc)) {
-//						if (T1.retrieve().contains(4927) && T2.retrieve().contains(3766) && i == 5174) {
-//							System.out.println("distances: ");
-//							System.out.println("A - B: " + dab);
-//							System.out.println("A - C: " + dac);
-//							System.out.println("B - C: " + dbc);
-//							
-//						}
 						return false;
 					}
-//				}
+					
 			}
 
 			return true;
@@ -576,7 +552,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 	 * @param k
 	 * @return
 	 */
-	public static double mutualReachabilityDistance(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int i, int j, int k) {
+	public static double mutualReachabilityDistance(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int i, int j, int k) {
 		double mutualReachabiltiyDistance = distanceFunction.computeDistance(dataSet[i], dataSet[j]);
 
 		if (coreDistances[i][k - 1] > mutualReachabiltiyDistance)
@@ -594,16 +570,58 @@ public class RelativeNeighborhoodGraph extends Graph {
 	 * @param distanceFunction
 	 * @param k
 	 */
-	public void updateWeights(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
+	public void updateWeights(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		for (int i = 0; i < numOfEdgesRNG; i++) {
 			this.weights.set(sortedEdges[i], mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, this.edgesA.get(sortedEdges[i]), this.edgesB.get(sortedEdges[i]), k));
 		}
 	}
 
+	public static void VAFileInit(String dataset) {
+		// VA-File Parameters
+		ListParameterization spatparams = new ListParameterization();
+		spatparams.addParameter(StaticArrayDatabase.Parameterizer.INDEX_ID, VAFile.Factory.class);
+		spatparams.addParameter(VAFile.Factory.PARTITIONS_ID, 8);
+
+		spatparams.addParameter(FileBasedDatabaseConnection.Parameterizer.INPUT_ID, dataset);
+
+		// Initialize VA-File
+		db = ClassGenericsUtil.parameterizeOrAbort(StaticArrayDatabase.class, spatparams);
+		db.initialize();
+		
+		rep = db.getRelation(TypeUtil.DOUBLE_VECTOR_FIELD);
+		dist = db.getDistanceQuery(rep, EuclideanDistanceFunction.STATIC);
+		
+		knnq = db.getKNNQuery(dist, k);
+	}
+	
+	public static IntBigArrayBigList VAFileRangeQuery(double[] querypoint, double eps) {
+
+		DoubleVector q = new DoubleVector(querypoint);
+		RangeQuery<DoubleVector> rangeq = db.getRangeQuery(dist, eps);
+
+		DoubleDBIDList ids = rangeq.getRangeForObject(q, eps);
+		
+		IntBigArrayBigList result = new IntBigArrayBigList();
+		
+		for(DoubleDBIDListIter res = ids.iter(); res.valid(); res.advance()) {
+			result.add(res.getPair().internalGetIndex());
+		}
+		
+		return result;
+	}
+
+	public static KNNList VAFileKNN(double[] querypoint, int k) {
+		
+		DoubleVector dv = new DoubleVector(querypoint);
+		
+	    KNNList ids = knnq.getKNNForObject(dv, k);		
+				
+		return ids;
+	}
+	
 	public Integer[] timSort(){
 		Comparator<Integer> c = new Comparator<Integer>() {
 
-			@Override
 			public int compare(Integer o1, Integer o2) {
 				if (weights.get(o1) < weights.get(o2)) {
 					return -1;

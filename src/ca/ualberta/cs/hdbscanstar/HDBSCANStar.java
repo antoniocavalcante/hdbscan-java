@@ -53,9 +53,9 @@ public class HDBSCANStar {
 	 * @return A double[][] where index [i][j] indicates the jth attribute of data point i
 	 * @throws IOException If any errors occur opening or reading from the file
 	 */
-	public static Double[][] readInDataSet(String fileName, String delimiter) throws IOException {
+	public static double[][] readInDataSet(String fileName, String delimiter) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
-		ArrayList<Double[]> dataSet = new ArrayList<Double[]>();
+		ArrayList<double[]> dataSet = new ArrayList<double[]>();
 		int numAttributes = -1;
 		int lineIndex = 0;
 		String line = reader.readLine();
@@ -69,11 +69,11 @@ public class HDBSCANStar {
 			else if (lineContents.length != numAttributes)
 				System.err.println("Line " + lineIndex + " of data set has incorrect number of attributes.");
 
-			Double[] attributes = new Double[numAttributes];
+			double[] attributes = new double[numAttributes];
 			for (int i = 0; i < numAttributes; i++) {
 				try {
 					//If an exception occurs, the attribute will remain 0:
-					attributes[i] = Double.parseDouble(lineContents[i]);
+					attributes[i] = (double) Double.parseDouble(lineContents[i]);
 				}
 				catch (NumberFormatException nfe) {
 					System.err.println("Illegal value on line " + lineIndex + " of data set: " + lineContents[i]);
@@ -85,7 +85,7 @@ public class HDBSCANStar {
 		}
 
 		reader.close();
-		Double[][] finalDataSet = new Double[dataSet.size()][numAttributes];
+		double[][] finalDataSet = new double[dataSet.size()][numAttributes];
 
 		for (int i = 0; i < dataSet.size(); i++) {
 			finalDataSet[i] = dataSet.get(i);
@@ -93,7 +93,6 @@ public class HDBSCANStar {
 
 		return finalDataSet;
 	}
-
 
 	/**
 	 * Reads in constraints from the file given, assuming the delimiter separates the points involved
@@ -150,7 +149,7 @@ public class HDBSCANStar {
 	 * @param distanceFunction A DistanceCalculator to compute distances between points
 	 * @return An array of core distances
 	 */
-	public static double[] calculateCoreDistances(Double[][] dataSet, int k, DistanceCalculator distanceFunction) {
+	public static double[] calculateCoreDistances(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
 		int numNeighbors = k - 1;
 		double[] coreDistances = new double[dataSet.length];
 
@@ -202,7 +201,7 @@ public class HDBSCANStar {
 	 * @param distanceFunction A DistanceCalculator to compute distances between points
 	 * @return An MST for the data set using the mutual reachability distances
 	 */
-	public static UndirectedGraph constructMST(Double[][] dataSet, double[][] coreDistances, int minPoints,
+	public static UndirectedGraph constructMST(double[][] dataSet, double[][] coreDistances, int minPoints,
 			boolean selfEdges, DistanceCalculator distanceFunction) {
 
 		minPoints--;

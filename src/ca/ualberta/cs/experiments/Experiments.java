@@ -13,8 +13,8 @@ import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 public class Experiments {
 	
 	
-	public static Double[][] loadData(String file) {
-		Double[][] dataSet = null;
+	public static double[][] loadData(String file) {
+		double[][] dataSet = null;
 
 		try {
 			dataSet = HDBSCANStar.readInDataSet(file, " ");
@@ -38,7 +38,7 @@ public class Experiments {
 		}
 	}
 	
-	public static void computeOutputFiles(Double[][] dataSet, UndirectedGraph mst, int minPts, String inputFile) {
+	public static void computeOutputFiles(double[][] dataSet, UndirectedGraph mst, int minPts, String inputFile) {
 		
 		int numPoints = dataSet.length;
 		

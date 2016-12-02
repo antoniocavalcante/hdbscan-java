@@ -10,11 +10,11 @@ public interface DistanceCalculator {
 	/**
 	 * Computes the distance between two points.  Note that larger values indicate that the two points
 	 * are farther apart.
-	 * @param attributesOne The attributes of the first point
-	 * @param attributesTwo The attributes of the second point
+	 * @param dataSet The attributes of the first point
+	 * @param dataSet2 The attributes of the second point
 	 * @return A double for the distance between the two points
 	 */
-	public double computeDistance(Double[] attributesOne, Double[] attributesTwo);
+	public double computeDistance(double[] dataSet, double[] dataSet2);
 	
 	
 	public String getName();

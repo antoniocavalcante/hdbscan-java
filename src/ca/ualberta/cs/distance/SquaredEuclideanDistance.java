@@ -15,7 +15,7 @@ public class SquaredEuclideanDistance implements DistanceCalculator{
 
 	// ------------------------------ PUBLIC METHODS ------------------------------
 	
-	public double computeDistance(Double[] attributesOne, Double[] attributesTwo) {
+	public double computeDistance(double[] attributesOne, double[] attributesTwo) {
 		double distance = 0;
 		
 		for (int i = 0; i < attributesOne.length && i < attributesTwo.length; i++) {

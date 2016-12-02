@@ -6,13 +6,14 @@ import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
+import ca.ualberta.cs.main.CoreDistances;
 
 public class ExperimentIHDBSCANStar {
 
 	public static void main(String[] args) {
 		long start, end, duration;
 		
-		Double[][] dataSet = null;
+		double[][] dataSet = null;
 
 		try {
 			dataSet = HDBSCANStar.readInDataSet(args[0], " ");
@@ -35,9 +36,24 @@ public class ExperimentIHDBSCANStar {
 		start = System.currentTimeMillis();
 
 		// Computes all the core-distances from 1 to minPoints
-		long startcore = System.currentTimeMillis();		
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
-		System.out.print(" " + (System.currentTimeMillis() - startcore));
+//		long startcore = System.currentTimeMillis();		
+//		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+//		System.out.print(" " + (System.currentTimeMillis() - startcore));
+		
+		double[][] coreDistances = null;
+		int[][] kNN = null;
+		
+		try {
+			coreDistances = CoreDistances.fromFile(args[0] + ".cd", minPoints, " ");
+			kNN = CoreDistances.knnFromFile(args[0] + ".knn", minPoints, " ");
+
+			IncrementalHDBSCANStar.kNN = kNN;
+			IncrementalHDBSCANStar.coreDistances = coreDistances;
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		// Computes the RNG
 		long startRNG = System.currentTimeMillis();

@@ -50,7 +50,7 @@ public class HDBSCANStarRunner {
 				", compact=" + parameters.compactHierarchy + ", dist_function=" + parameters.distanceFunction.getName());
 		
 		//Read in input file:
-		Double[][] dataSet = null;
+		double[][] dataSet = null;
 		try {
 			dataSet = HDBSCANStar.readInDataSet(parameters.inputFile, ",");		
 		}

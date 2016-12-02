@@ -15,7 +15,6 @@ public class Graph {
 	public Integer[] timSort(){
 		Comparator<Integer> c = new Comparator<Integer>() {
 
-			@Override
 			public int compare(Integer o1, Integer o2) {
 				if (weights[o1] < weights[o2]) {
 					return -1;

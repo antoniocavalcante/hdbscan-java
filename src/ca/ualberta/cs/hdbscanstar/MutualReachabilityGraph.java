@@ -22,7 +22,7 @@ public class MutualReachabilityGraph extends Graph {
 	public Integer[] sortedEdges;
 	public int change;
 
-	public MutualReachabilityGraph(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
+	public MutualReachabilityGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		numOfEdgesMRG += uf.count() - 1;
 
 		edgesA =  new int[numOfEdgesMRG];
@@ -61,13 +61,13 @@ public class MutualReachabilityGraph extends Graph {
 	}
 
 
-	public void updateWeights(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
+	public void updateWeights(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		for (int i = 0; i < numOfEdgesMRG; i++) {
 			this.weights[sortedEdges[i]] = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, this.edgesA[sortedEdges[i]], this.edgesB[sortedEdges[i]], k);
 		}
 	}
 
-	private static double mutualReachabilityDistance(Double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int i, int j, int k) {
+	private static double mutualReachabilityDistance(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int i, int j, int k) {
 		double mutualReachabiltiyDistance = distanceFunction.computeDistance(dataSet[i], dataSet[j]);
 
 		if (coreDistances[i][k - 1] > mutualReachabiltiyDistance)
@@ -266,7 +266,6 @@ public class MutualReachabilityGraph extends Graph {
 	public Integer[] timSort(){
 		Comparator<Integer> c = new Comparator<Integer>() {
 
-			@Override
 			public int compare(Integer o1, Integer o2) {
 				if (weights[o1] < weights[o2]) {
 					return -1;
@@ -286,7 +285,6 @@ public class MutualReachabilityGraph extends Graph {
 	public Integer[] timSort2(Integer[] sortedEdges, int t){
 		Comparator<Integer> c = new Comparator<Integer>() {
 
-			@Override
 			public int compare(Integer o1, Integer o2) {
 				if (XYw[o1] < XYw[o2]) {
 					return -1;

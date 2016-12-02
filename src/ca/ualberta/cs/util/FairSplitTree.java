@@ -11,11 +11,11 @@ import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 
 public class FairSplitTree {
 
-	public static Double[][] S;
+	public static double[][] S;
 	private static int dimensions;
 	public static Int2ObjectOpenHashMap<FairSplitTree> root;
 	
-	private Double[][] boundingBox;
+	private double[][] boundingBox;
 	private int parent;
 	private int left;
 	private int right;
@@ -36,7 +36,7 @@ public class FairSplitTree {
 	 * @param S Set of d-dimensional points.
 	 * @return FairSplitTree from S.
 	 */
-	public static FairSplitTree build(Double[][] S) {
+	public static FairSplitTree build(double[][] S) {
 		FairSplitTree.S = S;
 		FairSplitTree.dimensions = S[0].length;
 		FairSplitTree.root = new Int2ObjectOpenHashMap<FairSplitTree>();
@@ -89,7 +89,7 @@ public class FairSplitTree {
 		} else {
 
 			// Construct Bounding Box.
-			this.boundingBox = new Double[2][dimensions];
+			this.boundingBox = new double[2][dimensions];
 
 			// Initialize Bounding Box.
 			for (int i = 0; i < dimensions; i++) {
@@ -210,7 +210,7 @@ public class FairSplitTree {
 		return (new EuclideanDistance()).computeDistance(T1.center(), T2.center()) - T1.diameter()/2 - T2.diameter()/2;
 	}
 
-	public static double circleDistance(Double[] point, FairSplitTree T) {
+	public static double circleDistance(double[] point, FairSplitTree T) {
 		return (new EuclideanDistance()).computeDistance(point, T.center()) - T.diameter()/2;
 	}
 	
@@ -232,8 +232,8 @@ public class FairSplitTree {
 		return diameterMRD;		
 	}
 	
-	public Double[] center() {
-		Double[] center = new Double[dimensions];
+	public double[] center() {
+		double[] center = new double[dimensions];
 
 		for (int i = 0; i < center.length; i++) {
 			center[i] = (boundingBox[0][i] + boundingBox[1][i])/2;
@@ -285,7 +285,7 @@ public class FairSplitTree {
 		return root.get(T.parent);
 	}
 	
-	public static BigList<Integer> rangeSearch(FairSplitTree root, Double[] queryPoint, double r, BigList<Integer> arrayList) {
+	public static BigList<Integer> rangeSearch(FairSplitTree root, double[] queryPoint, double r, BigList<Integer> arrayList) {
 		double left  = circleDistance(queryPoint, FairSplitTree.root.get(root.left));
 		double right = circleDistance(queryPoint, FairSplitTree.root.get(root.right));
 
