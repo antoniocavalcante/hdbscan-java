@@ -5,6 +5,7 @@ import java.util.Collections;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
+import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import it.unimi.dsi.fastutil.BigList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
@@ -118,7 +119,7 @@ public class FairSplitTree {
 							this.boundingBox[1][i] = S[p][i];
 						}
 					}
-					this.diameterMRD = Math.max(this.diameterMRD, IncrementalHDBSCANStar.coreDistances[p][IncrementalHDBSCANStar.k-1]);
+					this.diameterMRD = Math.max(this.diameterMRD, IncrementalHDBSCANStar.coreDistances[p][RelativeNeighborhoodGraph.k-1]);
 				}
 				
 				this.diameter = (new EuclideanDistance()).computeDistance(boundingBox[0], boundingBox[1]);
@@ -149,10 +150,10 @@ public class FairSplitTree {
 				
 				for (Integer p : P) {
 					if (S[p][j] < cutPoint) {
-						leftMaxCd = Math.max(leftMaxCd, IncrementalHDBSCANStar.coreDistances[p][IncrementalHDBSCANStar.k-1]);
+						leftMaxCd = Math.max(leftMaxCd, IncrementalHDBSCANStar.coreDistances[p][RelativeNeighborhoodGraph.k-1]);
 						left.add(p);
 					} else {
-						rightMaxCd = Math.max(rightMaxCd, IncrementalHDBSCANStar.coreDistances[p][IncrementalHDBSCANStar.k-1]);
+						rightMaxCd = Math.max(rightMaxCd, IncrementalHDBSCANStar.coreDistances[p][RelativeNeighborhoodGraph.k-1]);
 						right.add(p);
 					}
 				}

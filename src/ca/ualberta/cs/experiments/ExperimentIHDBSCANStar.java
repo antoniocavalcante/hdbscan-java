@@ -55,6 +55,8 @@ public class ExperimentIHDBSCANStar {
 			e.printStackTrace();
 		}
 		
+		IncrementalHDBSCANStar.k = Integer.parseInt(args[1]);
+		
 		// Computes the RNG
 		long startRNG = System.currentTimeMillis();
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), minPoints, Boolean.parseBoolean(args[4]), 1, "WS");
