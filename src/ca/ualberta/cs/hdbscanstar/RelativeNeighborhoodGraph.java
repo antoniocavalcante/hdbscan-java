@@ -1,7 +1,7 @@
 package ca.ualberta.cs.hdbscanstar;
 
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Stack;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
@@ -227,14 +227,16 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 		finalA = null;
 		finalB = null;
-		finalW = null;		
+		finalW = null;
+		
+		T = null;
 	}
 
 	public void SBCN(FairSplitTree T1, FairSplitTree T2, double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		double d;
 
-		HashMap<Pair, FairSplitTree> tmp  = new HashMap<Pair, FairSplitTree>();
-		HashMap<Pair, FairSplitTree> tmp2  = new HashMap<Pair, FairSplitTree>();
+		HashSet<Pair> tmp  = new HashSet<Pair>();
+		HashSet<Pair> tmp2  = new HashSet<Pair>();
 
 		double min = Double.MAX_VALUE;
 		BigList<Integer> tempA = new IntBigArrayBigList();
@@ -267,7 +269,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 					p = new Pair(tempB.get(i), tempA.get(i));
 				}
 
-				if (!tmp.containsKey(p)) tmp.put(p, FairSplitTree.parent(T1, T2));
+				if (!tmp.contains(p)) tmp.add(p);
 			}
 
 			min = Double.MAX_VALUE;
@@ -303,13 +305,13 @@ public class RelativeNeighborhoodGraph extends Graph {
 					p = new Pair(tempB.get(i), tempA.get(i));
 				}
 
-				if (tmp.containsKey(p)) tmp2.put(p, FairSplitTree.parent(T1, T2));
+				if (tmp.contains(p)) tmp2.add(p);
 			}
 
 			min = Double.MAX_VALUE;
 		}
 
-		for (Pair p : tmp2.keySet()) {
+		for (Pair p : tmp2) {
 			A.add(p.a);
 			B.add(p.b);
 

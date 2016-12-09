@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import net.openhft.chronicle.core.onoes.Slf4jExceptionHandler;
 import net.openhft.chronicle.map.ChronicleMap;
 
 
@@ -32,6 +31,7 @@ public class MapDBTest {
 
 		for (int i = 0; i < 10000000; i++) {
 			map.put(i, i);
+			map2.put(i,i);
 		}
 		System.out.println("finished");
 		try {

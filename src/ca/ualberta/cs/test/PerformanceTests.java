@@ -7,6 +7,7 @@ import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 public class PerformanceTests{
 
 	public static void main(String[] args) {
+		@SuppressWarnings("unused")
 		double[][] dataSet = null;
 
 		String file = "/home/toni/git/HDBSCAN_Star/experiments/data#6/4d-1024.dat";

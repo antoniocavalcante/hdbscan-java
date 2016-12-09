@@ -1,8 +1,5 @@
 package ca.ualberta.cs.util;
 
-import java.util.ArrayList;
-import java.util.Collections;
-
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
@@ -243,46 +240,46 @@ public class FairSplitTree {
 		return center;
 	}
 	
-	public static FairSplitTree parent(FairSplitTree T1, FairSplitTree T2) {
-		ArrayList<Integer> path1 = new ArrayList<Integer>();
-		ArrayList<Integer> path2 = new ArrayList<Integer>();
-		
-		path1.add(T1.parent);
-		path2.add(T2.parent);
-		
-		// Stores path from T1 to the root.
-		while (path1.get(path1.size()-1) != 1) {
-			int i = path1.get(path1.size()-1);
-			path1.add(root.get(i).parent);
-		}
-
-		// Stores path from T2 to the root.
-		while (path2.get(path2.size()-1) != 1) {
-			int i = path2.get(path2.size()-1);
-			path2.add(root.get(i).parent);
-		}
-				
-		Collections.sort(path1);
-		Collections.sort(path2);
-		
-		for (int i = 0; i < Math.min(path1.size(), path2.size()); i++) {
-			if (path1.get(i) != path2.get(i)) {
-				int id = path1.get(i-1);
-
-				System.out.println("----------" + path1.get(0) + " " + path2.get(0));
-				
-				path1 = null;
-				path2 = null;
-				
-				return root.get(id);
-			}
-		}
-
-		path1 = null;
-		path2 = null;
-		
-		return root.get(1);
-	}
+//	public static FairSplitTree parent(FairSplitTree T1, FairSplitTree T2) {
+//		ArrayList<Integer> path1 = new ArrayList<Integer>();
+//		ArrayList<Integer> path2 = new ArrayList<Integer>();
+//		
+//		path1.add(T1.parent);
+//		path2.add(T2.parent);
+//		
+//		// Stores path from T1 to the root.
+//		while (path1.get(path1.size()-1) != 1) {
+//			int i = path1.get(path1.size()-1);
+//			path1.add(root.get(i).parent);
+//		}
+//
+//		// Stores path from T2 to the root.
+//		while (path2.get(path2.size()-1) != 1) {
+//			int i = path2.get(path2.size()-1);
+//			path2.add(root.get(i).parent);
+//		}
+//				
+//		Collections.sort(path1);
+//		Collections.sort(path2);
+//		
+//		for (int i = 0; i < Math.min(path1.size(), path2.size()); i++) {
+//			if (path1.get(i) != path2.get(i)) {
+//				int id = path1.get(i-1);
+//
+//				System.out.println("----------" + path1.get(0) + " " + path2.get(0));
+//				
+//				path1 = null;
+//				path2 = null;
+//				
+//				return root.get(id);
+//			}
+//		}
+//
+//		path1 = null;
+//		path2 = null;
+//		
+//		return root.get(1);
+//	}
 	
 	public static FairSplitTree parent(FairSplitTree T) {
 		return root.get(T.parent);

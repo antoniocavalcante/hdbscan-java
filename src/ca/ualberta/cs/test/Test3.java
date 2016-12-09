@@ -6,26 +6,18 @@ import java.util.ArrayList;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import de.lmu.ifi.dbs.elki.data.DoubleVector;
-import de.lmu.ifi.dbs.elki.data.NumberVector;
 import de.lmu.ifi.dbs.elki.data.type.TypeUtil;
 import de.lmu.ifi.dbs.elki.database.Database;
 import de.lmu.ifi.dbs.elki.database.StaticArrayDatabase;
 import de.lmu.ifi.dbs.elki.database.ids.DoubleDBIDList;
-import de.lmu.ifi.dbs.elki.database.ids.DoubleDBIDListIter;
-import de.lmu.ifi.dbs.elki.database.ids.KNNList;
 import de.lmu.ifi.dbs.elki.database.query.distance.DistanceQuery;
-import de.lmu.ifi.dbs.elki.database.query.knn.KNNQuery;
 import de.lmu.ifi.dbs.elki.database.query.range.RangeQuery;
-import de.lmu.ifi.dbs.elki.database.relation.DBIDView;
 import de.lmu.ifi.dbs.elki.database.relation.Relation;
 import de.lmu.ifi.dbs.elki.datasource.ArrayAdapterDatabaseConnection;
 import de.lmu.ifi.dbs.elki.datasource.DatabaseConnection;
 import de.lmu.ifi.dbs.elki.datasource.FileBasedDatabaseConnection;
-import de.lmu.ifi.dbs.elki.datasource.parser.NumberVectorLabelParser;
-import de.lmu.ifi.dbs.elki.datasource.parser.Parser;
 import de.lmu.ifi.dbs.elki.distance.distancefunction.minkowski.EuclideanDistanceFunction;
 import de.lmu.ifi.dbs.elki.index.vafile.VAFile;
-import de.lmu.ifi.dbs.elki.index.vafile.VAFile.Factory;
 import de.lmu.ifi.dbs.elki.utilities.ClassGenericsUtil;
 import de.lmu.ifi.dbs.elki.utilities.optionhandling.parameterization.ListParameterization;
 
@@ -54,11 +46,11 @@ public class Test3 {
 
 		long startVA = System.currentTimeMillis();
 		vaquery();
-//		System.out.println("VA 1: " + (System.currentTimeMillis() - startVA));
+		System.out.println("VA 1: " + (System.currentTimeMillis() - startVA));
 		
 		startVA = System.currentTimeMillis();
 		vaquery2(data);
-//		System.out.println("VA 2: " + (System.currentTimeMillis() - startVA));
+		System.out.println("VA 2: " + (System.currentTimeMillis() - startVA));
 		
 		long startNaive = System.currentTimeMillis();
 		naivequery(data);
@@ -116,7 +108,7 @@ public class Test3 {
 		DoubleDBIDList ids = rangeq.getRangeForObject(q, eps);
 		System.out.println("VA #1: " + (System.currentTimeMillis() - start1));
 
-//		System.out.println(ids.size());
+		System.out.println(ids.size());
 	}
 
 	
