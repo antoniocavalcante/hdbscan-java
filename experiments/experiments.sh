@@ -5,13 +5,13 @@ DIR="data#6"
 # rm -rf *.results
 
 dataset() {
-    for n in 16 32 64 128 256 512 1024;
+    for n in 256 #16 32 64 128 256 512 1024;
     do
 		for i in $(seq 1)
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, filter
-            java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false false >> ihdbscan-dataset-nofilter.results
+            java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false false >> ihdbscan-dataset-nofilter.debug
 
             # HDBSCAN
             # java -jar -Xmx60g HDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false >> hdbscan-dataset.results

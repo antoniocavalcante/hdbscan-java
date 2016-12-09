@@ -28,5 +28,10 @@
 			<artifactId>elki</artifactId>
 			<version>0.7.1</version>
 		</dependency>
+		<dependency>
+			<groupId>net.openhft</groupId>
+			<artifactId>chronicle-map</artifactId>
+			<version>3.11.0</version>
+		</dependency>
 	</dependencies>
 </project>

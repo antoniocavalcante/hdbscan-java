@@ -3,8 +3,6 @@ package ca.ualberta.cs.test;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import com.sun.xml.internal.ws.config.metro.util.ParserUtil;
-
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import de.lmu.ifi.dbs.elki.data.DoubleVector;

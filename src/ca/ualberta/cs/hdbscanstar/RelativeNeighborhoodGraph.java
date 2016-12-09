@@ -46,7 +46,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 	public BigList<Integer> edgesA;
 	public BigList<Integer> edgesB;
 	public BigList<Double> weights;
-
+	
 	public Integer[] sortedEdges;
 
 	public BigList<Integer> A;

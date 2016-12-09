@@ -256,19 +256,21 @@ public class FairSplitTree {
 			path1.add(root.get(i).parent);
 		}
 
+		// Stores path from T2 to the root.
 		while (path2.get(path2.size()-1) != 1) {
 			int i = path2.get(path2.size()-1);
 			path2.add(root.get(i).parent);
 		}
-		
-		
+				
 		Collections.sort(path1);
 		Collections.sort(path2);
-				
+		
 		for (int i = 0; i < Math.min(path1.size(), path2.size()); i++) {
 			if (path1.get(i) != path2.get(i)) {
 				int id = path1.get(i-1);
 
+				System.out.println("----------" + path1.get(0) + " " + path2.get(0));
+				
 				path1 = null;
 				path2 = null;
 				
