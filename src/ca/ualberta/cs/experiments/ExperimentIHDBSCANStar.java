@@ -7,6 +7,7 @@ import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 import ca.ualberta.cs.main.CoreDistances;
+import ca.ualberta.cs.main.Prim;
 
 public class ExperimentIHDBSCANStar {
 
@@ -33,8 +34,6 @@ public class ExperimentIHDBSCANStar {
 		// Prints data set, minPoints, Run
 		System.out.print(args[0] + " " + args[1] + " " + args[2]);
 		
-		start = System.currentTimeMillis();
-
 		// Computes all the core-distances from 1 to minPoints
 //		long startcore = System.currentTimeMillis();		
 //		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
@@ -57,6 +56,8 @@ public class ExperimentIHDBSCANStar {
 		
 		IncrementalHDBSCANStar.k = Integer.parseInt(args[1]);
 		
+		start = System.currentTimeMillis();
+		
 		// Computes the RNG
 		long startRNG = System.currentTimeMillis();
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), minPoints, Boolean.parseBoolean(args[4]), 1, "WS");
@@ -64,15 +65,13 @@ public class ExperimentIHDBSCANStar {
 		
 		// Computes all the minPoints MSTs
 		long startMSTs = System.currentTimeMillis();
-		UndirectedGraph mst = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), minPoints);
-
-		Experiments.writeMSTweight("IHDBSCAN", inputFile, minPoints, mst);
 				
 		for (int k = minPoints - 1; k >= 1; k--) {
-			RNG.updateWeights(dataSet, coreDistances, new EuclideanDistance(), k);
-
-			mst = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances, false, new EuclideanDistance(), k);
+			
+			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
 		
+			mst.quicksortByEdgeWeight();
+			
 			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
 			
 			if (Boolean.parseBoolean(args[3])) {

@@ -5,8 +5,6 @@ import java.util.HashMap;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
-import de.lmu.ifi.dbs.elki.database.ids.DoubleDBIDListIter;
-import de.lmu.ifi.dbs.elki.database.ids.KNNList;
 
 public class IncrementalHDBSCANStar {
 
@@ -46,11 +44,13 @@ public class IncrementalHDBSCANStar {
 		
 		for (int i = 0; i < G.numOfEdgesRNG; i++) {
 			int e = sortedEdges[i];
+			int a = G.edgesA.get(e);
+			int b = G.edgesB.get(e);
 			
-			if (!uf.connected(G.edgesA.get(e), G.edgesB.get(e))) {
-				uf.union(G.edgesA.get(e), G.edgesB.get(e));
-				A[m] = G.edgesA.get(e);
-				B[m] = G.edgesB.get(e);
+			if (!uf.connected(a, b)) {
+				uf.union(a, b);
+				A[m] = a;
+				B[m] = b;
 				MSTweights[m] = G.weights.get(e);
 				m++;
 			}
@@ -263,52 +263,6 @@ public class IncrementalHDBSCANStar {
 			coreDistances[point] = kNNDistances;
 		}
 
-		IncrementalHDBSCANStar.kNN = kNN;
-		IncrementalHDBSCANStar.coreDistances = coreDistances;
-		
-		return coreDistances;
-	}
-	
-	/**
-	 * Calculates the core distances for each point in the data set, given some value for k.
-	 * @param dataSet A double[][] where index [i][j] indicates the jth attribute of data point i
-	 * @param k Each point's core distance will be it's distance to the kth nearest neighbor
-	 * @param distanceFunction A DistanceCalculator to compute distances between points
-	 * @return An array of core distances
-	 */
-	public static double[][] calculateCoreDistances(double[][] dataSet, int k, DistanceCalculator distanceFunction, int a) {
-		int numNeighbors = k;
-		MutualReachabilityGraph.neighbors = new HashMap<Integer, ArrayList<Integer>>(dataSet.length);
-
-		double[][] coreDistances = new double[dataSet.length][numNeighbors];
-		int[][] kNN = new int[dataSet.length][numNeighbors];
-		
-		IncrementalHDBSCANStar.k = k;
-		
-		if (k == 1) {
-			
-			for (int point = 0; point < dataSet.length; point++) {
-				coreDistances[point][0] = 0;
-			}
-			
-			IncrementalHDBSCANStar.coreDistances = coreDistances;
-			
-			return coreDistances;
-		}
-
-		for (int point = 0; point < dataSet.length; point++) {
-			
-			KNNList ids = RelativeNeighborhoodGraph.VAFileKNN(dataSet[point], k);
-
-			int i = 0;
-			
-			for(DoubleDBIDListIter res = ids.iter(); res.valid(); res.advance(), i++) {
-				kNN[point][i] = res.getPair().internalGetIndex();
-				coreDistances[point][i] = res.getPair().doubleValue();
-			}
-			
-		}
-		
 		IncrementalHDBSCANStar.kNN = kNN;
 		IncrementalHDBSCANStar.coreDistances = coreDistances;
 		

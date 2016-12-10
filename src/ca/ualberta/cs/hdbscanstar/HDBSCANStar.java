@@ -261,7 +261,6 @@ public class HDBSCANStar {
 			attachedPoints.set(nearestMRDPoint);
 			numAttachedPoints++;
 			currentPoint = nearestMRDPoint;
-
 		}
 
 		//Create an array for vertices in the tree that each point attached to:

@@ -31,8 +31,6 @@ public class ExperimentHDBSCANStar {
 
 		// Prints data set, minPoints, Run
 		System.out.print(args[0] + " " + args[1] + " " + args[2]);
-
-		start = System.currentTimeMillis();
 		
 		// Computes all the core-distances from 1 to minPoints
 //		long startcore = System.currentTimeMillis();
@@ -47,11 +45,15 @@ public class ExperimentHDBSCANStar {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		start = System.currentTimeMillis();
 		
 		//  Constructs all the the MST
 		long startmst = System.currentTimeMillis();
 		for (int k = minPoints; k >= 1; k--) {
+
 			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
+
 			mst.quicksortByEdgeWeight();
 			
 			Experiments.writeMSTweight("HDBSCAN", inputFile, k, mst);
