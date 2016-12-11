@@ -1,6 +1,5 @@
 package ca.ualberta.cs.hdbscanstar;
 
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Stack;
 
@@ -19,17 +18,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 	public static final String WS = "WS";
 	public static final String SS = "SS";
 
-	public int numOfEdgesRNG;
-
-	public BigList<Integer> edgesA;
-	public BigList<Integer> edgesB;
-	public BigList<Double> weights;
-	
-	public Integer[] sortedEdges;
-
-	public BigList<Integer> A;
-	public BigList<Integer> B;
-	public BigList<Double> W;
+	public static int numOfEdgesRNG = 0;
 
 	public static BigList<Integer>[] RNG;
 	
@@ -94,10 +83,6 @@ public class RelativeNeighborhoodGraph extends Graph {
 	@SuppressWarnings("unchecked")
 	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k, boolean filter, double s, String method) {
 
-//		A = new IntBigArrayBigList();
-//		B = new IntBigArrayBigList();
-//		W = new DoubleBigArrayBigList();
-
 		RelativeNeighborhoodGraph.dataSet = dataSet;
 		RelativeNeighborhoodGraph.coreDistances = coreDistances;
 		RelativeNeighborhoodGraph.k = k;
@@ -115,10 +100,10 @@ public class RelativeNeighborhoodGraph extends Graph {
 		findWSPD(T, s, method);
 
 		for (int i = 0; i < RNG.length; i++) {
-			this.numOfEdgesRNG += RNG[i].size();
+			numOfEdgesRNG += RNG[i].size();
 		}
 		
-		this.numOfEdgesRNG = this.numOfEdgesRNG/2;
+		numOfEdgesRNG = numOfEdgesRNG/2;
 		
 //		boolean naiveFilter = false;
 //
@@ -228,8 +213,8 @@ public class RelativeNeighborhoodGraph extends Graph {
 	public void SBCN(FairSplitTree T1, FairSplitTree T2, double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		double d;
 
-		HashSet<Pair> tmp  = new HashSet<Pair>();
-		HashSet<Pair> tmp2  = new HashSet<Pair>();
+		HashSet<Pair> tmpAB  = new HashSet<Pair>();
+		HashSet<Pair> tmpBA  = new HashSet<Pair>();
 
 		double min = Double.MAX_VALUE;
 		BigList<Integer> tempA = new IntBigArrayBigList();
@@ -262,7 +247,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 					p = new Pair(tempB.get(i), tempA.get(i));
 				}
 
-				if (!tmp.contains(p)) tmp.add(p);
+				if (!tmpAB.contains(p)) tmpAB.add(p);
 			}
 
 			min = Double.MAX_VALUE;
@@ -298,26 +283,21 @@ public class RelativeNeighborhoodGraph extends Graph {
 					p = new Pair(tempB.get(i), tempA.get(i));
 				}
 
-				if (tmp.contains(p)) tmp2.add(p);
+				if (tmpAB.contains(p)) tmpBA.add(p);
 			}
 
 			min = Double.MAX_VALUE;
 		}
 
-		for (Pair p : tmp2) {
+		for (Pair p : tmpBA) {
 			RNG[p.a].add(p.b);
-			RNG[p.b].add(p.a);				
-			
-//			A.add(p.a);
-//			B.add(p.b);
-//
-//			W.add(mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p.a, p.b, k));
+			RNG[p.b].add(p.a);
 		}
 
 		tempA = null;
 		tempB = null;
-		tmp = null;
-		tmp2 = null;
+		tmpAB = null;
+		tmpBA = null;
 	}
 
 	public boolean neighbors(double[][] dataSet, double[][] coreDistances, int i, int j, int k){
@@ -405,27 +385,6 @@ public class RelativeNeighborhoodGraph extends Graph {
 		}		
 	}
 
-	/**
-	 * Receives two Fair Split Trees T1 and T2 and returns whether they are
-	 * well separated or not.
-	 * 
-	 * @param T1 FairSplitTree #1.
-	 * @param T2 FairSplitTree #2.
-	 * @param s Separation factor.
-	 * @return true if T1 and T2 are well separated, false otherwise. 
-	 */
-	public static boolean ws(FairSplitTree T1, FairSplitTree T2, double s){
-
-		double d = FairSplitTree.circleDistance(T1, T2);
-
-		if (d >= s*Math.max(T1.diameterMRD(), T2.diameterMRD())) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-
 	/** Method to check whether two FairSplitTrees might emit a RNG edge.
 	 * It does not work currently, the core-distance of the points in each subtree would have to be checked.
 	 * @param T1
@@ -467,6 +426,26 @@ public class RelativeNeighborhoodGraph extends Graph {
 
 	/**
 	 * Receives two Fair Split Trees T1 and T2 and returns whether they are
+	 * well separated or not.
+	 * 
+	 * @param T1 FairSplitTree #1.
+	 * @param T2 FairSplitTree #2.
+	 * @param s Separation factor.
+	 * @return true if T1 and T2 are well separated, false otherwise. 
+	 */
+	public static boolean ws(FairSplitTree T1, FairSplitTree T2, double s){
+
+		double d = FairSplitTree.circleDistance(T1, T2);
+
+		if (d >= s*Math.max(T1.diameterMRD(), T2.diameterMRD())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Receives two Fair Split Trees T1 and T2 and returns whether they are
 	 * semi-separated or not.
 	 * 
 	 * @param T1 FairSplitTree #1.
@@ -504,36 +483,5 @@ public class RelativeNeighborhoodGraph extends Graph {
 			mutualReachabiltiyDistance = coreDistances[j][k - 1];
 
 		return mutualReachabiltiyDistance;
-	}
-
-	/**
-	 * @param dataSet
-	 * @param coreDistances
-	 * @param distanceFunction
-	 * @param k
-	 */
-	public void updateWeights(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
-		for (int i = 0; i < numOfEdgesRNG; i++) {
-			this.weights.set(sortedEdges[i], mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, this.edgesA.get(sortedEdges[i]), this.edgesB.get(sortedEdges[i]), k));
-		}
-	}
-
-	public Integer[] timSort(){
-		Comparator<Integer> c = new Comparator<Integer>() {
-
-			public int compare(Integer o1, Integer o2) {
-				if (weights.get(o1) < weights.get(o2)) {
-					return -1;
-				}
-				if (weights.get(o1) > weights.get(o2)) {					
-					return 1;
-				}
-				return 0;
-			}
-		};
-
-		TimSort.sort(sortedEdges, c);
-
-		return sortedEdges;
 	}
 }

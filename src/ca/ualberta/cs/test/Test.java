@@ -177,14 +177,14 @@ public class Test {
 
 	public static void testRNG(double[][] dataSet, int maxK, boolean debug, double s, String method){
 		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, true, s, method);
+//		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, true, s, method);
 
 		for (int k = maxK; k > 0; k--) {
 			double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, k, new EuclideanDistance());
 			UndirectedGraph mst1 = HDBSCANStar.constructMST(dataSet, coreDistances, maxK, false, new EuclideanDistance());
 			mst1.quicksortByEdgeWeight();
 
-			RNG.updateWeights(dataSet, coreDistances2, new EuclideanDistance(), k);
+//			RNG.updateWeights(dataSet, coreDistances2, new EuclideanDistance(), k);
 			//			printGraph(RNG, dataSet);
 //			UndirectedGraph mst2 = IncrementalHDBSCANStar.kruskal(dataSet, RNG, coreDistances2, false, new EuclideanDistance(), maxK);
 			UndirectedGraph mst2 = Prim.constructMST(dataSet, coreDistances2, maxK, false, new EuclideanDistance());
@@ -208,42 +208,42 @@ public class Test {
 		RNG2.timSort();
 
 //		System.out.println("RNG #1 (NAIVE): " + RNG1.numOfEdgesRNG);
-		System.out.println("RNG #2 (sWSPD): " + RNG2.numOfEdgesRNG);
+		System.out.println("RNG #2 (sWSPD): " + RelativeNeighborhoodGraph.numOfEdgesRNG);
 		
 //		if (debug) {
 //			printGraphs(RNG1, RNG2);
 //		}
 	}
 	
-	/** Receives two Relative Neighborhood Graphs and print them.
-	 * @param RNG1 Relative Neighborhood Graph #1
-	 * @param RNG2 Relative Neighborhood Graph #2
-	 */
-	public static void printGraphs(RelativeNeighborhoodGraph RNG1, RelativeNeighborhoodGraph RNG2){
-
-		int m = Math.max(RNG1.numOfEdgesRNG, RNG2.numOfEdgesRNG);
-		double w1 = 0;
-		double w2 = 0;
-
-		for (int i = 0; i < m; i++) {
-			if (i < RNG1.numOfEdgesRNG){
-				System.out.print("[1](" + RNG1.edgesA.get(RNG1.sortedEdges[i]) + ", " + RNG1.edgesB.get(RNG1.sortedEdges[i]) + ") : " + RNG1.weights.get(RNG1.sortedEdges[i]) + "\t\t");
-				w1 += RNG1.weights.get(RNG1.sortedEdges[i]);
-			}
-			if (i < RNG2.numOfEdgesRNG){
-				System.out.print("[2] (" + RNG2.edgesA.get(RNG2.sortedEdges[i]) + ", " + RNG2.edgesB.get(RNG2.sortedEdges[i]) + ") : " + RNG2.weights.get(RNG2.sortedEdges[i]));
-				w2 += RNG2.weights.get(RNG2.sortedEdges[i]);
-			}
-			if (i < Math.min(RNG1.numOfEdgesRNG, RNG2.numOfEdgesRNG)) {
-				System.out.print("\t\t" + (RNG1.weights.get(RNG1.sortedEdges[i]).compareTo(RNG2.weights.get(RNG2.sortedEdges[i]))));
-			}
-			
-			System.out.println();
-		}
-
-		System.out.println("RNG #1: " + w1);
-		System.out.println("RNG #2: " + w2);
-	}
+//	/** Receives two Relative Neighborhood Graphs and print them.
+//	 * @param RNG1 Relative Neighborhood Graph #1
+//	 * @param RNG2 Relative Neighborhood Graph #2
+//	 */
+//	public static void printGraphs(RelativeNeighborhoodGraph RNG1, RelativeNeighborhoodGraph RNG2){
+//
+//		int m = Math.max(RNG1.numOfEdgesRNG, RNG2.numOfEdgesRNG);
+//		double w1 = 0;
+//		double w2 = 0;
+//
+//		for (int i = 0; i < m; i++) {
+//			if (i < RNG1.numOfEdgesRNG){
+//				System.out.print("[1](" + RNG1.edgesA.get(RNG1.sortedEdges[i]) + ", " + RNG1.edgesB.get(RNG1.sortedEdges[i]) + ") : " + RNG1.weights.get(RNG1.sortedEdges[i]) + "\t\t");
+//				w1 += RNG1.weights.get(RNG1.sortedEdges[i]);
+//			}
+//			if (i < RNG2.numOfEdgesRNG){
+//				System.out.print("[2] (" + RNG2.edgesA.get(RNG2.sortedEdges[i]) + ", " + RNG2.edgesB.get(RNG2.sortedEdges[i]) + ") : " + RNG2.weights.get(RNG2.sortedEdges[i]));
+//				w2 += RNG2.weights.get(RNG2.sortedEdges[i]);
+//			}
+//			if (i < Math.min(RNG1.numOfEdgesRNG, RNG2.numOfEdgesRNG)) {
+//				System.out.print("\t\t" + (RNG1.weights.get(RNG1.sortedEdges[i]).compareTo(RNG2.weights.get(RNG2.sortedEdges[i]))));
+//			}
+//			
+//			System.out.println();
+//		}
+//
+//		System.out.println("RNG #1: " + w1);
+//		System.out.println("RNG #2: " + w2);
+//	}
 
 	public static void correctHierarchy(double[][] dataSet, UndirectedGraph mst1, UndirectedGraph mst2, int minPts){
 		double[] pointNoiseLevels = new double[dataSet.length];
@@ -312,7 +312,7 @@ public class Test {
 		long start1 = System.currentTimeMillis();
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, filter, s, method);
 		System.out.println("RNG time: " + (System.currentTimeMillis() - start1));
-		System.out.println("RNG size: " + RNG.numOfEdgesRNG);
+		System.out.println("RNG size: " + RelativeNeighborhoodGraph.numOfEdgesRNG);
 
 		UndirectedGraph mst3 = Prim.constructMST(dataSet, coreDistances2, maxK, false, new EuclideanDistance());
 
@@ -341,9 +341,10 @@ public class Test {
 		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
 
 		long start1 = System.currentTimeMillis();
+		@SuppressWarnings("unused")
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, filter, s, method);
 		System.out.println("RNG Building Time: " + (System.currentTimeMillis() - start1));
-		System.out.println("RNG size: " + RNG.numOfEdgesRNG);
+		System.out.println("RNG size: " + RelativeNeighborhoodGraph.numOfEdgesRNG);
 
 	}
 

@@ -26,7 +26,7 @@ minpoints() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, filter
-	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-128.dat" ${minPoints} $i false false >> ihdbscan-minpoints-nofilter.results
+	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false false >> ihdbscan-minpoints-nofilter.results
 
             # HDBSCAN
             # java -jar -Xmx60g HDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false >> hdbscan-minpoints.results
@@ -50,6 +50,6 @@ dimensions() {
 }
 
 dimensions
-dataset
-minpoints
+#dataset
+#minpoints
 

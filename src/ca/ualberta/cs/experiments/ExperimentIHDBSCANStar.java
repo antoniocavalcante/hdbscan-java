@@ -60,13 +60,14 @@ public class ExperimentIHDBSCANStar {
 		
 		// Computes the RNG
 		long startRNG = System.currentTimeMillis();
+		@SuppressWarnings("unused")
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), minPoints, Boolean.parseBoolean(args[4]), 1, "WS");
 		System.out.print(" " + (System.currentTimeMillis() - startRNG));
 		
 		// Computes all the minPoints MSTs
 		long startMSTs = System.currentTimeMillis();
 				
-		for (int k = minPoints - 1; k >= 1; k--) {
+		for (int k = minPoints; k >= 1; k--) {
 			
 			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
 		
@@ -85,6 +86,6 @@ public class ExperimentIHDBSCANStar {
 		duration = end - start;
 		
 		// Data set, minPts, Time, RNG size
-		System.out.println(" " + duration + " " + RNG.numOfEdgesRNG);
+		System.out.println(" " + duration + " " + RelativeNeighborhoodGraph.numOfEdgesRNG);
 	}
 }
