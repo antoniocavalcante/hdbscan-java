@@ -18,7 +18,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 	public static final String WS = "WS";
 	public static final String SS = "SS";
 
-	public static int numOfEdgesRNG = 0;
+	public static long numOfEdgesRNG = 0;
 
 	public static BigList<Integer>[] RNG;
 	
