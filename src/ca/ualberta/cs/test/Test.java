@@ -43,10 +43,10 @@ public class Test {
 		System.out.println("Dimensions: " + dataSet[0].length);
 		
 //		single(dataSet, 128, 1, RelativeNeighborhoodGraph.WS, true);
-		performance(dataSet, 16, 1, "WS", false);
+//		performance(dataSet, 16, 1, "WS", false);
 //		performanceRNG(dataSet, 1, false, 1, RelativeNeighborhoodGraph.WS, true);
 //		correct(dataSet, 16, true, 1, "WS");
-	
+		
 	}
 	
 	public static void printData(double[][] dataSet){

@@ -5,7 +5,7 @@ DIR="data#6"
 # rm -rf *.results
 
 dataset() {
-    for n in 1024 #16 32 64 128 256 512 1024;
+    for n in 16 32 64 128 256 512 1024;
     do
 		for i in $(seq 1)
 		do
@@ -20,7 +20,7 @@ dataset() {
 }
 
 minpoints() {
-    for minpoints in 128 #2 4 8 16 32 64 128;
+    for minpoints in 2 4 8 16 32 64 128;
     do
 		for i in $(seq 1)
 		do
@@ -35,7 +35,7 @@ minpoints() {
 }
 
 dimensions() {
-    for d in 128 #2 4 8 16 32 64 128;
+    for d in 2 4 8 16 32 64 128;
     do
 		for i in $(seq 1)
 		do
@@ -49,7 +49,6 @@ dimensions() {
     done
 }
 
+minpoints
 dimensions
-#dataset
-#minpoints
-
+dataset

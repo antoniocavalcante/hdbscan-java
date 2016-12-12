@@ -13,6 +13,7 @@ import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 public class RelativeNeighborhoodGraph extends Graph {
 	public static double[][] dataSet;
 	public static double[][] coreDistances;
+	
 	public static int k;
 
 	public static final String WS = "WS";
@@ -99,11 +100,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 		// Finds all the Well-separated Pairs from T.
 		findWSPD(T, s, method);
 
-		for (int i = 0; i < RNG.length; i++) {
-			numOfEdgesRNG += RNG[i].size();
-		}
-		
-		numOfEdgesRNG = numOfEdgesRNG/2;
+		// TODO Update the number of edges in the RNG when filtering is enabled.
 		
 //		boolean naiveFilter = false;
 //
@@ -292,6 +289,8 @@ public class RelativeNeighborhoodGraph extends Graph {
 		for (Pair p : tmpBA) {
 			RNG[p.a].add(p.b);
 			RNG[p.b].add(p.a);
+
+			numOfEdgesMRG++;
 		}
 
 		tempA = null;
