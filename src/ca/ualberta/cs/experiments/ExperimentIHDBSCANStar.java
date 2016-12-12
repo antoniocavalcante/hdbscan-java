@@ -70,7 +70,7 @@ public class ExperimentIHDBSCANStar {
 		for (int k = minPoints; k >= 1; k--) {
 			
 			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
-		
+			
 			mst.quicksortByEdgeWeight();
 			
 			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);

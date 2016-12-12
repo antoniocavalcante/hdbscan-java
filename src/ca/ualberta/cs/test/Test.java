@@ -1,13 +1,8 @@
 package ca.ualberta.cs.test;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
-import ca.ualberta.cs.hdbscanstar.MutualReachabilityGraph;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 import ca.ualberta.cs.main.Prim;
@@ -23,15 +18,6 @@ public class Test {
 
 		try {
 			dataSet = HDBSCANStar.readInDataSet(datasetFile, " ");
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4d-16-2.dat", " ");
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4d-16.dat", " ");
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/4p.dat", " ");
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/debug/jad.dat", " ");
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/experiments/data#2/2d.data", " ");
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/test2.dat", " ");
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/4.dat", " ");
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/jad.dat", " ");
-//			dataSet = HDBSCANStar.readInDataSet("/home/toni/git/HDBSCAN_Star/j.dat", ",");
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
@@ -59,25 +45,6 @@ public class Test {
 		System.out.println("------------------------------------");
 	}
 	
-	public static void weights(double[][] dataSet, int k) throws IOException{
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, k, new EuclideanDistance());
-		MutualReachabilityGraph MRG = new MutualReachabilityGraph(dataSet, coreDistances, new EuclideanDistance(), k);
-		MRG.quicksortByEdgeWeight();
-		List<String> lines = new ArrayList<String>();
-
-		for (int i = k; i > 1; i--) {
-			MRG.updateWeights(dataSet, coreDistances, new EuclideanDistance(), i);
-
-			for (int j = 0; j < MRG.sortedEdges.length; j++) {
-				lines.add(Integer.toString(j) + " " + Double.toString(MRG.weights[MRG.sortedEdges[j]]));
-			}
-
-			Files.write(Paths.get("w" + i), lines);
-			MRG.bubbleSort();
-			lines = new ArrayList<String>();
-		}
-	}
-
 	public static void coreDistances(double[][] dataSet, int k){
 		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, k, new EuclideanDistance());
 
@@ -91,18 +58,6 @@ public class Test {
 			}
 		}
 	}
-
-	public static void testUpdate2(double[][] dataSet, int k1, int k2){
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, k1, new EuclideanDistance());
-		MutualReachabilityGraph MRG = new MutualReachabilityGraph(dataSet, coreDistances, new EuclideanDistance(), k1);
-		System.out.println("1st weight: " + MRG.weights[10]);
-
-		MRG.updateWeights(dataSet, coreDistances, new EuclideanDistance(), k2);
-
-		System.out.println("1st weight: " + MRG.weights[10]);
-	}
-
-
 
 	/**
 	 * Compares the correct Minimum Spanning Tree and the generated from the Relative
@@ -203,10 +158,10 @@ public class Test {
 		System.out.println("-----------------------------");
 		
 		start = System.currentTimeMillis();
+		@SuppressWarnings("unused")
 		RelativeNeighborhoodGraph RNG2 = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, filter, s, method);
 		System.out.println("WSPD RNG construction: " + (System.currentTimeMillis() - start));
-		RNG2.timSort();
-
+		
 //		System.out.println("RNG #1 (NAIVE): " + RNG1.numOfEdgesRNG);
 		System.out.println("RNG #2 (sWSPD): " + RelativeNeighborhoodGraph.numOfEdgesRNG);
 		
@@ -346,43 +301,5 @@ public class Test {
 		System.out.println("RNG Building Time: " + (System.currentTimeMillis() - start1));
 		System.out.println("RNG size: " + RelativeNeighborhoodGraph.numOfEdgesRNG);
 
-	}
-
-	
-	public static void testSorting(double[][] dataSet, int k){
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, k, new EuclideanDistance());
-		MutualReachabilityGraph MRG = new MutualReachabilityGraph(dataSet, coreDistances, new EuclideanDistance(), k);
-
-		long start, end, duration;
-
-		System.out.println("Quick Sort #1");
-		start = System.currentTimeMillis();
-		MRG.quicksortByEdgeWeight();
-		end = System.currentTimeMillis();
-		duration = end - start;
-		System.out.println("Time: " + duration);
-
-		System.out.println("Quick Sort #2");
-		start = System.currentTimeMillis();
-		MRG.quicksortByEdgeWeight();
-		end = System.currentTimeMillis();
-		duration = end - start;
-		System.out.println("Time: " + duration);
-
-		System.out.println("Bubble Sort #1");
-		start = System.currentTimeMillis();
-		MRG.bubbleSort();
-		end = System.currentTimeMillis();
-		duration = end - start;
-		System.out.println("Time: " + duration);
-
-		MRG.updateWeights(dataSet, coreDistances, new EuclideanDistance(), k - 1);
-
-		System.out.println("Bubble Sort #2");
-		start = System.currentTimeMillis();
-		MRG.bubbleSort();
-		end = System.currentTimeMillis();
-		duration = end - start;
-		System.out.println("Time: " + duration);		
 	}
 }

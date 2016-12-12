@@ -9,6 +9,7 @@ import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.distance.ManhattanDistance;
 import ca.ualberta.cs.distance.PearsonCorrelation;
 import ca.ualberta.cs.distance.SupremumDistance;
+import ca.ualberta.cs.main.Prim;
 import ca.ualberta.cs.util.Data;
 
 /**
@@ -79,24 +80,18 @@ public class IncrementalHDBSCANStarRunner {
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, parameters.minPoints, parameters.distanceFunction);
 		System.out.println("Time to compute core distances (ms): " + (System.currentTimeMillis() - startTime));
 
-		MutualReachabilityGraph MRG = new MutualReachabilityGraph(dataSet, coreDistances, parameters.distanceFunction, parameters.minPoints);
-
-		UndirectedGraph mst;
-
-		mst = IncrementalHDBSCANStar.kruskal(dataSet, MRG, coreDistances, false, parameters.distanceFunction, parameters.minPoints);
-
-		mst.quicksortByEdgeWeight();
-
+		@SuppressWarnings("unused")
+		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, parameters.distanceFunction, parameters.minPoints, false, 1, "WS");
+		
+		UndirectedGraph mst;		
+		
 		for (int k = parameters.minPoints; k > 1; k--) {
 			//Compute minimum spanning tree:
 			startTime = System.currentTimeMillis();
 
 			System.out.println("Computing MST for minPts = " + k);
-			MRG.updateWeights(dataSet, coreDistances, parameters.distanceFunction, k);
 			
-			mst = IncrementalHDBSCANStar.kruskal(dataSet, MRG, coreDistances, false, parameters.distanceFunction, k);
-
-			mst.quicksortByEdgeWeight();
+			mst = Prim.constructMST(dataSet, coreDistances, k, false, parameters.distanceFunction);
 			
 			System.out.println("1st weight: " + mst.getEdgeWeightAtIndex(0));
 			System.out.println("Time to calculate MST (ms): " + (System.currentTimeMillis() - startTime));

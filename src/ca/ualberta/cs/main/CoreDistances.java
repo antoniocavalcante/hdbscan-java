@@ -8,12 +8,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
-import ca.ualberta.cs.hdbscanstar.MutualReachabilityGraph;
 
 public class CoreDistances {
 
@@ -52,7 +50,6 @@ public class CoreDistances {
 	 */
 	public static double[][] calculateCoreDistances(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
 		int numNeighbors = k;
-		MutualReachabilityGraph.neighbors = new HashMap<Integer, ArrayList<Integer>>(dataSet.length);
 		double[][] coreDistances = new double[dataSet.length][numNeighbors];
 		int[][] kNN = new int[dataSet.length][numNeighbors];
 

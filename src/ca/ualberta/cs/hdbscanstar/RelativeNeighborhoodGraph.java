@@ -10,7 +10,10 @@ import ca.ualberta.cs.util.Pair;
 import it.unimi.dsi.fastutil.BigList;
 import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 
-public class RelativeNeighborhoodGraph extends Graph {
+public class RelativeNeighborhoodGraph {
+
+	public static BigList<Integer>[] RNG;
+	
 	public static double[][] dataSet;
 	public static double[][] coreDistances;
 	
@@ -20,8 +23,6 @@ public class RelativeNeighborhoodGraph extends Graph {
 	public static final String SS = "SS";
 
 	public static long numOfEdgesRNG = 0;
-
-	public static BigList<Integer>[] RNG;
 	
 //	/**
 //	 * Relative Neighborhood Graph naive constructor. Takes O(n³) time.
@@ -290,7 +291,7 @@ public class RelativeNeighborhoodGraph extends Graph {
 			RNG[p.a].add(p.b);
 			RNG[p.b].add(p.a);
 
-			numOfEdgesMRG++;
+			numOfEdgesRNG++;
 		}
 
 		tempA = null;
