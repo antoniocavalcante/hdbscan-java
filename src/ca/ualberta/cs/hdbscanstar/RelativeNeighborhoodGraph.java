@@ -13,62 +13,51 @@ import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 public class RelativeNeighborhoodGraph {
 
 	public static BigList<Integer>[] RNG;
-	
+
 	public static double[][] dataSet;
 	public static double[][] coreDistances;
-	
+
 	public static int k;
 
 	public static final String WS = "WS";
 	public static final String SS = "SS";
 
 	public static long numOfEdgesRNG = 0;
+
+	public static boolean filter;
 	
-//	/**
-//	 * Relative Neighborhood Graph naive constructor. Takes O(n³) time.
-//	 * 
-//	 * @param dataSet
-//	 * @param coreDistances
-//	 * @param distanceFunction
-//	 * @param k
-//	 */
-//	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k){
-//		A = new IntBigArrayBigList();
-//		B = new IntBigArrayBigList();
-//		W = new DoubleBigArrayBigList();
-//
-//		RelativeNeighborhoodGraph.dataSet = dataSet;
-//		RelativeNeighborhoodGraph.coreDistances = coreDistances;
-//		RelativeNeighborhoodGraph.k = k;
-//
-//		for (int i = 0; i < dataSet.length; i++) {
-//			for (int j = i + 1; j < dataSet.length; j++) {
-//
-//				if (neighbors(dataSet, coreDistances, i, j, k)) {
-//					A.add(i);
-//					B.add(j);
-//					W.add(mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, i, j, k));
-//				}
-//			}
-//		}
-//
-//		numOfEdgesRNG = A.size();
-//
-//		edgesA =  A;
-//		edgesB =  B;
-//		weights = W;
-//
-//		sortedEdges = new Integer[numOfEdgesRNG];
-//
-//		for (int i = 0; i < numOfEdgesRNG; i++) {
-//			sortedEdges[i] = i;
-//		}
-//
-//		// Cleaning no longer needed structures.
-//		A = null;
-//		B = null;
-//		W = null;
-//	}
+	/**
+	 * Relative Neighborhood Graph naive constructor. Takes O(n³) time.
+	 * 
+	 * @param dataSet
+	 * @param coreDistances
+	 * @param distanceFunction
+	 * @param k
+	 */
+	@SuppressWarnings("unchecked")
+	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k){
+
+		RelativeNeighborhoodGraph.dataSet = dataSet;
+		RelativeNeighborhoodGraph.coreDistances = coreDistances;
+		RelativeNeighborhoodGraph.k = k;
+
+		RNG = (BigList<Integer>[]) new BigList[dataSet.length];
+
+		for (int i = 0; i < RNG.length; i++) {
+			RNG[i] = new IntBigArrayBigList();
+		}
+
+		for (int i = 0; i < dataSet.length; i++) {
+			for (int j = i + 1; j < dataSet.length; j++) {
+
+				if (neighbors(dataSet, coreDistances, i, j, k)) {
+					RNG[i].add(j);
+					RNG[j].add(i);
+					numOfEdgesRNG++;
+				}
+			}
+		}
+	}
 
 
 	/**
@@ -89,125 +78,78 @@ public class RelativeNeighborhoodGraph {
 		RelativeNeighborhoodGraph.coreDistances = coreDistances;
 		RelativeNeighborhoodGraph.k = k;
 
-		RNG = (BigList<Integer>[]) new BigList[dataSet.length];
+		RelativeNeighborhoodGraph.filter = filter;
 		
+		RNG = (BigList<Integer>[]) new BigList[dataSet.length];
+
 		for (int i = 0; i < RNG.length; i++) {
 			RNG[i] = new IntBigArrayBigList();
 		}
-		
+
 		// Builds the Fair Split Tree T from dataSet.
 		FairSplitTree T = FairSplitTree.build(dataSet);
 
 		// Finds all the Well-separated Pairs from T.
 		findWSPD(T, s, method);
 
-		// TODO Update the number of edges in the RNG when filtering is enabled.
-		
-//		boolean naiveFilter = false;
-//
-//		BigList<Integer> finalA = new IntBigArrayBigList();
-//		BigList<Integer> finalB = new IntBigArrayBigList();
-//		BigList<Double> finalW = new DoubleBigArrayBigList();
-
-//		if (naiveFilter) {
-//			for (int e = 0; e < A.size(); e++) {
-//				if (neighbors(dataSet, coreDistances, A.get(e), B.get(e), k)) {
-//					finalA.add(A.get(e));
-//					finalB.add(B.get(e));
-//					finalW.add(W.get(e));
-//				}
-//			}
-//		}
-
-//		if (filter) {
-//
-//			// boolean variable that tells whether the end points of this edge are neighbors or not.
-//			boolean neighbors;
-//
-//			for (int e = 0; e < A.size(); e++) {
-//
-//				neighbors = true;
-//
-//				double cdA = coreDistances[A.get(e)][k-1];
-//				double cdB = coreDistances[B.get(e)][k-1];
-//
-//				double w = W.get(e);
-//
-//				// In this first case, we check if the points are in each other's k-neighborhood.
-//				if (w == Math.max(cdA, cdB)) {
-//
-//					int[] kNN;
-//
-//					if (cdA > cdB) {
-//						kNN = IncrementalHDBSCANStar.kNN[A.get(e)];
-//					} else {
-//						kNN = IncrementalHDBSCANStar.kNN[B.get(e)];
-//					}
-//
-//					for (int i = 0; i < kNN.length; i++) {
-//
-//						if (coreDistances[kNN[i]][k-1] > w) break;
-//
-//						double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, A.get(e), kNN[i], k);
-//						double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, B.get(e), kNN[i], k);
-//
-//						if (w > Math.max(dac, dbc)) {
-//							neighbors = false;
-//							break;
-//						}
-//					}
-//
-//					if (neighbors) {
-//						finalA.add(A.get(e));
-//						finalB.add(B.get(e));
-//						finalW.add(W.get(e));
-//					}
-//
-//					continue;
-//				}
-//
-//				if (neighbors(dataSet, coreDistances, A.get(e), B.get(e), k)) {
-//					finalA.add(A.get(e));
-//					finalB.add(B.get(e));
-//					finalW.add(W.get(e));
-//				}
-//			}
-//		}
-//
-//		if (filter) {
-//			numOfEdgesRNG = finalW.size();			
-//		} else {
-//			numOfEdgesRNG = W.size();
-//		}
-//
-//		sortedEdges = new Integer[numOfEdgesRNG];
-//
-//		for (int i = 0; i < numOfEdgesRNG; i++) {
-//			sortedEdges[i] = i;
-//		}
-//
-//		if (filter) {
-//			edgesA = finalA;
-//			edgesB = finalB;
-//			weights = finalW;			
-//		} else {
-//			edgesA = A;
-//			edgesB = B;
-//			weights = W;
-//		}
-//
-//		// Cleaning no longer needed structures.
-//		A = null;
-//		B = null;
-//		W = null;
-//
-//		finalA = null;
-//		finalB = null;
-//		finalW = null;
-//		
-//		T = null;
+		T = null;
 	}
 
+	public boolean neighbors(int a, int b, int k, DistanceCalculator distanceFunction) {
+
+		double cdA = coreDistances[a][k-1];
+		double cdB = coreDistances[b][k-1];
+
+		double w = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, b, k);
+
+		// Check if the points are in each other's k-neighborhood.
+		if (w == Math.max(cdA, cdB)) {
+
+			int[] kNN;
+
+			if (cdA > cdB) {
+				kNN = IncrementalHDBSCANStar.kNN[a];
+			} else {
+				kNN = IncrementalHDBSCANStar.kNN[b];
+			}
+
+			for (int i = 0; i < kNN.length; i++) {
+
+				if (coreDistances[kNN[i]][k-1] > w) continue;
+
+				double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, kNN[i], k);
+				double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, b, kNN[i], k);
+
+				if (w > Math.max(dac, dbc)) {
+					return false;
+				}
+			}
+			
+			return true;
+		}
+				
+		if (neighbors(dataSet, coreDistances, a, b, k)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public boolean neighbors(double[][] dataSet, double[][] coreDistances, int i, int j, int k) {
+		double dij = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), i, j, k);
+
+		for (int m = 0; m < coreDistances.length; m++) {
+			double dim = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), i, m, k);
+			double djm = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), j, m, k);
+
+			if (dij > Math.max(dim, djm)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+	
 	public void SBCN(FairSplitTree T1, FairSplitTree T2, double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		double d;
 
@@ -288,31 +230,29 @@ public class RelativeNeighborhoodGraph {
 		}
 
 		for (Pair p : tmpBA) {
-			RNG[p.a].add(p.b);
-			RNG[p.b].add(p.a);
+			
+			if (filter) {
+				
+				if (neighbors(p.a, p.b, k, distanceFunction)) {
+					RNG[p.a].add(p.b);
+					RNG[p.b].add(p.a);
 
-			numOfEdgesRNG++;
+					numOfEdgesRNG++;
+				}
+				
+			} else {
+				
+				RNG[p.a].add(p.b);
+				RNG[p.b].add(p.a);
+
+				numOfEdgesRNG++;				
+			}
 		}
 
 		tempA = null;
 		tempB = null;
 		tmpAB = null;
 		tmpBA = null;
-	}
-
-	public boolean neighbors(double[][] dataSet, double[][] coreDistances, int i, int j, int k){
-		double dij = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), i, j, k);
-
-		for (int m = 0; m < coreDistances.length; m++) {
-			double dim = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), i, m, k);
-			double djm = mutualReachabilityDistance(dataSet, coreDistances, new EuclideanDistance(), j, m, k);
-
-			if (dij > Math.max(dim, djm)) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	public void findWSPD(FairSplitTree T, double s, String method) {
@@ -443,7 +383,7 @@ public class RelativeNeighborhoodGraph {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Receives two Fair Split Trees T1 and T2 and returns whether they are
 	 * semi-separated or not.
