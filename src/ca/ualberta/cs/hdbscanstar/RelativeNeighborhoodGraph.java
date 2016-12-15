@@ -127,7 +127,7 @@ public class RelativeNeighborhoodGraph {
 			
 			return true;
 		}
-				
+		
 		if (neighbors(dataSet, coreDistances, a, b, k)) {
 			return true;
 		}
