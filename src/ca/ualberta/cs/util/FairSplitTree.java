@@ -204,6 +204,10 @@ public class FairSplitTree {
 		if (!T.isLeaf()) print(T.getRight());
 	}
 
+	public static double circleDistanceMRD(FairSplitTree T1, FairSplitTree T2) {		
+		return Math.max(circleDistance(T1, T2) + T1.diameter() + T2.diameter(), Math.max(T1.maxCD, T2.maxCD));
+	}
+	
 	public static double circleDistance(FairSplitTree T1, FairSplitTree T2) {
 		return (new EuclideanDistance()).computeDistance(T1.center(), T2.center()) - T1.diameter()/2 - T2.diameter()/2;
 	}

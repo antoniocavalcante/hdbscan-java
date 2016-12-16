@@ -25,7 +25,7 @@ public class RelativeNeighborhoodGraph {
 	public static long numOfEdgesRNG = 0;
 
 	public static boolean filter;
-	
+
 	/**
 	 * Relative Neighborhood Graph naive constructor. Takes O(n³) time.
 	 * 
@@ -79,7 +79,7 @@ public class RelativeNeighborhoodGraph {
 		RelativeNeighborhoodGraph.k = k;
 
 		RelativeNeighborhoodGraph.filter = filter;
-		
+
 		RNG = (BigList<Integer>[]) new BigList[dataSet.length];
 
 		for (int i = 0; i < RNG.length; i++) {
@@ -115,7 +115,7 @@ public class RelativeNeighborhoodGraph {
 
 			for (int i = 0; i < kNN.length; i++) {
 
-				if (coreDistances[kNN[i]][k-1] > w) continue;
+				if (coreDistances[kNN[i]][k-1] >= w) continue;
 
 				double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, kNN[i], k);
 				double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, b, kNN[i], k);
@@ -124,15 +124,42 @@ public class RelativeNeighborhoodGraph {
 					return false;
 				}
 			}
-			
+
 			return true;
 		}
 		
-		if (neighbors(dataSet, coreDistances, a, b, k)) {
-			return true;
-		}
+		int[] kNNa = IncrementalHDBSCANStar.kNN[a];
+		int[] kNNb = IncrementalHDBSCANStar.kNN[b];
 
-		return false;
+		for (int i = 0; i < kNNa.length; i++) {
+
+			if (coreDistances[kNNa[i]][k-1] >= w) continue;
+
+			double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, kNNa[i], k);
+			double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, b, kNNa[i], k);
+
+			if (w > Math.max(dac, dbc)) {
+				return false;
+			}
+		}		
+
+		for (int i = 0; i < kNNb.length; i++) {
+
+			if (coreDistances[kNNb[i]][k-1] >= w) continue;
+
+			double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, kNNb[i], k);
+			double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, b, kNNb[i], k);
+
+			if (w > Math.max(dac, dbc)) {
+				return false;
+			}
+		}		
+		
+		if (!neighbors(dataSet, coreDistances, a, b, k)) {
+			return false;
+		}
+		
+		return true;
 	}
 
 	public boolean neighbors(double[][] dataSet, double[][] coreDistances, int i, int j, int k) {
@@ -149,8 +176,8 @@ public class RelativeNeighborhoodGraph {
 
 		return true;
 	}
-	
-	public void SBCN(FairSplitTree T1, FairSplitTree T2, double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
+
+	public void SBCN(FairSplitTree T1, FairSplitTree T2, DistanceCalculator distanceFunction) {
 		double d;
 
 		HashSet<Pair> tmpAB  = new HashSet<Pair>();
@@ -230,18 +257,18 @@ public class RelativeNeighborhoodGraph {
 		}
 
 		for (Pair p : tmpBA) {
-			
+
 			if (filter) {
-				
+
 				if (neighbors(p.a, p.b, k, distanceFunction)) {
 					RNG[p.a].add(p.b);
 					RNG[p.b].add(p.a);
 
 					numOfEdgesRNG++;
 				}
-				
+
 			} else {
-				
+
 				RNG[p.a].add(p.b);
 				RNG[p.b].add(p.a);
 
@@ -282,7 +309,7 @@ public class RelativeNeighborhoodGraph {
 	public void findPairs(FairSplitTree T1, FairSplitTree T2, double s, String method) {
 
 		if (separated(T1, T2, s, method)) {
-			SBCN(T1, T2, dataSet, coreDistances, new EuclideanDistance(), k);
+			SBCN(T1, T2, new EuclideanDistance());
 		} else {
 			if (T1.diameterMRD() <= T2.diameterMRD()) {
 				findPairs(T1, T2.getLeft() , s, method);
@@ -340,28 +367,13 @@ public class RelativeNeighborhoodGraph {
 			q[i] = (T1.center()[i] + T2.center()[i])/2;
 		}
 
-		double dab = Math.max(2*r, Math.max(T1.getMaxCD(), T2.getMaxCD()));
-
 		BigList<Integer> result = FairSplitTree.rangeSearch(FairSplitTree.root.get(1), q, r, new IntBigArrayBigList());
-
-		//		BigList<Integer> result = VAFileRangeQuery(q, r);
 
 		if (result.isEmpty()) {
 			return true;
-		} else {
-			for (Integer i : result) {
-
-				double dac = Math.max(FairSplitTree.circleDistance(dataSet[i], T1) + T1.diameter(), Math.max(coreDistances[i][k-1], T1.getMaxCD()));
-				double dbc = Math.max(FairSplitTree.circleDistance(dataSet[i], T2) + T2.diameter(), Math.max(coreDistances[i][k-1], T2.getMaxCD()));
-
-				if (dab > Math.max(dac, dbc)) {
-					return false;
-				}
-
-			}
-
-			return true;
 		}
+
+		return false;
 	}
 
 	/**
