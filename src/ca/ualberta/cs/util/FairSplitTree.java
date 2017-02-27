@@ -4,20 +4,20 @@ import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import it.unimi.dsi.fastutil.BigList;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 public class FairSplitTree {
 
 	public static double[][] S;
 	private static int dimensions;
-	public static Int2ObjectOpenHashMap<FairSplitTree> root;
+	public static Long2ObjectOpenHashMap<FairSplitTree> root;
 	
 	private double[][] boundingBox;
-	private int parent;
-	private int left;
-	private int right;
-	private int count;
+	private long parent;
+	private long left;
+	private long right;
+	private long count;
 	private int level;
 	private boolean leaf;
 	private int p;
@@ -27,7 +27,7 @@ public class FairSplitTree {
 	private double maxCD = 0;
 	
 	public BigList<Integer> P;
-	public int id;
+	public long id;
 	
 	/** Receives a set S of d-dimensional points and calls the constructor to build a FairSplitTree.
 	 * 
@@ -37,7 +37,7 @@ public class FairSplitTree {
 	public static FairSplitTree build(double[][] S) {
 		FairSplitTree.S = S;
 		FairSplitTree.dimensions = S[0].length;
-		FairSplitTree.root = new Int2ObjectOpenHashMap<FairSplitTree>();
+		FairSplitTree.root = new Long2ObjectOpenHashMap<FairSplitTree>();
 
 		BigList<Integer> P = new IntBigArrayBigList();
 
@@ -58,7 +58,7 @@ public class FairSplitTree {
 	 * @param P Set of points IDs.
 	 * @param level Current level of the tree.
 	 */
-	public FairSplitTree(FairSplitTree parent, BigList<Integer> P, double maxCD, int level, int id){
+	public FairSplitTree(FairSplitTree parent, BigList<Integer> P, double maxCD, int level, long id){
 		// Update parent.
 		if (id == 1){
 			this.parent = 1;
@@ -330,15 +330,15 @@ public class FairSplitTree {
 		return FairSplitTree.root.get(right);
 	}
 
-	public int left() {
+	public long left() {
 		return left;
 	}
 
-	public int right() {
+	public long right() {
 		return right;
 	}
 	
-	public int getCount() {
+	public long getCount() {
 		return count;
 	}
 
@@ -374,7 +374,7 @@ public class FairSplitTree {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + id;
+		result = prime * result + (int)id;
 		return result;
 	}
 

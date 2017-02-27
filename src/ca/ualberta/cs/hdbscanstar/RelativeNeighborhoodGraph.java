@@ -25,7 +25,9 @@ public class RelativeNeighborhoodGraph {
 	public static long numOfEdgesRNG = 0;
 
 	public static boolean filter;
-
+	
+	public static boolean debug = false;
+	
 	/**
 	 * Relative Neighborhood Graph naive constructor. Takes O(n³) time.
 	 * 
@@ -283,12 +285,12 @@ public class RelativeNeighborhoodGraph {
 	}
 
 	public void findWSPD(FairSplitTree T, double s, String method) {
-		Stack<Integer> stack = new Stack<Integer>();
+		Stack<Long> stack = new Stack<Long>();
 
 		stack.add(T.id);
 
 		while (!stack.isEmpty()) {
-			int i = stack.pop();
+			long i = stack.pop();
 
 			FairSplitTree current = FairSplitTree.root.get(i);
 
@@ -299,7 +301,7 @@ public class RelativeNeighborhoodGraph {
 			if (!current.getRight().isLeaf()) {
 				stack.add(current.right());
 			}
-
+			
 			findPairs(current.getLeft(), current.getRight(), s, method);
 		}
 
@@ -388,7 +390,7 @@ public class RelativeNeighborhoodGraph {
 	public static boolean ws(FairSplitTree T1, FairSplitTree T2, double s){
 
 		double d = FairSplitTree.circleDistance(T1, T2);
-
+		
 		if (d >= s*Math.max(T1.diameterMRD(), T2.diameterMRD())) {
 			return true;
 		} else {
