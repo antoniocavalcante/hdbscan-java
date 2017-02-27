@@ -98,10 +98,6 @@ public class RelativeNeighborhoodGraph {
 		findWSPD(T, s, method);
 
 		T = null;
-		
-		// keep track of the edges in the RNG.
-//		in = new BitSet(RNG.length);
-//		in.set(0, in.length());
 	}
 
 	public boolean neighbors(int a, int b, int k, DistanceCalculator distanceFunction) {
@@ -194,11 +190,12 @@ public class RelativeNeighborhoodGraph {
 				int m = RNG[i].get(j);
 				
 				if (!neighbors(i, m, k, (new EuclideanDistance()))) {
+					System.out.println("REMOVING ONE EDGE!");
 					RNG[m].remove(RNG[m].indexOf(i));
 					RNG[i].remove(j);
-					
+
 					numOfEdgesRNG--;
-				}				
+				}
 			}
 		}
 	}
