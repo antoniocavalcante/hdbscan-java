@@ -63,21 +63,25 @@ public class ExperimentIHDBSCANStar {
 		@SuppressWarnings("unused")
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), minPoints, Boolean.parseBoolean(args[4]), Double.parseDouble(args[5]), "WS");
 		System.out.print(" " + (System.currentTimeMillis() - startRNG));
-		
+		System.out.println();
+		System.out.println("["+ minPoints + "]" + "Number of edges: " + RelativeNeighborhoodGraph.numOfEdgesRNG);				
 		// Computes all the minPoints MSTs
 		long startMSTs = System.currentTimeMillis();
-				
+		
 		for (int k = minPoints; k >= 1; k--) {
 			
-			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
-			
-			mst.quicksortByEdgeWeight();
-			
-			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
-			
-			if (Boolean.parseBoolean(args[3])) {
-				Experiments.computeOutputFiles(dataSet, mst, k, "RNG_" + inputFile);	
+//			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
+			if (k < minPoints) {
+				RNG.filter(k);
+				System.out.println("["+ k + "]" + "Number of edges: " + RelativeNeighborhoodGraph.numOfEdgesRNG);				
 			}
+//			mst.quicksortByEdgeWeight();
+			
+//			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
+			
+//			if (Boolean.parseBoolean(args[3])) {
+//				Experiments.computeOutputFiles(dataSet, mst, k, "RNG_" + inputFile);	
+//			}
 		}
 		
 		System.out.print(" " + (System.currentTimeMillis() - startMSTs));		

@@ -1,5 +1,6 @@
 package ca.ualberta.cs.hdbscanstar;
 
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Stack;
 
@@ -27,6 +28,8 @@ public class RelativeNeighborhoodGraph {
 	public static boolean filter;
 	
 	public static boolean debug = false;
+	
+	public static BitSet in;
 	
 	/**
 	 * Relative Neighborhood Graph naive constructor. Takes O(n³) time.
@@ -95,6 +98,10 @@ public class RelativeNeighborhoodGraph {
 		findWSPD(T, s, method);
 
 		T = null;
+		
+		// keep track of the edges in the RNG.
+//		in = new BitSet(RNG.length);
+//		in.set(0, in.length());
 	}
 
 	public boolean neighbors(int a, int b, int k, DistanceCalculator distanceFunction) {
@@ -157,9 +164,10 @@ public class RelativeNeighborhoodGraph {
 			}
 		}		
 		
-		if (!neighbors(dataSet, coreDistances, a, b, k)) {
-			return false;
-		}
+		// Filter Naive - OFF
+//		if (!neighbors(dataSet, coreDistances, a, b, k)) {
+//			return false;
+//		}
 		
 		return true;
 	}
@@ -179,6 +187,22 @@ public class RelativeNeighborhoodGraph {
 		return true;
 	}
 
+	public void filter(int k){
+		for (int i = 0; i < RNG.length; i++) {
+			for (int j = RNG[i].size() - 1; j <= 0; j++) {
+				
+				int m = RNG[i].get(j);
+				
+				if (!neighbors(i, m, k, (new EuclideanDistance()))) {
+					RNG[m].remove(RNG[m].indexOf(i));
+					RNG[i].remove(j);
+					
+					numOfEdgesRNG--;
+				}				
+			}
+		}
+	}
+	
 	public void SBCN(FairSplitTree T1, FairSplitTree T2, DistanceCalculator distanceFunction) {
 		double d;
 
