@@ -2,6 +2,7 @@ package ca.ualberta.cs.hdbscanstar;
 
 import java.util.BitSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Stack;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
@@ -10,10 +11,11 @@ import ca.ualberta.cs.util.FairSplitTree;
 import ca.ualberta.cs.util.Pair;
 import it.unimi.dsi.fastutil.BigList;
 import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 public class RelativeNeighborhoodGraph {
 
-	public static BigList<Integer>[] RNG;
+	public static IntOpenHashSet[] RNG;
 
 	public static double[][] dataSet;
 	public static double[][] coreDistances;
@@ -46,10 +48,10 @@ public class RelativeNeighborhoodGraph {
 		RelativeNeighborhoodGraph.coreDistances = coreDistances;
 		RelativeNeighborhoodGraph.k = k;
 
-		RNG = (BigList<Integer>[]) new BigList[dataSet.length];
+		RNG = new IntOpenHashSet[dataSet.length];
 
 		for (int i = 0; i < RNG.length; i++) {
-			RNG[i] = new IntBigArrayBigList();
+			RNG[i] = new IntOpenHashSet();
 		}
 
 		for (int i = 0; i < dataSet.length; i++) {
@@ -85,10 +87,10 @@ public class RelativeNeighborhoodGraph {
 
 		RelativeNeighborhoodGraph.filter = filter;
 
-		RNG = (BigList<Integer>[]) new BigList[dataSet.length];
+		RNG = new IntOpenHashSet[dataSet.length];
 
 		for (int i = 0; i < RNG.length; i++) {
-			RNG[i] = new IntBigArrayBigList();
+			RNG[i] = new IntOpenHashSet();
 		}
 
 		// Builds the Fair Split Tree T from dataSet.
@@ -185,16 +187,19 @@ public class RelativeNeighborhoodGraph {
 
 	public void filter(int k){
 		for (int i = 0; i < RNG.length; i++) {
-			for (int j = RNG[i].size() - 1; j >= 0; j--) {
+			
+			for (Iterator<Integer> iter = RNG[i].iterator(); iter.hasNext();) {
 
-				int m = RNG[i].get(j);
+				Integer m = iter.next();
+
 				if (!neighbors(i, m, k, (new EuclideanDistance()))) {
-					RNG[m].remove(RNG[m].indexOf(i));
-					RNG[i].remove(j);
+					iter.remove();
+					RNG[m].remove(i);
 
 					numOfEdgesRNG--;
 				}
-			}
+
+			}			
 		}
 	}
 	
