@@ -22,7 +22,7 @@ dataset() {
 }
 
 minpoints() {
-    for minpoints in 128; # 2 4 8 16 32 64 128;
+    for minpoints in 2 4 8 16 32 64 128;
     do
 		for i in $(seq 1)
 		do
