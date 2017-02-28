@@ -185,12 +185,10 @@ public class RelativeNeighborhoodGraph {
 
 	public void filter(int k){
 		for (int i = 0; i < RNG.length; i++) {
-			for (int j = RNG[i].size() - 1; j <= 0; j++) {
-				
+			for (int j = RNG[i].size() - 1; j >= 0; j--) {
+
 				int m = RNG[i].get(j);
-				
 				if (!neighbors(i, m, k, (new EuclideanDistance()))) {
-					System.out.println("REMOVING ONE EDGE!");
 					RNG[m].remove(RNG[m].indexOf(i));
 					RNG[i].remove(j);
 
