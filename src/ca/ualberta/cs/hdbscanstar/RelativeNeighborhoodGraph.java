@@ -104,68 +104,68 @@ public class RelativeNeighborhoodGraph {
 
 	public boolean neighbors(int a, int b, int k, DistanceCalculator distanceFunction) {
 
-		double cdA = coreDistances[a][k-1];
-		double cdB = coreDistances[b][k-1];
-
-		double w = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, b, k);
-
-		// Check if the points are in each other's k-neighborhood.
-		if (w == Math.max(cdA, cdB)) {
-
-			int[] kNN;
-
-			if (cdA > cdB) {
-				kNN = IncrementalHDBSCANStar.kNN[a];
-			} else {
-				kNN = IncrementalHDBSCANStar.kNN[b];
-			}
-
-			for (int i = 0; i < kNN.length; i++) {
-
-				if (coreDistances[kNN[i]][k-1] >= w) continue;
-
-				double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, kNN[i], k);
-				double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, b, kNN[i], k);
-
-				if (w > Math.max(dac, dbc)) {
-					return false;
-				}
-			}
-
-			return true;
-		}
-		
-		int[] kNNa = IncrementalHDBSCANStar.kNN[a];
-		int[] kNNb = IncrementalHDBSCANStar.kNN[b];
-
-		for (int i = 0; i < kNNa.length; i++) {
-
-			if (coreDistances[kNNa[i]][k-1] >= w) continue;
-
-			double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, kNNa[i], k);
-			double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, b, kNNa[i], k);
-
-			if (w > Math.max(dac, dbc)) {
-				return false;
-			}
-		}		
-
-		for (int i = 0; i < kNNb.length; i++) {
-
-			if (coreDistances[kNNb[i]][k-1] >= w) continue;
-
-			double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, kNNb[i], k);
-			double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, b, kNNb[i], k);
-
-			if (w > Math.max(dac, dbc)) {
-				return false;
-			}
-		}		
+//		double cdA = coreDistances[a][k-1];
+//		double cdB = coreDistances[b][k-1];
+//
+//		double w = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, b, k);
+//
+//		// Check if the points are in each other's k-neighborhood.
+//		if (w == Math.max(cdA, cdB)) {
+//
+//			int[] kNN;
+//
+//			if (cdA > cdB) {
+//				kNN = IncrementalHDBSCANStar.kNN[a];
+//			} else {
+//				kNN = IncrementalHDBSCANStar.kNN[b];
+//			}
+//
+//			for (int i = 0; i < kNN.length; i++) {
+//
+//				if (coreDistances[kNN[i]][k-1] >= w) continue;
+//
+//				double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, kNN[i], k);
+//				double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, b, kNN[i], k);
+//
+//				if (w > Math.max(dac, dbc)) {
+//					return false;
+//				}
+//			}
+//
+//			return true;
+//		}
+//		
+//		int[] kNNa = IncrementalHDBSCANStar.kNN[a];
+//		int[] kNNb = IncrementalHDBSCANStar.kNN[b];
+//
+//		for (int i = 0; i < kNNa.length; i++) {
+//
+//			if (coreDistances[kNNa[i]][k-1] >= w) continue;
+//
+//			double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, kNNa[i], k);
+//			double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, b, kNNa[i], k);
+//
+//			if (w > Math.max(dac, dbc)) {
+//				return false;
+//			}
+//		}		
+//
+//		for (int i = 0; i < kNNb.length; i++) {
+//
+//			if (coreDistances[kNNb[i]][k-1] >= w) continue;
+//
+//			double dac = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, a, kNNb[i], k);
+//			double dbc = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, b, kNNb[i], k);
+//
+//			if (w > Math.max(dac, dbc)) {
+//				return false;
+//			}
+//		}		
 		
 		// Filter Naive - OFF
-//		if (!neighbors(dataSet, coreDistances, a, b, k)) {
-//			return false;
-//		}
+		if (!neighbors(dataSet, coreDistances, a, b, k)) {
+			return false;
+		}
 		
 		return true;
 	}
@@ -187,18 +187,17 @@ public class RelativeNeighborhoodGraph {
 
 	public void filter(int k){
 		for (int i = 0; i < RNG.length; i++) {
-			
 			for (Iterator<Integer> iter = RNG[i].iterator(); iter.hasNext();) {
 
 				Integer m = iter.next();
+				if (i < m) {
+					if (!neighbors(i, m, k, (new EuclideanDistance()))) {
+						iter.remove();
+						RNG[m].remove(i);
 
-				if (!neighbors(i, m, k, (new EuclideanDistance()))) {
-					iter.remove();
-					RNG[m].remove(i);
-
-					numOfEdgesRNG--;
+						numOfEdgesRNG--;
+					}	
 				}
-
 			}			
 		}
 	}
@@ -288,7 +287,7 @@ public class RelativeNeighborhoodGraph {
 
 				if (neighbors(p.a, p.b, k, distanceFunction)) {
 					RNG[p.a].add(p.b);
-					RNG[p.b].add(p.a);
+//					RNG[p.b].add(p.a);
 
 					numOfEdgesRNG++;
 				}
@@ -296,7 +295,7 @@ public class RelativeNeighborhoodGraph {
 			} else {
 
 				RNG[p.a].add(p.b);
-				RNG[p.b].add(p.a);
+//				RNG[p.b].add(p.a);
 
 				numOfEdgesRNG++;				
 			}

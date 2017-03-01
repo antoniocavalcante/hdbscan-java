@@ -32,7 +32,7 @@ public class Test {
 //		performance(dataSet, 16, 1, "WS", false);
 //		performanceRNG(dataSet, 1, false, 1, RelativeNeighborhoodGraph.WS, true);
 //		correct(dataSet, 16, true, 1, "WS");
-		
+		testRNG(dataSet, 16, false, 1, "WS");
 	}
 	
 	public static void printData(double[][] dataSet){

@@ -73,7 +73,7 @@ public class ExperimentIHDBSCANStar {
 			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
 			
 			// Incremental filtering
-//			if (k < minPoints) {
+//			if (k < minPoints && k > 1 && k % 1 == 0) {
 //				RNG.filter(k);
 //				System.out.println("["+ k + "]" + "Number of edges: " + RelativeNeighborhoodGraph.numOfEdgesRNG);				
 //			}
