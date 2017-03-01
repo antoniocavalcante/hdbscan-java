@@ -28,7 +28,7 @@ minpoints() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, filter
-	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false true ${s} >> RNG3.ihdbscan-minpoints-naivefilter.results
+	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false true ${s} >> ihdbscan-minpoints-naivefilter.results
 
             # HDBSCAN
             # java -jar -Xmx60g HDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false >> hdbscan-minpoints.results
@@ -43,7 +43,7 @@ dimensions() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, filter
-	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false true ${s} >> RNG2.ihdbscan-dimensions-naivefilter.results
+	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false true ${s} >> ihdbscan-dimensions-naivefilter.results
 
             # HDBSCAN
             # java -jar -Xmx60g HDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false >> hdbscan-dimensions.results

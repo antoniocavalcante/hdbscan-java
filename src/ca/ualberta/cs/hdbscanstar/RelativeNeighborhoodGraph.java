@@ -162,7 +162,7 @@ public class RelativeNeighborhoodGraph {
 //			}
 //		}		
 		
-		// Filter Naive - OFF
+		// Filter Naive - ON
 		if (!neighbors(dataSet, coreDistances, a, b, k)) {
 			return false;
 		}
