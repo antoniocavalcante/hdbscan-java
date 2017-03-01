@@ -35,24 +35,24 @@ public class ExperimentIHDBSCANStar {
 		System.out.print(args[0] + " " + args[1] + " " + args[2]);
 		
 		// Computes all the core-distances from 1 to minPoints
-//		long startcore = System.currentTimeMillis();		
-//		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
-//		System.out.print(" " + (System.currentTimeMillis() - startcore));
+		long startcore = System.currentTimeMillis();		
+		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+		System.out.print(" " + (System.currentTimeMillis() - startcore));
 		
-		double[][] coreDistances = null;
-		int[][] kNN = null;
-		
-		try {
-			coreDistances = CoreDistances.fromFile(args[0] + ".cd", minPoints, " ");
-			kNN = CoreDistances.knnFromFile(args[0] + ".knn", minPoints, " ");
-
-			IncrementalHDBSCANStar.kNN = kNN;
-			IncrementalHDBSCANStar.coreDistances = coreDistances;
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		double[][] coreDistances = null;
+//		int[][] kNN = null;
+//		
+//		try {
+//			coreDistances = CoreDistances.fromFile(args[0] + ".cd", minPoints, " ");
+//			kNN = CoreDistances.knnFromFile(args[0] + ".knn", minPoints, " ");
+//
+//			IncrementalHDBSCANStar.kNN = kNN;
+//			IncrementalHDBSCANStar.coreDistances = coreDistances;
+//			
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 		IncrementalHDBSCANStar.k = Integer.parseInt(args[1]);
 		

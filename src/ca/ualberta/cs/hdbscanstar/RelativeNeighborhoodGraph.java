@@ -287,7 +287,7 @@ public class RelativeNeighborhoodGraph {
 
 				if (neighbors(p.a, p.b, k, distanceFunction)) {
 					RNG[p.a].add(p.b);
-//					RNG[p.b].add(p.a);
+					RNG[p.b].add(p.a);
 
 					numOfEdgesRNG++;
 				}
@@ -295,7 +295,7 @@ public class RelativeNeighborhoodGraph {
 			} else {
 
 				RNG[p.a].add(p.b);
-//				RNG[p.b].add(p.a);
+				RNG[p.b].add(p.a);
 
 				numOfEdgesRNG++;				
 			}
