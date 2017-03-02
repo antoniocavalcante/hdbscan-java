@@ -23,7 +23,7 @@ public class Prim {
         return min_index;
     }
 	
-	public static UndirectedGraph constructMST(double[][] dataSet, double[][] coreDistances, int minPoints,	boolean selfEdges, DistanceCalculator distanceFunction) {
+	public static UndirectedGraph constructMST(double[][] dataSet, double[][] coreDistances, int minPoints,	boolean selfEdges, DistanceCalculator distanceFunction, RelativeNeighborhoodGraph RNG) {
 
 		minPoints--;
 		int selfEdgeCapacity = 0;
@@ -60,7 +60,7 @@ public class Prim {
 			numAttachedPoints++;
 			
 			//Iterate through all unattached points, updating distances using the current point:
-			for (int neighbor : RelativeNeighborhoodGraph.RNG[currentPoint]) {
+			for (int neighbor : RNG.RNG[currentPoint]) {
 				if (currentPoint == neighbor)
 					continue;
 				if (attachedPoints.get(neighbor) == true)

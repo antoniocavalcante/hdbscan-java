@@ -2,7 +2,6 @@ package ca.ualberta.cs.util;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
-import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import it.unimi.dsi.fastutil.BigList;
 import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -34,7 +33,7 @@ public class FairSplitTree {
 	 * @param S Set of d-dimensional points.
 	 * @return FairSplitTree from S.
 	 */
-	public static FairSplitTree build(double[][] S) {
+	public static FairSplitTree build(double[][] S, int k) {
 		FairSplitTree.S = S;
 		FairSplitTree.dimensions = S[0].length;
 		FairSplitTree.root = new Long2ObjectOpenHashMap<FairSplitTree>();
@@ -45,7 +44,7 @@ public class FairSplitTree {
 			P.add(i);
 		}
 
-		FairSplitTree T = new FairSplitTree(null, P, 0, 0, 1);
+		FairSplitTree T = new FairSplitTree(null, P, 0, 0, 1, k);
 		root.put(1, T);
 		
 		return T;
@@ -58,7 +57,7 @@ public class FairSplitTree {
 	 * @param P Set of points IDs.
 	 * @param level Current level of the tree.
 	 */
-	public FairSplitTree(FairSplitTree parent, BigList<Integer> P, double maxCD, int level, long id){
+	public FairSplitTree(FairSplitTree parent, BigList<Integer> P, double maxCD, int level, long id, int k){
 		// Update parent.
 		if (id == 1){
 			this.parent = 1;
@@ -116,7 +115,7 @@ public class FairSplitTree {
 							this.boundingBox[1][i] = S[p][i];
 						}
 					}
-					this.diameterMRD = Math.max(this.diameterMRD, IncrementalHDBSCANStar.coreDistances[p][RelativeNeighborhoodGraph.k-1]);
+					this.diameterMRD = Math.max(this.diameterMRD, IncrementalHDBSCANStar.coreDistances[p][k-1]);
 				}
 				
 				this.diameter = (new EuclideanDistance()).computeDistance(boundingBox[0], boundingBox[1]);
@@ -147,19 +146,19 @@ public class FairSplitTree {
 				
 				for (Integer p : P) {
 					if (S[p][j] < cutPoint) {
-						leftMaxCd = Math.max(leftMaxCd, IncrementalHDBSCANStar.coreDistances[p][RelativeNeighborhoodGraph.k-1]);
+						leftMaxCd = Math.max(leftMaxCd, IncrementalHDBSCANStar.coreDistances[p][k-1]);
 						left.add(p);
 					} else {
-						rightMaxCd = Math.max(rightMaxCd, IncrementalHDBSCANStar.coreDistances[p][RelativeNeighborhoodGraph.k-1]);
+						rightMaxCd = Math.max(rightMaxCd, IncrementalHDBSCANStar.coreDistances[p][k-1]);
 						right.add(p);
 					}
 				}
 				
 				// Recursive call for left and right children.
 				this.left  = this.id*2;
-				root.put(this.left, new FairSplitTree(this, left, leftMaxCd, this.level + 1, this.left));
+				root.put(this.left, new FairSplitTree(this, left, leftMaxCd, this.level + 1, this.left, k));
 				this.right = this.id*2 + 1;
-				root.put(this.right, new FairSplitTree(this, right, rightMaxCd, this.level + 1, this.right));
+				root.put(this.right, new FairSplitTree(this, right, rightMaxCd, this.level + 1, this.right, k));
 			}
 		}
 	}

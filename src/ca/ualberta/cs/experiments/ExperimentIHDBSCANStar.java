@@ -60,17 +60,16 @@ public class ExperimentIHDBSCANStar {
 		
 		// Computes the RNG
 		long startRNG = System.currentTimeMillis();
-		@SuppressWarnings("unused")
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), minPoints, Boolean.parseBoolean(args[4]), Double.parseDouble(args[5]), "WS");
+
+		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), minPoints, Boolean.parseBoolean(args[4]), Boolean.parseBoolean(args[5]));
 		System.out.print(" " + (System.currentTimeMillis() - startRNG));
-//		System.out.println();
-//		System.out.println("["+ minPoints + "]" + "Number of edges: " + RelativeNeighborhoodGraph.numOfEdgesRNG);				
+
 		// Computes all the minPoints MSTs
 		long startMSTs = System.currentTimeMillis();
 		
-		for (int k = minPoints; k >= 1; k--) {
+//		for (int k = minPoints; k >= 1; k--) {
 			
-			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
+//			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
 			
 			// Incremental filtering
 //			if (k < minPoints && k > 1 && k % 1 == 0) {
@@ -78,14 +77,12 @@ public class ExperimentIHDBSCANStar {
 //				System.out.println("["+ k + "]" + "Number of edges: " + RelativeNeighborhoodGraph.numOfEdgesRNG);				
 //			}
 
-			mst.quicksortByEdgeWeight();
+//			mst.quicksortByEdgeWeight();
 			
-			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
+//			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
 			
-			if (Boolean.parseBoolean(args[3])) {
-				Experiments.computeOutputFiles(dataSet, mst, k, "RNG_" + inputFile);	
-			}
-		}
+//			if (Boolean.parseBoolean(args[6])) Experiments.computeOutputFiles(dataSet, mst, k, "RNG_" + inputFile);
+//		}
 		
 		System.out.print(" " + (System.currentTimeMillis() - startMSTs));		
 		
@@ -93,6 +90,6 @@ public class ExperimentIHDBSCANStar {
 		duration = end - start;
 		
 		// Data set, minPts, Time, RNG size
-		System.out.println(" " + duration + " " + RelativeNeighborhoodGraph.numOfEdgesRNG);
+		System.out.println(" " + duration + " " + RNG.numOfEdgesRNG);
 	}
 }
