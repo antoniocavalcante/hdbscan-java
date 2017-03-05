@@ -230,7 +230,7 @@ public class FairSplitTree {
 			return 0;
 		}
 				
-		return diameterMRD;		
+		return diameterMRD;
 	}
 	
 	public double[] center() {

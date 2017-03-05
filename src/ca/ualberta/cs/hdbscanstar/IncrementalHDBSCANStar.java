@@ -107,10 +107,12 @@ public class IncrementalHDBSCANStar {
 
 			for (int point = 0; point < dataSet.length; point++) {
 				coreDistances[point][0] = 0;
+				kNN[point][0] = point;
 			}
 
 			IncrementalHDBSCANStar.coreDistances = coreDistances;
-
+			IncrementalHDBSCANStar.kNN = kNN;
+			
 			return coreDistances;
 		}
 
@@ -147,8 +149,8 @@ public class IncrementalHDBSCANStar {
 			coreDistances[point] = kNNDistances;
 		}
 
-		IncrementalHDBSCANStar.kNN = kNN;
 		IncrementalHDBSCANStar.coreDistances = coreDistances;
+		IncrementalHDBSCANStar.kNN = kNN;
 
 		return coreDistances;
 	}

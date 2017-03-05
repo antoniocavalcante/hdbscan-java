@@ -1,31 +1,53 @@
 package ca.ualberta.cs.main;
 
 import java.util.BitSet;
+import java.util.PriorityQueue;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 
 public class Prim {
-	
-	public static int minKey(double key[], BitSet mstSet) {
-        // Initialize min value
-        double min = Double.MAX_VALUE;
-        
-        int min_index = key.length;
- 
-        for (int v = 0; v < key.length; v++)
-            if (mstSet.get(v) == false && key[v] < min) {
-                min = key[v];
-                min_index = v;
-            }
 
-        return min_index;
-    }
-	
+	private static class Pair implements Comparable<Pair> {
+		public int vertex;
+		public double priority;
+
+		public Pair(int vertex, double priority) {
+			this.vertex = vertex;
+			this.priority = priority;
+		}
+
+		@Override
+		public int compareTo(Pair o) {
+			return Double.compare(this.priority, o.priority);
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + vertex;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Pair other = (Pair) obj;
+			if (vertex != other.vertex)
+				return false;
+			return true;
+		}
+	}
+
 	public static UndirectedGraph constructMST(double[][] dataSet, double[][] coreDistances, int minPoints,	boolean selfEdges, DistanceCalculator distanceFunction, RelativeNeighborhoodGraph RNG) {
 
-		minPoints--;
 		int selfEdgeCapacity = 0;
 		if (selfEdges)
 			selfEdgeCapacity = dataSet.length;
@@ -37,6 +59,8 @@ public class Prim {
 		int[] nearestMRDNeighbors = new int[dataSet.length-1 + selfEdgeCapacity];
 		double[] nearestMRDDistances = new double[dataSet.length-1 + selfEdgeCapacity];
 
+		PriorityQueue<Pair> q = new PriorityQueue<Pair>();
+
 		for (int i = 0; i < dataSet.length-1; i++) {
 			nearestMRDDistances[i] = Double.MAX_VALUE;
 		}
@@ -44,51 +68,41 @@ public class Prim {
 		//The MST is expanded starting with the last point in the data set:
 		int numAttachedPoints = 0;
 
-//		nearestMRDDistances[dataSet.length-1] = 0;
-//		nearestMRDNeighbors[dataSet.length-1] = -1;
-		
+		q.add(new Pair(dataSet.length - 1, 0));
+
 		//Continue attaching points to the MST until all points are attached:
 		while (numAttachedPoints < dataSet.length) {
 
-			double nearestMRDDistance = Double.MAX_VALUE;
+			int currentPoint = q.poll().vertex;
 
-			int currentPoint = minKey(nearestMRDDistances, attachedPoints);
-			
-			//Attach the closest point found in this iteration to the tree:			
+			//Attach the closest point found in this iteration to the tree:
 			attachedPoints.set(currentPoint);
-			
+
 			numAttachedPoints++;
-			
+
 			//Iterate through all unattached points, updating distances using the current point:
-			for (int neighbor : RNG.RNG[currentPoint]) {
-				if (currentPoint == neighbor)
-					continue;
+			for (int neighbor : RNG.RNG[currentPoint].keySet()) {
+
 				if (attachedPoints.get(neighbor) == true)
 					continue;
 
-				double distance = distanceFunction.computeDistance(dataSet[currentPoint], dataSet[neighbor]);
-
-				double mutualReachabiltiyDistance = distance;
-				if (coreDistances[currentPoint][minPoints] > mutualReachabiltiyDistance)
-					mutualReachabiltiyDistance = coreDistances[currentPoint][minPoints];
-				if (coreDistances[neighbor][minPoints] > mutualReachabiltiyDistance)
-					mutualReachabiltiyDistance = coreDistances[neighbor][minPoints];
+				double mutualReachabiltiyDistance = RNG.edgeWeight(currentPoint, neighbor, minPoints);
 
 				if (mutualReachabiltiyDistance < nearestMRDDistances[neighbor]) {
 					nearestMRDDistances[neighbor] = mutualReachabiltiyDistance;
 					nearestMRDNeighbors[neighbor] = currentPoint;
-				}
 
-				//Check if the unattached point being updated is the closest to the tree:
-				if (nearestMRDDistances[neighbor] <= nearestMRDDistance) {
-					nearestMRDDistance = nearestMRDDistances[neighbor];
-//					nearestMRDPoint = neighbor;
+					Pair p = new Pair(neighbor, mutualReachabiltiyDistance);
+
+					if (q.contains(p)) {
+						q.remove(p);
+						p.priority = mutualReachabiltiyDistance;
+						q.add(p);
+					} else {
+						q.add(p);
+					}
 				}
 			}
-
-//			attachedPoints.set(nearestMRDPoint);
-//			numAttachedPoints++;
-//			currentPoint = minKey(nearestMRDDistances, attachedPoints);
 		}
 
 		//Create an array for vertices in the tree that each point attached to:
@@ -109,6 +123,4 @@ public class Prim {
 
 		return new UndirectedGraph(dataSet.length, nearestMRDNeighbors, otherVertexIndices, nearestMRDDistances);
 	}
-
-
 }
