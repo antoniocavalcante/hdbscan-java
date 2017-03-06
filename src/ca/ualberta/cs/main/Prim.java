@@ -72,7 +72,7 @@ public class Prim {
 
 		//Continue attaching points to the MST until all points are attached:
 		while (numAttachedPoints < dataSet.length) {
-
+			if (q.peek() == null) System.out.println("NULL");
 			int currentPoint = q.poll().vertex;
 
 			//Attach the closest point found in this iteration to the tree:
@@ -87,7 +87,7 @@ public class Prim {
 				
 				if (attachedPoints.get(neighbor) == true)
 					continue;
-				if (RNG.RNG[currentPoint].get(neighbor).level > minPoints) {
+				if (RNG.incremental && RNG.RNG[currentPoint].get(neighbor).level > minPoints) {
 					i.remove();
 					continue;
 				}

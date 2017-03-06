@@ -226,7 +226,7 @@ public class RelativeNeighborhoodGraph {
 		int level = Integer.MAX_VALUE;
 
 		if (neighbors(a, b, k)) {
-			level = k;
+			level = 0;
 		}
 
 		if (incremental) {
@@ -246,8 +246,6 @@ public class RelativeNeighborhoodGraph {
 				} else {
 					middle = (int) Math.floor((end-start)/2) + start;
 				}
-
-//				System.out.println("start: " + start + " middle: " + middle + " end: " + end);
 
 				if (neighbors(a, b, middle)) {
 					level = middle;
@@ -363,6 +361,7 @@ public class RelativeNeighborhoodGraph {
 			int level = neighbors(p.a, p.b, k, incremental);
 
 			if (level <= k) {
+
 				double distance = distanceFunction.computeDistance(dataSet[p.a], dataSet[p.b]);
 
 				DistanceLevel dl = new DistanceLevel(distance, level);
