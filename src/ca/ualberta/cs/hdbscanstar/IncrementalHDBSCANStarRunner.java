@@ -80,7 +80,7 @@ public class IncrementalHDBSCANStarRunner {
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, parameters.minPoints, parameters.distanceFunction);
 		System.out.println("Time to compute core distances (ms): " + (System.currentTimeMillis() - startTime));
 
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, parameters.distanceFunction, parameters.minPoints, 1, "WS", true, false);
+		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, parameters.distanceFunction, parameters.minPoints, 1, "WS", true, false, true);
 		
 		UndirectedGraph mst;		
 		
@@ -90,7 +90,7 @@ public class IncrementalHDBSCANStarRunner {
 
 			System.out.println("Computing MST for minPts = " + k);
 			
-			mst = Prim.constructMST(dataSet, coreDistances, k, false, parameters.distanceFunction, RNG);
+			mst = Prim.constructMST(dataSet, coreDistances, k, false, RNG);
 			
 			System.out.println("1st weight: " + mst.getEdgeWeightAtIndex(0));
 			System.out.println("Time to calculate MST (ms): " + (System.currentTimeMillis() - startTime));

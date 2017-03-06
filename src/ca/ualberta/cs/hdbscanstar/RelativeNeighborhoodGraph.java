@@ -1,7 +1,6 @@
 package ca.ualberta.cs.hdbscanstar;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Stack;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
@@ -9,12 +8,12 @@ import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.util.FairSplitTree;
 import ca.ualberta.cs.util.Pair;
 import it.unimi.dsi.fastutil.BigList;
-import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 
 public class RelativeNeighborhoodGraph {
 
-	public Int2DoubleOpenHashMap[] RNG;
+	public Int2ObjectOpenHashMap<DistanceLevel>[] RNG;
 
 	public double[][] dataSet;
 	public double[][] coreDistances;
@@ -28,7 +27,8 @@ public class RelativeNeighborhoodGraph {
 
 	public boolean smartFilter;
 	public boolean naiveFilter;
-
+	public boolean incremental;
+	
 	public boolean debug = false;
 
 	public long timenaivefilter = 0;
@@ -43,6 +43,7 @@ public class RelativeNeighborhoodGraph {
 	 * @param distanceFunction
 	 * @param k
 	 */
+	@SuppressWarnings("unchecked")
 	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k){
 
 		this.dataSet = dataSet;
@@ -50,10 +51,10 @@ public class RelativeNeighborhoodGraph {
 		this.distanceFunction = distanceFunction;
 		this.k = k;
 
-		RNG = new Int2DoubleOpenHashMap[dataSet.length];
+		RNG = new Int2ObjectOpenHashMap[dataSet.length];
 
 		for (int i = 0; i < RNG.length; i++) {
-			RNG[i] = new Int2DoubleOpenHashMap();
+			RNG[i] = new Int2ObjectOpenHashMap<DistanceLevel>();
 		}
 
 		for (int i = 0; i < dataSet.length; i++) {
@@ -61,8 +62,11 @@ public class RelativeNeighborhoodGraph {
 
 				if (neighbors(dataSet, coreDistances, i, j, k)) {
 					double d = distanceFunction.computeDistance(dataSet[i], dataSet[j]);
-					RNG[i].put(j, d);
-					RNG[j].put(i, d);
+					
+					DistanceLevel dl = new DistanceLevel(d, 0);
+					
+					RNG[i].put(j, dl);
+					RNG[j].put(i, dl);
 
 					numOfEdges++;
 				}
@@ -83,7 +87,8 @@ public class RelativeNeighborhoodGraph {
 	 * @param smartFilter
 	 * @param naiveFilter
 	 */
-	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k, double s, String method, boolean smartFilter, boolean naiveFilter) {
+	@SuppressWarnings("unchecked")
+	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k, double s, String method, boolean smartFilter, boolean naiveFilter, boolean incremental) {
 
 		this.dataSet = dataSet;
 		this.coreDistances = coreDistances;
@@ -92,11 +97,12 @@ public class RelativeNeighborhoodGraph {
 
 		this.smartFilter = smartFilter;
 		this.naiveFilter = naiveFilter;
-
-		RNG = new Int2DoubleOpenHashMap[dataSet.length];
+		this.incremental = incremental;
+		
+		RNG = new Int2ObjectOpenHashMap[dataSet.length];
 
 		for (int i = 0; i < RNG.length; i++) {
-			RNG[i] = new Int2DoubleOpenHashMap();
+			RNG[i] = new Int2ObjectOpenHashMap<DistanceLevel>();
 		}
 
 		// Builds the Fair Split Tree T from dataSet.
@@ -120,8 +126,8 @@ public class RelativeNeighborhoodGraph {
 	 * @param smartFilter
 	 * @param naiveFilter
 	 */
-	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k, boolean smartFilter, boolean naiveFilter) {
-		this(dataSet, coreDistances, distanceFunction, k, 1, RelativeNeighborhoodGraph.WS, smartFilter,  naiveFilter);
+	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k, boolean smartFilter, boolean naiveFilter, boolean incremental) {
+		this(dataSet, coreDistances, distanceFunction, k, 1, RelativeNeighborhoodGraph.WS, smartFilter,  naiveFilter, incremental);
 	}
 
 
@@ -134,11 +140,11 @@ public class RelativeNeighborhoodGraph {
 	 * @param smartFilter
 	 * @param naiveFilter
 	 */
-	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, int k, boolean smartFilter, boolean naiveFilter) {
-		this(dataSet, coreDistances, new EuclideanDistance(), k, 1, RelativeNeighborhoodGraph.WS, smartFilter,  naiveFilter);
+	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, int k, boolean smartFilter, boolean naiveFilter, boolean incremental) {
+		this(dataSet, coreDistances, new EuclideanDistance(), k, 1, RelativeNeighborhoodGraph.WS, smartFilter,  naiveFilter, incremental);
 	}
 
-	
+
 	private boolean neighbors(int a, int b, int k) {
 
 		// Smart filter.
@@ -215,6 +221,47 @@ public class RelativeNeighborhoodGraph {
 		return true;
 	}
 
+	private int neighbors(int a, int b, int k, boolean incremental) {
+
+		int level = Integer.MAX_VALUE;
+
+		if (neighbors(a, b, k)) {
+			level = k;
+		}
+
+		if (incremental) {
+			
+			if (level > k) {
+				return level;
+			}
+			
+			int start = 1;
+			int end = k - 1;
+
+			while (start <= end) {
+				int middle;
+
+				if (start == end) {
+					middle = start;
+				} else {
+					middle = (int) Math.floor((end-start)/2) + start;
+				}
+
+//				System.out.println("start: " + start + " middle: " + middle + " end: " + end);
+
+				if (neighbors(a, b, middle)) {
+					level = middle;
+					end = middle - 1;
+				} else {
+					start = middle + 1;
+				}
+			}
+
+		}
+
+		return level;
+	}
+
 	private boolean neighbors(double[][] dataSet, double[][] coreDistances, int i, int j, int k) {
 		double dij = mutualReachabilityDistance(dataSet, coreDistances, i, j, k);
 
@@ -230,23 +277,6 @@ public class RelativeNeighborhoodGraph {
 		}
 
 		return true;
-	}
-
-	public void filter(int k){
-		for (int i = 0; i < RNG.length; i++) {
-			for (Iterator<Integer> iter = RNG[i].keySet().iterator(); iter.hasNext();) {
-
-				Integer m = iter.next();
-
-				if (!neighbors(i, m, k)) {
-					iter.remove();
-					RNG[m].remove(i);
-
-					numOfEdges--;
-				}	
-
-			}			
-		}
 	}
 
 	private void SBCN(FairSplitTree T1, FairSplitTree T2) {
@@ -330,10 +360,15 @@ public class RelativeNeighborhoodGraph {
 
 		for (Pair p : tmpBA) {
 
-			if (neighbors(p.a, p.b, k)) {
+			int level = neighbors(p.a, p.b, k, incremental);
+
+			if (level <= k) {
 				double distance = distanceFunction.computeDistance(dataSet[p.a], dataSet[p.b]);
-				RNG[p.a].put(p.b, distance);
-				RNG[p.b].put(p.a, distance);
+
+				DistanceLevel dl = new DistanceLevel(distance, level);
+				
+				RNG[p.a].put(p.b, dl);
+				RNG[p.b].put(p.a, dl);
 
 				numOfEdges++;
 			}
@@ -504,6 +539,16 @@ public class RelativeNeighborhoodGraph {
 	}
 
 	public double edgeWeight(int i, int j, int k) {
-		return Math.max(this.RNG[i].get(j), Math.max(coreDistances[i][k-1], coreDistances[j][k-1]));			
+		return Math.max(this.RNG[i].get(j).d, Math.max(coreDistances[i][k-1], coreDistances[j][k-1]));			
+	}
+
+	public static class DistanceLevel {
+		public double d;
+		public int level;
+
+		public DistanceLevel(double d, int level) {
+			this.d = d;
+			this.level = level;
+		}
 	}
 }

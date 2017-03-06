@@ -69,7 +69,7 @@ public class Test {
 	 * @param dataSet The data set.
 	 * @param maxK maximum Value of MinPoints.
 	 */
-	public static void correct(double[][] dataSet, int maxK, boolean debug, boolean smartFilter, boolean naiveFilter) {
+	public static void correct(double[][] dataSet, int maxK, boolean debug, boolean smartFilter, boolean naiveFilter, boolean incremental) {
 
 		/*
 		 * Maximum minPoints cannot be higher that the size of the data set 
@@ -87,8 +87,8 @@ public class Test {
 		 * Kruskal from the Relative Neighborhood Graph 
 		 */
 		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, smartFilter, naiveFilter);
-		UndirectedGraph mst2 = Prim.constructMST(dataSet, coreDistances2, maxK, false, new EuclideanDistance(), RNG);
+		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, smartFilter, naiveFilter, incremental);
+		UndirectedGraph mst2 = Prim.constructMST(dataSet, coreDistances2, maxK, false, RNG);
 		mst2.quicksortByEdgeWeight();
 		compareMSTs(mst1, mst2, debug);
 	}
@@ -151,13 +151,13 @@ public class Test {
 		// naive filter
 		long start = System.currentTimeMillis();
 
-//		RNG1 = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, true, true);
-//		System.out.println("-----------------------------");
-//		System.out.println("RNG WSPD");
-//		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
-//		System.out.println("#edges: " + RNG1.numOfEdgesRNG);
-//		System.out.println("Naive filtering time: " + RNG1.timenaivefilter);
-//		System.out.println("-----------------------------");
+		RNG1 = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, true, true, true);
+		System.out.println("-----------------------------");
+		System.out.println("RNG WSPD");
+		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
+		System.out.println("#edges: " + RNG1.numOfEdges);
+		System.out.println("Naive filtering time: " + RNG1.timenaivefilter);
+		System.out.println("-----------------------------");
 		
 		// smart + naive filter 
 		start = System.currentTimeMillis();
@@ -205,7 +205,7 @@ public class Test {
 		// naive filter
 		long start = System.currentTimeMillis();
 
-		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, false, true);
+		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, false, true, true);
 		System.out.println("-----------------------------");
 		System.out.println("RNG NAIVE FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
@@ -218,7 +218,7 @@ public class Test {
 		// smart + naive filter 
 		start = System.currentTimeMillis();
 
-		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, true, true);
+		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, true, true, true);
 		System.out.println("RNG SMART + NAIVE FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
@@ -230,7 +230,7 @@ public class Test {
 		// smart filter 
 		start = System.currentTimeMillis();
 
-		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, true, false);
+		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, true, false, true);
 		System.out.println("RNG SMART FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
@@ -242,7 +242,7 @@ public class Test {
 		// no filter 
 		start = System.currentTimeMillis();
 
-		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, false, false);
+		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, false, false, true);
 		System.out.println("RNG NO FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
@@ -255,7 +255,7 @@ public class Test {
 	public static void computeMSTs(double[][] dataSet, double[][] coreDistances, RelativeNeighborhoodGraph RNG, int k) {
 		
 		for (int minPoints = k; minPoints > 1; minPoints--) {
-			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, minPoints, false, new EuclideanDistance(), RNG);
+			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, minPoints, false, RNG);
 			mst.quicksortByEdgeWeight();
 			
 //			UndirectedGraph MST = HDBSCANStar.constructMST(dataSet, coreDistances,  minPoints, false, new EuclideanDistance());
@@ -278,7 +278,7 @@ public class Test {
 		// naive filter
 		long start = System.currentTimeMillis();
 
-		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, false, true);
+		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, false, true, true);
 		System.out.println("-----------------------------");
 		System.out.println("RNG NAIVE FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
@@ -294,7 +294,7 @@ public class Test {
 		// smart + naive filter 
 		start = System.currentTimeMillis();
 
-		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, true, true);
+		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, true, true, true);
 		System.out.println("RNG SMART + NAIVE FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
@@ -309,7 +309,7 @@ public class Test {
 		// smart filter 
 		start = System.currentTimeMillis();
 
-		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, true, false);
+		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, true, false, true);
 		System.out.println("RNG SMART FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
@@ -324,7 +324,7 @@ public class Test {
 		// no filter 
 		start = System.currentTimeMillis();
 
-		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, false, false);
+		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, false, false, true);
 		System.out.println("RNG NO FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
@@ -367,7 +367,7 @@ public class Test {
 	}
 
 	@SuppressWarnings("unused")
-	public static void performance(double[][] dataSet, int maxK, double s, String method, boolean smartFilter, boolean naiveFilter) {
+	public static void performance(double[][] dataSet, int maxK, double s, String method, boolean smartFilter, boolean naiveFilter, boolean incremental) {
 
 		long start, end, duration;
 
@@ -402,14 +402,14 @@ public class Test {
 		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
 
 		long start1 = System.currentTimeMillis();
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, s, method, smartFilter, naiveFilter);
+		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, s, method, smartFilter, naiveFilter, incremental);
 		System.out.println("RNG time: " + (System.currentTimeMillis() - start1));
 		System.out.println("RNG size: " + RNG.numOfEdges);
 
-		UndirectedGraph mst3 = Prim.constructMST(dataSet, coreDistances2, maxK, false, new EuclideanDistance(), RNG);
+		UndirectedGraph mst3 = Prim.constructMST(dataSet, coreDistances2, maxK, false, RNG);
 
 		for (int k = maxK - 1; k > 1; k--) {
-			mst3 = Prim.constructMST(dataSet, coreDistances2, k, false, new EuclideanDistance(), RNG);
+			mst3 = Prim.constructMST(dataSet, coreDistances2, k, false, RNG);
 		}
 
 		duration = System.currentTimeMillis() - start;
@@ -418,7 +418,7 @@ public class Test {
 		System.out.println("Total Running Time: " + duration);
 	}
 
-	public static void single(double[][] dataSet, int maxK, double s, String method, boolean smartFilter, boolean naiveFilter) {
+	public static void single(double[][] dataSet, int maxK, double s, String method, boolean smartFilter, boolean naiveFilter, boolean incremental) {
 
 		/**
 		 *  Incremental HDBSCAN* 
@@ -431,7 +431,7 @@ public class Test {
 		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
 
 		long start1 = System.currentTimeMillis();
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, s, method, smartFilter, naiveFilter);
+		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), maxK, s, method, smartFilter, naiveFilter, incremental);
 		System.out.println("RNG Building Time: " + (System.currentTimeMillis() - start1));
 		System.out.println("RNG size: " + RNG.numOfEdges);
 

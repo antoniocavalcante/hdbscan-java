@@ -1,9 +1,9 @@
 package ca.ualberta.cs.main;
 
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 
-import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 
@@ -46,7 +46,7 @@ public class Prim {
 		}
 	}
 
-	public static UndirectedGraph constructMST(double[][] dataSet, double[][] coreDistances, int minPoints,	boolean selfEdges, DistanceCalculator distanceFunction, RelativeNeighborhoodGraph RNG) {
+	public static UndirectedGraph constructMST(double[][] dataSet, double[][] coreDistances, int minPoints,	boolean selfEdges, RelativeNeighborhoodGraph RNG) {
 
 		int selfEdgeCapacity = 0;
 		if (selfEdges)
@@ -81,11 +81,16 @@ public class Prim {
 			numAttachedPoints++;
 
 			//Iterate through all unattached points, updating distances using the current point:
-			for (int neighbor : RNG.RNG[currentPoint].keySet()) {
+			for (Iterator<Integer> i = RNG.RNG[currentPoint].keySet().iterator(); i.hasNext();) {
 
+				int neighbor = i.next();
+				
 				if (attachedPoints.get(neighbor) == true)
 					continue;
-
+				if (RNG.RNG[currentPoint].get(neighbor).level > minPoints) {
+					i.remove();
+					continue;
+				}
 				double mutualReachabiltiyDistance = RNG.edgeWeight(currentPoint, neighbor, minPoints);
 
 				if (mutualReachabiltiyDistance < nearestMRDDistances[neighbor]) {
@@ -120,7 +125,9 @@ public class Prim {
 				nearestMRDDistances[i] = coreDistances[vertex][minPoints];
 			}
 		}
-
+		
+		q = null;
+		
 		return new UndirectedGraph(dataSet.length, nearestMRDNeighbors, otherVertexIndices, nearestMRDDistances);
 	}
 }

@@ -4,8 +4,6 @@ DIR="data#6"
 
 # rm -rf *.results
 
-s=1.0
-
 dataset() {
     for n in 16 32 64 128 256 512 1024;
     do
@@ -13,7 +11,7 @@ dataset() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, filter
-            java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false true ${s} >> ihdbscan-dataset-naivefilter.results
+            java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i true false true >> ihdbscan-dataset-smart-incremental.results
 
             # HDBSCAN
             # java -jar -Xmx60g HDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false >> hdbscan-dataset.results
@@ -28,7 +26,7 @@ minpoints() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, filter
-	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false true ${s} >> ihdbscan-minpoints-naivefilter.results
+	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i true false true >> ihdbscan-minpoints-smart-incremental.results
 
             # HDBSCAN
             # java -jar -Xmx60g HDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false >> hdbscan-minpoints.results
@@ -43,7 +41,7 @@ dimensions() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, filter
-	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false true ${s} >> ihdbscan-dimensions-naivefilter.results
+	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i true false true >> ihdbscan-dimensions-smart-incremental.results
 
             # HDBSCAN
             # java -jar -Xmx60g HDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false >> hdbscan-dimensions.results

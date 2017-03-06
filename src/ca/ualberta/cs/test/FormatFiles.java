@@ -112,6 +112,7 @@ public class FormatFiles {
 	}
 
 	
+	@SuppressWarnings("resource")
 	public static String[] readIds(String fileName, String delimiter) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
 
