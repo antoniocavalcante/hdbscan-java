@@ -10,6 +10,7 @@ import ca.ualberta.cs.util.Pair;
 import it.unimi.dsi.fastutil.BigList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 public class RelativeNeighborhoodGraph {
 
@@ -281,21 +282,22 @@ public class RelativeNeighborhoodGraph {
 		double d;
 
 		HashSet<Pair> tmpAB  = new HashSet<Pair>();
-		HashSet<Pair> tmpBA  = new HashSet<Pair>();
 
 		double min = Double.MAX_VALUE;
-		BigList<Integer> tempA = new IntBigArrayBigList();
-		BigList<Integer> tempB = new IntBigArrayBigList();
+		BigList<Integer> tempA = null;
+		BigList<Integer> tempB = null;
+		
+		IntOpenHashSet B = new IntOpenHashSet();
+		
+		for (int p1 : T1.retrieve()) {
 
-		for (Integer p1 : T1.retrieve()) {
-
-			for (Integer p2 : T2.retrieve()) {
+			for (int p2 : T2.retrieve()) {
 
 				d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
 
 				if (d < min) {
-					tempA.clear();
-					tempB.clear();
+					tempA = new IntBigArrayBigList();
+					tempB = new IntBigArrayBigList();
 				}
 
 				if (d <= min) {
@@ -304,80 +306,60 @@ public class RelativeNeighborhoodGraph {
 					tempB.add(p2);
 				}
 			}
-
-			for (int i = 0; i < tempA.size(); i++) {
-				Pair p;
-
-				if (tempA.get(i) < tempB.get(i)) {
-					p = new Pair(tempA.get(i), tempB.get(i));
-				} else {
-					p = new Pair(tempB.get(i), tempA.get(i));
-				}
-
-				if (!tmpAB.contains(p)) tmpAB.add(p);
-			}
-
-			min = Double.MAX_VALUE;
 		}
 
-		tempA = new IntBigArrayBigList();
-		tempB = new IntBigArrayBigList();
+		for (int i = 0; i < tempA.size(); i++) {
+			tmpAB.add(new Pair(tempA.get(i), tempB.get(i)));
+			B.add(tempB.get(i));
+		}
 
-		for (Integer p2 : T2.retrieve()) {
-
-			for (Integer p1 : T1.retrieve()) {
+		min = Double.MAX_VALUE;
+		
+		for (int p2 : B) {
+						
+			for (int p1 : T1.retrieve()) {
 
 				d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
 
 				if (d < min) {
-					tempA.clear();
-					tempB.clear();
+					tempA = new IntBigArrayBigList();
+					tempB = new IntBigArrayBigList();
 				}
 
 				if (d <= min) {
 					min = d;
-					tempA.add(p2);
-					tempB.add(p1);
+					tempA.add(p1);
+					tempB.add(p2);
 				}
 			}
-
+			
 			for (int i = 0; i < tempA.size(); i++) {
-				Pair p;
 
-				if (tempA.get(i) < tempB.get(i)) {
-					p = new Pair(tempA.get(i), tempB.get(i));
-				} else {
-					p = new Pair(tempB.get(i), tempA.get(i));
+				Pair x = new Pair(tempA.get(i), tempB.get(i));
+
+				if (tmpAB.contains(x)) {
+					int level = neighbors(x.a, x.b, k, incremental);
+
+					if (level <= k) {
+
+						double distance = distanceFunction.computeDistance(dataSet[x.a], dataSet[x.b]);
+
+						DistanceLevel dl = new DistanceLevel(distance, level);
+						
+						RNG[x.a].put(x.b, dl);
+						RNG[x.b].put(x.a, dl);
+
+						numOfEdges++;
+					}					
 				}
-
-				if (tmpAB.contains(p)) tmpBA.add(p);
 			}
-
+			
 			min = Double.MAX_VALUE;
 		}
-
-		for (Pair p : tmpBA) {
-
-			int level = neighbors(p.a, p.b, k, incremental);
-
-			if (level <= k) {
-
-				double distance = distanceFunction.computeDistance(dataSet[p.a], dataSet[p.b]);
-
-				DistanceLevel dl = new DistanceLevel(distance, level);
 				
-				RNG[p.a].put(p.b, dl);
-				RNG[p.b].put(p.a, dl);
-
-				numOfEdges++;
-			}
-
-		}
-
 		tempA = null;
 		tempB = null;
 		tmpAB = null;
-		tmpBA = null;
 	}
 
 	private void findWSPD(FairSplitTree T, double s, String method) {

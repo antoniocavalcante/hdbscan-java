@@ -35,6 +35,22 @@ public class Pair {
 		return result;
 	}
 
+//	@Override
+//	public boolean equals(Object obj) {
+//		if (this == obj)
+//			return true;
+//		if (obj == null)
+//			return false;
+//		if (getClass() != obj.getClass())
+//			return false;
+//		Pair other = (Pair) obj;
+//		if (a != other.a)
+//			return false;
+//		if (b != other.b)
+//			return false;
+//		return true;
+//	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -44,11 +60,15 @@ public class Pair {
 		if (getClass() != obj.getClass())
 			return false;
 		Pair other = (Pair) obj;
-		if (a != other.a)
-			return false;
-		if (b != other.b)
-			return false;
-		return true;
+		if (a == other.a && b == other.b)
+			return true;
+		if (a == other.b && b == other.a)
+			return true;
+		return false;
 	}
 	
+	@Override
+	public String toString() {
+		return "Pair [a=" + a + ", b=" + b + "]";
+	}	
 }
