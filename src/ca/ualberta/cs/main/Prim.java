@@ -1,14 +1,17 @@
 package ca.ualberta.cs.main;
 
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.PriorityQueue;
 
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
+import ca.ualberta.cs.util.FibonacciHeap;
+import ca.ualberta.cs.util.FibonacciHeapNode;
 
 public class Prim {
 
+	@SuppressWarnings("unused")
 	private static class Pair implements Comparable<Pair> {
 		public int vertex;
 		public double priority;
@@ -59,21 +62,24 @@ public class Prim {
 		int[] nearestMRDNeighbors = new int[dataSet.length-1 + selfEdgeCapacity];
 		double[] nearestMRDDistances = new double[dataSet.length-1 + selfEdgeCapacity];
 
-		PriorityQueue<Pair> q = new PriorityQueue<Pair>();
-
+		FibonacciHeap<Integer> q = new FibonacciHeap<Integer>();
+		HashMap<Integer, FibonacciHeapNode<Integer>> map = new HashMap<Integer, FibonacciHeapNode<Integer>>();
+		
 		for (int i = 0; i < dataSet.length-1; i++) {
 			nearestMRDDistances[i] = Double.MAX_VALUE;
+			map.put(i, new FibonacciHeapNode<Integer>(i));
+			q.insert(map.get(i), Double.MAX_VALUE);
 		}
 
 		//The MST is expanded starting with the last point in the data set:
 		int numAttachedPoints = 0;
 
-		q.add(new Pair(dataSet.length - 1, 0));
-
+		q.insert(new FibonacciHeapNode<Integer>(dataSet.length - 1), 0);
+		
 		//Continue attaching points to the MST until all points are attached:
 		while (numAttachedPoints < dataSet.length) {
-			if (q.peek() == null) System.out.println("NULL");
-			int currentPoint = q.poll().vertex;
+
+			int currentPoint = q.removeMin().getData();
 
 			//Attach the closest point found in this iteration to the tree:
 			attachedPoints.set(currentPoint);
@@ -97,15 +103,7 @@ public class Prim {
 					nearestMRDDistances[neighbor] = mutualReachabiltiyDistance;
 					nearestMRDNeighbors[neighbor] = currentPoint;
 
-					Pair p = new Pair(neighbor, mutualReachabiltiyDistance);
-
-					if (q.contains(p)) {
-						q.remove(p);
-						p.priority = mutualReachabiltiyDistance;
-						q.add(p);
-					} else {
-						q.add(p);
-					}
+					q.decreaseKey(map.get(neighbor), mutualReachabiltiyDistance);
 				}
 			}
 		}
@@ -126,6 +124,7 @@ public class Prim {
 			}
 		}
 		
+		map = null;
 		q = null;
 		
 		return new UndirectedGraph(dataSet.length, nearestMRDNeighbors, otherVertexIndices, nearestMRDDistances);

@@ -14,8 +14,8 @@ import ca.ualberta.cs.main.Prim;
 public class Test {
 	
 	public static double[][] dataSet = null;
-//	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/4d-16.dat";
-	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-32.dat";
+	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/4d-16.dat";
+//	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-32.dat";
 //	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/debug/jad.dat";
 	
 	public static void main(String[] args) {
@@ -283,16 +283,16 @@ public class Test {
 		// naive filter
 		long start = System.currentTimeMillis();
 
-//		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, maxK, false, true, incremental);
-//		System.out.println("-----------------------------");
-//		System.out.println("RNG NAIVE FILTER");
-//		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
-//		System.out.println("#edges: " + RNG.numOfEdges);
-//		System.out.println("Naive filtering time: " + RNG.timenaivefilter);
-//		start = System.currentTimeMillis();
-//		computeMSTs(dataSet, coreDistances, RNG, maxK, compare);
-//		System.out.println("MSTs computation: " + (System.currentTimeMillis() - start));		
-//		System.out.println("-----------------------------");
+		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, maxK, false, true, incremental);
+		System.out.println("-----------------------------");
+		System.out.println("RNG NAIVE FILTER");
+		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
+		System.out.println("#edges: " + RNG.numOfEdges);
+		System.out.println("Naive filtering time: " + RNG.timenaivefilter);
+		start = System.currentTimeMillis();
+		computeMSTs(dataSet, coreDistances, RNG, maxK, compare);
+		System.out.println("MSTs computation: " + (System.currentTimeMillis() - start));		
+		System.out.println("-----------------------------");
 		
 		RNG = null;
 		
