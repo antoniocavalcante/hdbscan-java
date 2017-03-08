@@ -13,9 +13,11 @@ import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 public class RelativeNeighborhoodGraph {
-
-	public Int2ObjectOpenHashMap<DistanceLevel>[] RNG;
-
+	
+	public Int2ObjectOpenHashMap<DistanceLevel>[] ExtendedRNG;
+	
+	public IntBigArrayBigList[] RNG;
+	
 	public double[][] dataSet;
 	public double[][] coreDistances;
 
@@ -29,6 +31,8 @@ public class RelativeNeighborhoodGraph {
 	public boolean smartFilter;
 	public boolean naiveFilter;
 	public boolean incremental;
+	
+	public boolean extended;
 	
 	public boolean debug = false;
 
@@ -44,30 +48,28 @@ public class RelativeNeighborhoodGraph {
 	 * @param distanceFunction
 	 * @param k
 	 */
-	@SuppressWarnings("unchecked")
 	public RelativeNeighborhoodGraph(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k){
 
 		this.dataSet = dataSet;
 		this.coreDistances = coreDistances;
 		this.distanceFunction = distanceFunction;
 		this.k = k;
-
-		RNG = new Int2ObjectOpenHashMap[dataSet.length];
+		
+		this.extended = false;
+		
+		RNG = new IntBigArrayBigList[dataSet.length];
 
 		for (int i = 0; i < RNG.length; i++) {
-			RNG[i] = new Int2ObjectOpenHashMap<DistanceLevel>();
+			RNG[i] = new IntBigArrayBigList();
 		}
 
 		for (int i = 0; i < dataSet.length; i++) {
 			for (int j = i + 1; j < dataSet.length; j++) {
 
-				if (neighbors(dataSet, coreDistances, i, j, k)) {
-					double d = distanceFunction.computeDistance(dataSet[i], dataSet[j]);
+				if (neighbors(dataSet, coreDistances, i, j, k)) {					
 					
-					DistanceLevel dl = new DistanceLevel(d, 0);
-					
-					RNG[i].put(j, dl);
-					RNG[j].put(i, dl);
+					RNG[i].add(j);
+					RNG[j].add(i);
 
 					numOfEdges++;
 				}
@@ -98,16 +100,35 @@ public class RelativeNeighborhoodGraph {
 
 		this.smartFilter = smartFilter;
 		this.naiveFilter = naiveFilter;
-		this.incremental = incremental;
 		
-		RNG = new Int2ObjectOpenHashMap[dataSet.length];
+		if (this.smartFilter || this.naiveFilter) { 
+			this.incremental = incremental;
+			
+			this.extended = true;
+			
+			ExtendedRNG = new Int2ObjectOpenHashMap[dataSet.length];
 
-		for (int i = 0; i < RNG.length; i++) {
-			RNG[i] = new Int2ObjectOpenHashMap<DistanceLevel>();
+			for (int i = 0; i < ExtendedRNG.length; i++) {
+				ExtendedRNG[i] = new Int2ObjectOpenHashMap<DistanceLevel>();
+			}
+			
+		} else {
+			
+			this.incremental = false;
+			
+			this.extended = false;
+			
+			RNG = new IntBigArrayBigList[dataSet.length];
+			
+			for (int i = 0; i < RNG.length; i++) {
+				RNG[i] = new IntBigArrayBigList();
+			}
+
 		}
+		
 
 		// Builds the Fair Split Tree T from dataSet.
-		FairSplitTree T = FairSplitTree.build(dataSet, k);
+		FairSplitTree T = FairSplitTree.build(this.dataSet, this.coreDistances, this.k);
 
 		// Finds all the Well-separated Pairs from T.
 		findWSPD(T, s, method);
@@ -342,12 +363,18 @@ public class RelativeNeighborhoodGraph {
 
 					if (level <= k) {
 
-						double distance = distanceFunction.computeDistance(dataSet[x.a], dataSet[x.b]);
-
-						DistanceLevel dl = new DistanceLevel(distance, level);
-						
-						RNG[x.a].put(x.b, dl);
-						RNG[x.b].put(x.a, dl);
+						if (this.extended) {
+							double distance = distanceFunction.computeDistance(dataSet[x.a], dataSet[x.b]);
+							
+							DistanceLevel dl = new DistanceLevel(distance, level);
+							
+							ExtendedRNG[x.a].put(x.b, dl);
+							ExtendedRNG[x.b].put(x.a, dl);
+							
+						} else {
+							RNG[x.a].add(x.b);
+							RNG[x.b].add(x.a);							
+						}
 
 						numOfEdges++;
 					}					
@@ -520,7 +547,11 @@ public class RelativeNeighborhoodGraph {
 	}
 
 	public double edgeWeight(int i, int j, int k) {
-		return Math.max(this.RNG[i].get(j).d, Math.max(coreDistances[i][k-1], coreDistances[j][k-1]));			
+		if (this.extended) {
+			return Math.max(this.ExtendedRNG[i].get(j).d, Math.max(coreDistances[i][k-1], coreDistances[j][k-1]));			
+		} else {
+			return mutualReachabilityDistance(dataSet, coreDistances, i, j, k);
+		}			
 	}
 
 	public static class DistanceLevel {

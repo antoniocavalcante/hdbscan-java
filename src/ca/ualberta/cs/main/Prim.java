@@ -64,7 +64,7 @@ public class Prim {
 
 		FibonacciHeap<Integer> q = new FibonacciHeap<Integer>();
 		HashMap<Integer, FibonacciHeapNode<Integer>> map = new HashMap<Integer, FibonacciHeapNode<Integer>>();
-		
+
 		for (int i = 0; i < dataSet.length-1; i++) {
 			nearestMRDDistances[i] = Double.MAX_VALUE;
 			map.put(i, new FibonacciHeapNode<Integer>(i));
@@ -75,7 +75,7 @@ public class Prim {
 		int numAttachedPoints = 0;
 
 		q.insert(new FibonacciHeapNode<Integer>(dataSet.length - 1), 0);
-		
+
 		//Continue attaching points to the MST until all points are attached:
 		while (numAttachedPoints < dataSet.length) {
 
@@ -86,24 +86,48 @@ public class Prim {
 
 			numAttachedPoints++;
 
-			//Iterate through all unattached points, updating distances using the current point:
-			for (Iterator<Integer> i = RNG.RNG[currentPoint].keySet().iterator(); i.hasNext();) {
+			if (RNG.extended) {
 
-				int neighbor = i.next();
-				
-				if (attachedPoints.get(neighbor) == true)
-					continue;
-				if (RNG.incremental && RNG.RNG[currentPoint].get(neighbor).level > minPoints) {
-					i.remove();
-					continue;
+				//Iterate through all unattached points, updating distances using the current point:
+				for (Iterator<Integer> i = RNG.ExtendedRNG[currentPoint].keySet().iterator(); i.hasNext();) {
+
+					int neighbor = i.next();
+
+					if (attachedPoints.get(neighbor) == true)
+						continue;
+
+					if (RNG.incremental && RNG.ExtendedRNG[currentPoint].get(neighbor).level > minPoints) {
+						i.remove();
+						continue;
+					}					
+
+					double mutualReachabiltiyDistance = RNG.edgeWeight(currentPoint, neighbor, minPoints);
+
+					if (mutualReachabiltiyDistance < nearestMRDDistances[neighbor]) {
+						nearestMRDDistances[neighbor] = mutualReachabiltiyDistance;
+						nearestMRDNeighbors[neighbor] = currentPoint;
+
+						q.decreaseKey(map.get(neighbor), mutualReachabiltiyDistance);
+					}
 				}
-				double mutualReachabiltiyDistance = RNG.edgeWeight(currentPoint, neighbor, minPoints);
+				
+			} else {
 
-				if (mutualReachabiltiyDistance < nearestMRDDistances[neighbor]) {
-					nearestMRDDistances[neighbor] = mutualReachabiltiyDistance;
-					nearestMRDNeighbors[neighbor] = currentPoint;
+				for (Iterator<Integer> i = RNG.RNG[currentPoint].iterator(); i.hasNext();) {
 
-					q.decreaseKey(map.get(neighbor), mutualReachabiltiyDistance);
+					int neighbor = i.next();
+
+					if (attachedPoints.get(neighbor) == true)
+						continue;
+
+					double mutualReachabiltiyDistance = RNG.edgeWeight(currentPoint, neighbor, minPoints);
+
+					if (mutualReachabiltiyDistance < nearestMRDDistances[neighbor]) {
+						nearestMRDDistances[neighbor] = mutualReachabiltiyDistance;
+						nearestMRDNeighbors[neighbor] = currentPoint;
+
+						q.decreaseKey(map.get(neighbor), mutualReachabiltiyDistance);
+					}
 				}
 			}
 		}
@@ -123,10 +147,10 @@ public class Prim {
 				nearestMRDDistances[i] = coreDistances[vertex][minPoints];
 			}
 		}
-		
+
 		map = null;
 		q = null;
-		
+
 		return new UndirectedGraph(dataSet.length, nearestMRDNeighbors, otherVertexIndices, nearestMRDDistances);
 	}
 }

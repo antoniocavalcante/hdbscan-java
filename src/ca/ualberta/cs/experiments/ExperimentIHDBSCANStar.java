@@ -47,7 +47,6 @@ public class ExperimentIHDBSCANStar {
 			kNN = CoreDistances.knnFromFile(args[0] + ".knn", minPoints, " ");
 
 			IncrementalHDBSCANStar.kNN = kNN;
-			IncrementalHDBSCANStar.coreDistances = coreDistances;
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

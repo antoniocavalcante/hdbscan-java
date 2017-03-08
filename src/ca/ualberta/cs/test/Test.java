@@ -1,5 +1,8 @@
 package ca.ualberta.cs.test;
 import java.io.IOException;
+import java.util.Random;
+
+import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
@@ -15,7 +18,7 @@ public class Test {
 	
 	public static double[][] dataSet = null;
 	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/4d-16.dat";
-//	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-32.dat";
+//	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/4d-32.dat";
 //	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/debug/jad.dat";
 	
 	public static void main(String[] args) {
@@ -36,9 +39,10 @@ public class Test {
 		boolean incremental = false;
 		boolean compare = false;
 		
-//		performanceRNG(dataSet, 16, smartFilter, naiveFilter, incremental);
+//		performanceRNG(dataSet, 16, incremental);
 //		correctnessRNG(dataSet, 9, incremental);
 		performanceRNGMSTs(dataSet, 16, incremental, compare);
+//		testEuclideanDistance(dataSet);
 	}
 	
 	public static void printData(double[][] dataSet){
@@ -159,7 +163,6 @@ public class Test {
 		System.out.println("RNG WSPD");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG1.numOfEdges);
-		System.out.println("Naive filtering time: " + RNG1.timenaivefilter);
 		System.out.println("-----------------------------");
 		
 		// naive filter 
@@ -169,7 +172,6 @@ public class Test {
 		System.out.println("RNG NAIVE");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG2.numOfEdges);
-		System.out.println("Naive filtering time: " + RNG2.timenaivefilter);
 		System.out.println("-----------------------------");
 
 //		double cd = 0;
@@ -213,7 +215,6 @@ public class Test {
 		System.out.println("RNG NAIVE FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
-		System.out.println("Naive filtering time: " + RNG.timenaivefilter);
 		System.out.println("-----------------------------");
 		
 		RNG = null;
@@ -225,7 +226,6 @@ public class Test {
 		System.out.println("RNG SMART + NAIVE FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
-		System.out.println("Naive filtering time: " + RNG.timenaivefilter);
 		System.out.println("-----------------------------");
 		
 		RNG = null;
@@ -237,7 +237,6 @@ public class Test {
 		System.out.println("RNG SMART FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
-		System.out.println("Naive filtering time: " + RNG.timenaivefilter);
 		System.out.println("-----------------------------");
 		
 		RNG = null;
@@ -249,7 +248,6 @@ public class Test {
 		System.out.println("RNG NO FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
-		System.out.println("Naive filtering time: " + RNG.timenaivefilter);
 		System.out.println("-----------------------------");
 		
 		RNG = null;
@@ -288,7 +286,6 @@ public class Test {
 		System.out.println("RNG NAIVE FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
-		System.out.println("Naive filtering time: " + RNG.timenaivefilter);
 		start = System.currentTimeMillis();
 		computeMSTs(dataSet, coreDistances, RNG, maxK, compare);
 		System.out.println("MSTs computation: " + (System.currentTimeMillis() - start));		
@@ -303,7 +300,6 @@ public class Test {
 		System.out.println("RNG SMART + NAIVE FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
-		System.out.println("Naive filtering time: " + RNG.timenaivefilter);
 		start = System.currentTimeMillis();
 		computeMSTs(dataSet, coreDistances, RNG, maxK, compare);
 		System.out.println("MSTs computation: " + (System.currentTimeMillis() - start));		
@@ -318,7 +314,6 @@ public class Test {
 		System.out.println("RNG SMART FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
-		System.out.println("Naive filtering time: " + RNG.timenaivefilter);
 		start = System.currentTimeMillis();
 		computeMSTs(dataSet, coreDistances, RNG, maxK, compare);
 		System.out.println("MSTs computation: " + (System.currentTimeMillis() - start));		
@@ -329,11 +324,10 @@ public class Test {
 		// no filter 
 		start = System.currentTimeMillis();
 
-		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, maxK, false, false, incremental);
+		RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, maxK, false, false, false);
 		System.out.println("RNG NO FILTER");
 		System.out.println("Running Time: " + (System.currentTimeMillis() - start));
 		System.out.println("#edges: " + RNG.numOfEdges);
-		System.out.println("Naive filtering time: " + RNG.timenaivefilter);
 		start = System.currentTimeMillis();
 		computeMSTs(dataSet, coreDistances, RNG, maxK, compare);
 		System.out.println("MSTs computation: " + (System.currentTimeMillis() - start));		
@@ -440,5 +434,24 @@ public class Test {
 		System.out.println("RNG Building Time: " + (System.currentTimeMillis() - start1));
 		System.out.println("RNG size: " + RNG.numOfEdges);
 
+	}
+	
+	public static void testEuclideanDistance(double[][] dataSet){
+		
+		DistanceCalculator euclidean = new EuclideanDistance();
+		Random r = new Random();
+		
+		long total = 0;
+		
+		for (int i = 0; i < 1000000000; i++) {
+			int a = r.nextInt(dataSet.length - 1);
+			int b = r.nextInt(dataSet.length - 1);
+			
+			long start = System.currentTimeMillis();
+			euclidean.computeDistance(dataSet[a], dataSet[b]);
+			total += System.currentTimeMillis() - start;
+		}
+		
+		System.out.println("Total: " + total);
 	}
 }

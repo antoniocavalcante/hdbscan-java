@@ -5,7 +5,6 @@ import ca.ualberta.cs.distance.DistanceCalculator;
 public class IncrementalHDBSCANStar {
 
 	public static int[][] kNN;
-	public static double[][] coreDistances;
 	public static int k;
 
 
@@ -110,7 +109,6 @@ public class IncrementalHDBSCANStar {
 				kNN[point][0] = point;
 			}
 
-			IncrementalHDBSCANStar.coreDistances = coreDistances;
 			IncrementalHDBSCANStar.kNN = kNN;
 			
 			return coreDistances;
@@ -149,7 +147,6 @@ public class IncrementalHDBSCANStar {
 			coreDistances[point] = kNNDistances;
 		}
 
-		IncrementalHDBSCANStar.coreDistances = coreDistances;
 		IncrementalHDBSCANStar.kNN = kNN;
 
 		return coreDistances;

@@ -61,8 +61,6 @@ public class CoreDistances {
 				coreDistances[point][0] = 0;
 			}
 
-			IncrementalHDBSCANStar.coreDistances = coreDistances;
-
 			return coreDistances;
 		}
 
