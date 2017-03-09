@@ -292,8 +292,7 @@ public class RelativeNeighborhoodGraph {
 
 			if (dij > Math.max(dim, djm)) {
 				return false;
-			}				
-
+			}
 		}
 
 		return true;
@@ -302,13 +301,13 @@ public class RelativeNeighborhoodGraph {
 	private void SBCN(FairSplitTree T1, FairSplitTree T2) {
 		double d;
 
-		HashSet<Pair> tmpAB  = new HashSet<Pair>();
+		HashSet<Pair> AB  = new HashSet<Pair>();
 
 		double min = Double.MAX_VALUE;
 		BigList<Integer> tempA = null;
 		BigList<Integer> tempB = null;
 		
-		IntOpenHashSet B = new IntOpenHashSet();
+		IntOpenHashSet B = new IntOpenHashSet((int)T1.getCount());
 		
 		for (int p1 : T1.retrieve()) {
 
@@ -327,14 +326,15 @@ public class RelativeNeighborhoodGraph {
 					tempB.add(p2);
 				}
 			}
+			
+			for (int i = 0; i < tempA.size(); i++) {
+				AB.add(new Pair(tempA.get(i), tempB.get(i)));
+				B.add(tempB.get(i));
+			}
+			
+			min = Double.MAX_VALUE;
 		}
 
-		for (int i = 0; i < tempA.size(); i++) {
-			tmpAB.add(new Pair(tempA.get(i), tempB.get(i)));
-			B.add(tempB.get(i));
-		}
-
-		min = Double.MAX_VALUE;
 		
 		for (int p2 : B) {
 						
@@ -356,24 +356,25 @@ public class RelativeNeighborhoodGraph {
 			
 			for (int i = 0; i < tempA.size(); i++) {
 
-				Pair x = new Pair(tempA.get(i), tempB.get(i));
+				Pair candidate = new Pair(tempA.get(i), tempB.get(i));
 
-				if (tmpAB.contains(x)) {
-					int level = neighbors(x.a, x.b, k, incremental);
+				if (AB.contains(candidate)) {
+					
+					int level = neighbors(candidate.a, candidate.b, k, incremental);
 
 					if (level <= k) {
 
 						if (this.extended) {
-							double distance = distanceFunction.computeDistance(dataSet[x.a], dataSet[x.b]);
+							double distance = distanceFunction.computeDistance(dataSet[candidate.a], dataSet[candidate.b]);
 							
 							DistanceLevel dl = new DistanceLevel(distance, level);
 							
-							ExtendedRNG[x.a].put(x.b, dl);
-							ExtendedRNG[x.b].put(x.a, dl);
+							ExtendedRNG[candidate.a].put(candidate.b, dl);
+							ExtendedRNG[candidate.b].put(candidate.a, dl);
 							
 						} else {
-							RNG[x.a].add(x.b);
-							RNG[x.b].add(x.a);							
+							RNG[candidate.a].add(candidate.b);
+							RNG[candidate.b].add(candidate.a);							
 						}
 
 						numOfEdges++;
@@ -386,7 +387,7 @@ public class RelativeNeighborhoodGraph {
 				
 		tempA = null;
 		tempB = null;
-		tmpAB = null;
+		AB = null;
 	}
 
 	private void findWSPD(FairSplitTree T, double s, String method) {
