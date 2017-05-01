@@ -1,8 +1,6 @@
 package ca.ualberta.cs.test;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Random;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
@@ -252,6 +250,7 @@ public class Test {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	public static void correctnessRNG(double[][] dataSet, int maxK, boolean incremental){
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		

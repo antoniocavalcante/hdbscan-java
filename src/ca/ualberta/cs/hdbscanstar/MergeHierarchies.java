@@ -26,6 +26,7 @@ public class MergeHierarchies {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	public static void merge(UndirectedGraph[] MSTs){
 
 		for (int i = 1; i < MSTs.length; i++) {

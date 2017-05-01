@@ -23,6 +23,8 @@ public class CoreDistances {
 	public static double[][] coreDistances = null;
 	public static Integer[][] kNN = null;
 	
+	public static KdTree kdTree = null;
+	
 	public static void main(String[] args) {
 		
 		long start = System.currentTimeMillis();
@@ -45,6 +47,13 @@ public class CoreDistances {
 		start = System.currentTimeMillis();
 		
 		if (Boolean.parseBoolean(args[2])) {
+			kdTree = new KdTree(dataSet, dataSet[0].length);
+			
+			System.out.print(System.currentTimeMillis() - start + " ");
+			
+			// Time to compute core-distances.
+			start = System.currentTimeMillis();
+			
 			calculateCoreDistancesKdTree(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());			
 		} else {
 			calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());			
@@ -152,8 +161,6 @@ public class CoreDistances {
 
 			return coreDistances;
 		}
-
-		KdTree kdTree = new KdTree(dataSet, dataSet[0].length);
 		
 		for (int point = 0; point < dataSet.length; point++) {
 			double[] kNNDistances = new double[numNeighbors];	//Sorted nearest distances found so far
