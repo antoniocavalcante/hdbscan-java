@@ -45,11 +45,11 @@ public class CoreDistances {
 		start = System.currentTimeMillis();
 		
 		if (Boolean.parseBoolean(args[2])) {
-			
+			calculateCoreDistancesKdTree(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());			
+		} else {
+			calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());			
 		}
-//		calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
-		calculateCoreDistancesKdTree(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
-				
+
 		System.out.print(System.currentTimeMillis() - start + " ");
 		
 		// Time to write core-distances to file.
