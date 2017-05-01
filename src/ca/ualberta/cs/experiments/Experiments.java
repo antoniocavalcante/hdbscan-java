@@ -38,11 +38,11 @@ public class Experiments {
 		}
 	}
 	
-	public static void computeOutputFiles(double[][] dataSet, UndirectedGraph mst, int minPts, String inputFile) {
+	public static void computeOutputFiles(double[][] dataSet, UndirectedGraph mst, int minPts, String inputFile, int label) {
 		
 		int numPoints = dataSet.length;
 		
-		String outputPrefix = "tmp/" + minPts + inputFile;
+		String outputPrefix = "tmp2/" + label + inputFile;
 		
 		double[] pointNoiseLevels = new double[numPoints];
 		int[] pointLastClusters = new int[numPoints];

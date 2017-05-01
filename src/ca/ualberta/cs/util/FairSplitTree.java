@@ -182,7 +182,7 @@ public class FairSplitTree {
 	}
 
 	public static double circleDistanceMRD(FairSplitTree T1, FairSplitTree T2) {		
-		return Math.max(circleDistance(T1, T2) + T1.diameter() + T2.diameter(), Math.max(T1.maxCD, T2.maxCD));
+		return Math.max(circleDistance(T1, T2), Math.max(T1.maxCD, T2.maxCD));
 	}
 	
 	public static double circleDistance(FairSplitTree T1, FairSplitTree T2) {

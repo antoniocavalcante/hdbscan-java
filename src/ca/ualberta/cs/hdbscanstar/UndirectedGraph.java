@@ -15,7 +15,7 @@ public class UndirectedGraph {
 	private int numVertices;
 	public int[] verticesA;
 	public int[] verticesB;
-	private double[] edgeWeights;
+	public double[] edgeWeights;
 	private Object[] edges;		//Each Object in this array in an ArrayList<Integer>
 
 	// ------------------------------ CONSTANTS ------------------------------

@@ -73,7 +73,7 @@ public class ExperimentIHDBSCANStar {
 			
 			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
 			
-//			if (Boolean.parseBoolean(args[6])) Experiments.computeOutputFiles(dataSet, mst, k, "RNG_" + inputFile);
+			if (Boolean.parseBoolean(args[6])) Experiments.computeOutputFiles(dataSet, mst, k, "RNG_" + inputFile, k);
 		}
 		
 		System.out.print(" " + (System.currentTimeMillis() - startMSTs));		

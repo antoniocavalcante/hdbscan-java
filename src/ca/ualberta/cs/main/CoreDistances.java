@@ -8,20 +8,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
+
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
+import ca.ualberta.cs.util.KdTree;
 
 public class CoreDistances {
 
 	public static double[][] dataSet = null;
 
 	public static double[][] coreDistances = null;
-	public static int[][] kNN = null;
+	public static Integer[][] kNN = null;
 	
 	public static void main(String[] args) {
-
+		
+		long start = System.currentTimeMillis();
+		long s = start;
 		try {
 			dataSet = HDBSCANStar.readInDataSet(args[0], " ");
 		}
@@ -29,16 +34,38 @@ public class CoreDistances {
 			System.err.println("Error reading input data set file.");
 			System.exit(-1);
 		}
+		
+		// Dataset.
+		System.out.print(args[0] + " ");
 
-		calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
+		// Time to load dataset.
+		System.out.print(System.currentTimeMillis() - start + " ");
 		
-		System.out.println("Saving core-distances to file: " + args[0] + ".cd");
-		coreDistancesToFile(coreDistances, args[0] + ".cd");
+		// Time to compute core-distances.
+		start = System.currentTimeMillis();
 		
-		System.out.println("Saving kNN to file: " + args[0] + ".knn");
-		kNNToFile(kNN, args[0] + ".knn");
+		if (Boolean.parseBoolean(args[2])) {
+			
+		}
+//		calculateCoreDistances(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
+		calculateCoreDistancesKdTree(dataSet, Integer.parseInt(args[1]), new EuclideanDistance());
+				
+		System.out.print(System.currentTimeMillis() - start + " ");
 		
-		System.out.println("---------------------------------------");
+		// Time to write core-distances to file.
+//		start = System.currentTimeMillis();
+//		coreDistancesToFile(coreDistances, a + ".cd");
+//		coreDistancesToFile(coreDistances, args[0] + ".cd");
+//		System.out.print(System.currentTimeMillis() - start + " ");
+
+		// Time to write k-NN to file.
+//		start = System.currentTimeMillis();
+//		kNNToFile(kNN, a + ".knn");
+//		kNNToFile(kNN, args[0] + ".knn");
+//		System.out.print(System.currentTimeMillis() - start + " ");
+		
+		// Total time.
+		System.out.println(System.currentTimeMillis() - s);		
 	}
 
 	/**
@@ -51,7 +78,7 @@ public class CoreDistances {
 	public static double[][] calculateCoreDistances(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
 		int numNeighbors = k;
 		double[][] coreDistances = new double[dataSet.length][numNeighbors];
-		int[][] kNN = new int[dataSet.length][numNeighbors];
+		Integer[][] kNN = new Integer[dataSet.length][numNeighbors];
 
 		IncrementalHDBSCANStar.k = k;
 
@@ -103,6 +130,63 @@ public class CoreDistances {
 		return coreDistances;
 	}
 
+	/**
+	 * Calculates the core distances for each point in the data set, given some value for k.
+	 * @param dataSet A double[][] where index [i][j] indicates the jth attribute of data point i
+	 * @param k Each point's core distance will be it's distance to the kth nearest neighbor
+	 * @param distanceFunction A DistanceCalculator to compute distances between points
+	 * @return An array of core distances
+	 */
+	public static double[][] calculateCoreDistancesKdTree(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
+		int numNeighbors = k;
+		double[][] coreDistances = new double[dataSet.length][numNeighbors];
+		Integer[][] kNN = new Integer[dataSet.length][numNeighbors];
+
+		IncrementalHDBSCANStar.k = k;
+		
+		if (k == 1) {
+
+			for (int point = 0; point < dataSet.length; point++) {
+				coreDistances[point][0] = 0;
+			}
+
+			return coreDistances;
+		}
+
+		KdTree kdTree = new KdTree(dataSet, dataSet[0].length);
+		
+		for (int point = 0; point < dataSet.length; point++) {
+			double[] kNNDistances = new double[numNeighbors];	//Sorted nearest distances found so far
+
+			for (int i = 0; i < numNeighbors; i++) {
+				kNNDistances[i] = Double.MAX_VALUE;
+				kNN[point][i] = Integer.MAX_VALUE;
+			}
+
+			Collection<Integer> r = kdTree.nearestNeighbourSearch(k, point);
+			
+			if (r.size() > k) {
+				System.out.println("aaaaa");
+				for (int i = 0; i < k; i++) {
+					kNN[point][i] = ((ArrayList<Integer>)(r)).get(i);
+				}
+			}
+
+			kNN[point] = r.toArray(kNN[point]);
+			
+			for (int i = 0; i < kNNDistances.length; i++) {
+				kNNDistances[i] = (new EuclideanDistance()).computeDistance(dataSet[point], dataSet[kNN[point][i]]);	
+			}
+			
+			coreDistances[point] = kNNDistances;
+		}
+
+		CoreDistances.kNN = kNN;
+		CoreDistances.coreDistances = coreDistances;
+
+		return coreDistances;
+	}
+	
 	public static void coreDistancesToFile(double[][] array, String file) {
 
 		Path path = Paths.get(file);
@@ -124,7 +208,7 @@ public class CoreDistances {
 		}
 	}
 
-	public static void kNNToFile(int[][] array, String file) {
+	public static void kNNToFile(Integer[][] array, String file) {
 
 		Path path = Paths.get(file);
 
@@ -246,5 +330,22 @@ public class CoreDistances {
 		}
 
 		return knn;
+	}
+	
+	public static boolean compare(double[][] kNN1, double[][] kNN2) {
+		
+		if (kNN1.length != kNN2.length) return false;
+		
+		if (kNN1[0].length != kNN2[0].length) return false;		
+		
+		for (int i = 0; i < kNN1.length; i++) {
+			for (int j = 0; j < kNN1[0].length; j++) {
+				if (kNN1[i][j] != kNN2[i][j]) {
+					return false;
+				}
+			}
+		}
+		
+		return true;
 	}
 }

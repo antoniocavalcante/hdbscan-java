@@ -13,11 +13,11 @@ import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 public class RelativeNeighborhoodGraph {
-	
+
 	public Int2ObjectOpenHashMap<DistanceLevel>[] ExtendedRNG;
-	
+
 	public IntBigArrayBigList[] RNG;
-	
+
 	public double[][] dataSet;
 	public double[][] coreDistances;
 
@@ -31,9 +31,9 @@ public class RelativeNeighborhoodGraph {
 	public boolean smartFilter;
 	public boolean naiveFilter;
 	public boolean incremental;
-	
+
 	public boolean extended;
-	
+
 	public boolean debug = false;
 
 	public long timenaivefilter = 0;
@@ -54,9 +54,9 @@ public class RelativeNeighborhoodGraph {
 		this.coreDistances = coreDistances;
 		this.distanceFunction = distanceFunction;
 		this.k = k;
-		
+
 		this.extended = false;
-		
+
 		RNG = new IntBigArrayBigList[dataSet.length];
 
 		for (int i = 0; i < RNG.length; i++) {
@@ -67,7 +67,7 @@ public class RelativeNeighborhoodGraph {
 			for (int j = i + 1; j < dataSet.length; j++) {
 
 				if (neighbors(dataSet, coreDistances, i, j, k)) {					
-					
+
 					RNG[i].add(j);
 					RNG[j].add(i);
 
@@ -100,32 +100,32 @@ public class RelativeNeighborhoodGraph {
 
 		this.smartFilter = smartFilter;
 		this.naiveFilter = naiveFilter;
-		
+
 		if (this.smartFilter || this.naiveFilter) { 
 			this.incremental = incremental;
-			
+
 			this.extended = true;
-			
+
 			ExtendedRNG = new Int2ObjectOpenHashMap[dataSet.length];
 
 			for (int i = 0; i < ExtendedRNG.length; i++) {
 				ExtendedRNG[i] = new Int2ObjectOpenHashMap<DistanceLevel>();
 			}
-			
+
 		} else {
-			
+
 			this.incremental = false;
-			
+
 			this.extended = false;
-			
+
 			RNG = new IntBigArrayBigList[dataSet.length];
-			
+
 			for (int i = 0; i < RNG.length; i++) {
 				RNG[i] = new IntBigArrayBigList();
 			}
 
 		}
-		
+
 
 		// Builds the Fair Split Tree T from dataSet.
 		FairSplitTree T = FairSplitTree.build(this.dataSet, this.coreDistances, this.k);
@@ -252,11 +252,11 @@ public class RelativeNeighborhoodGraph {
 		}
 
 		if (incremental) {
-			
+
 			if (level > k) {
 				return level;
 			}
-			
+
 			int start = 1;
 			int end = k - 1;
 
@@ -299,18 +299,64 @@ public class RelativeNeighborhoodGraph {
 	}
 
 	private void SBCN(FairSplitTree T1, FairSplitTree T2) {
+
 		double d;
-
-		HashSet<Pair> AB  = new HashSet<Pair>();
-
 		double min = Double.MAX_VALUE;
+		
 		BigList<Integer> tempA = null;
 		BigList<Integer> tempB = null;
 		
-		IntOpenHashSet B = new IntOpenHashSet((int)T1.getCount());
-		
-		for (int p1 : T1.retrieve()) {
+		// Both sets are singletons.
+		if (T1.getCount() == 1 && T2.getCount() == 1) {
+			addEdge(T1.getP(), T2.getP());
+			return;
+		}
+					
+		// One of the sets is a singleton.
+		if (T1.getCount() == 1 || T2.getCount() == 1) {
+			
+			FairSplitTree T = null;
 
+			int p1 = 0;
+
+			if (T1.getCount() == 1) {
+				T = T2;
+				p1 = T1.getP();
+			}
+			
+			if (T2.getCount() == 1) {
+				T = T1;
+				p1 = T2.getP();
+			}
+						
+			for (int p2 : T.retrieve()) {
+
+				d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
+
+				if (d < min) {
+					tempA = new IntBigArrayBigList();
+					tempB = new IntBigArrayBigList();
+				}
+
+				if (d <= min) {
+					min = d;
+					tempA.add(p1);
+					tempB.add(p2);
+				}
+			}
+
+			for (int i = 0; i < tempA.size(); i++) {
+				addEdge(tempA.get(i), tempB.get(i));
+			}
+
+			return;
+		}
+		
+		HashSet<Pair> AB  = new HashSet<Pair>();
+		IntOpenHashSet B = new IntOpenHashSet((int)T2.getCount());
+		
+		// General case where both sets have more than one element.
+		for (int p1 : T1.retrieve()) {
 			for (int p2 : T2.retrieve()) {
 
 				d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
@@ -319,27 +365,26 @@ public class RelativeNeighborhoodGraph {
 					tempA = new IntBigArrayBigList();
 					tempB = new IntBigArrayBigList();
 				}
-
+				
 				if (d <= min) {
 					min = d;
 					tempA.add(p1);
 					tempB.add(p2);
 				}
 			}
-			
+
 			for (int i = 0; i < tempA.size(); i++) {
 				AB.add(new Pair(tempA.get(i), tempB.get(i)));
 				B.add(tempB.get(i));
 			}
-			
+
 			min = Double.MAX_VALUE;
 		}
 
-		
-		for (int p2 : B) {
-						
-			for (int p1 : T1.retrieve()) {
 
+		for (int p2 : B) {
+			for (int p1 : T1.retrieve()) {
+			
 				d = mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, p1, p2, k);
 
 				if (d < min) {
@@ -353,41 +398,49 @@ public class RelativeNeighborhoodGraph {
 					tempB.add(p2);
 				}
 			}
-			
+
 			for (int i = 0; i < tempA.size(); i++) {
 
 				Pair candidate = new Pair(tempA.get(i), tempB.get(i));
 
 				if (AB.contains(candidate)) {
-					
-					int level = neighbors(candidate.a, candidate.b, k, incremental);
-
-					if (level <= k) {
-
-						if (this.extended) {
-							double distance = distanceFunction.computeDistance(dataSet[candidate.a], dataSet[candidate.b]);
-							
-							DistanceLevel dl = new DistanceLevel(distance, level);
-							
-							ExtendedRNG[candidate.a].put(candidate.b, dl);
-							ExtendedRNG[candidate.b].put(candidate.a, dl);
-							
-						} else {
-							RNG[candidate.a].add(candidate.b);
-							RNG[candidate.b].add(candidate.a);							
-						}
-
-						numOfEdges++;
-					}					
+					addEdge(candidate.a, candidate.b);					
 				}
 			}
-			
+
 			min = Double.MAX_VALUE;
 		}
-				
+
 		tempA = null;
 		tempB = null;
 		AB = null;
+	}
+
+
+	/**
+	 * @param vertex a
+	 * @param vertex b
+	 */
+	private void addEdge(int a, int b) {
+		int level = neighbors(a, b, k, incremental);
+
+		if (level <= k) {
+
+			if (this.extended) {
+				double distance = distanceFunction.computeDistance(dataSet[a], dataSet[b]);
+
+				DistanceLevel dl = new DistanceLevel(distance, level);
+
+				ExtendedRNG[a].put(b, dl);
+				ExtendedRNG[b].put(a, dl);
+
+			} else {
+				RNG[a].add(b);
+				RNG[b].add(a);							
+			}
+
+			numOfEdges++;
+		}
 	}
 
 	private void findWSPD(FairSplitTree T, double s, String method) {

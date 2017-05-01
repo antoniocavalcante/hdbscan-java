@@ -59,7 +59,7 @@ public class ExperimentHDBSCANStar {
 			Experiments.writeMSTweight("HDBSCAN", inputFile, k, mst);
 			
 			if (Boolean.parseBoolean(args[3])) {
-				Experiments.computeOutputFiles(dataSet, mst, k, "ORI_" + inputFile);
+				Experiments.computeOutputFiles(dataSet, mst, k, "ORI_" + inputFile, k);
 			}
 		}
 		
