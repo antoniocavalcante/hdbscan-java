@@ -21,7 +21,7 @@ import ca.ualberta.cs.util.KdTree;
 public class Test {
 	
 	public static double[][] dataSet = null;
-	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/4d-16.dat";
+	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/128d-128.dat";
 //	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/4d-32.dat";
 //	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/debug/jad.dat";
 //	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/aloi25.txt";
@@ -53,33 +53,40 @@ public class Test {
 //		mergeHierarchies(dataSet, 15);
 		
 		int q = 9;
-		int k = 6;
-		
-		testKdTree(dataSet, q, k);
-		testKnn(dataSet, q, k);
-	}
-	
-	public static void testKdTree(double[][] dataSet, int q, int k) {
+		int k = 16;
 		
 		KdTree kdTree = new KdTree(dataSet, dataSet[0].length);
+		
+		long start = System.currentTimeMillis();
+		testKdTree(dataSet, q, k, kdTree);
+		System.out.println("Total kd-tree: " + (System.currentTimeMillis() - start));
+		
+		start = System.currentTimeMillis();
+		testKnn(dataSet, q, k);
+		System.out.println("Total naive: " + (System.currentTimeMillis() - start));
+	}
+	
+	public static void testKdTree(double[][] dataSet, int q, int k, KdTree kdTree) {
 		
 //		System.out.println(kdTree.toString());
 		
 		Collection<Integer> r = kdTree.nearestNeighbourSearch(k, q);
-
-		for (Integer ds : r) {
-			System.out.print(ds + ": ");
-			for (int i = 0; i < dataSet[ds].length; i++) {
-				System.out.print(dataSet[ds][i] + " ");
-			}
-			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[ds]));
-		}
-		System.out.println();
+		
+		System.out.println(kdTree.time);
+		
+//		for (Integer ds : r) {
+//			System.out.print(ds + ": ");
+//			for (int i = 0; i < dataSet[ds].length; i++) {
+//				System.out.print(dataSet[ds][i] + " ");
+//			}
+//			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[ds]));
+//		}
+//		System.out.println();
 	}
 	
 	private static void testKnn(double[][] dataSet, int q, int k) {
 		int numNeighbors = k;
-
+		long time = 0;
 		int[] kNN = new int[numNeighbors];
 		double[] kNNDistances = new double[numNeighbors];	//Sorted nearest distances found so far
 		
@@ -89,9 +96,11 @@ public class Test {
 		}
 		
 		for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
-
+			long u = System.currentTimeMillis();
 			double distance = (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[neighbor]);
 
+			time += System.currentTimeMillis() - u;
+			
 			//Check at which position in the nearest distances the current distance would fit:
 			int neighborIndex = numNeighbors;
 			while (neighborIndex >= 1 && distance < kNNDistances[neighborIndex-1]) {
@@ -109,15 +118,15 @@ public class Test {
 				kNN[neighborIndex] = neighbor;
 			}
 		}
+		System.out.println("Time euclidean naive: " + time);
 		
-		
-		for (int a : kNN) {
-			System.out.print(a + ": ");
-			for (int i = 0; i < dataSet[a].length; i++) {
-				System.out.print(dataSet[a][i] + " ");
-			}
-			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[a]));
-		}
+//		for (int a : kNN) {
+//			System.out.print(a + ": ");
+//			for (int i = 0; i < dataSet[a].length; i++) {
+//				System.out.print(dataSet[a][i] + " ");
+//			}
+//			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[a]));
+//		}
 	}
 	
 	public static void mergeHierarchies(double[][] dataSet, int k){
