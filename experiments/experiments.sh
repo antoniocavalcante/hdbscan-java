@@ -82,7 +82,7 @@ dimensions() {
     done
 }
 
-index = "true"
+index="true"
 
 # NO FILTER
 smartFilter="false"
