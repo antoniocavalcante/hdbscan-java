@@ -47,7 +47,7 @@ public class CoreDistances {
 		start = System.currentTimeMillis();
 		
 		if (Boolean.parseBoolean(args[2])) {
-			kdTree = new KdTree(dataSet, dataSet[0].length);
+			kdTree = new KdTree(dataSet);
 			
 			System.out.print(System.currentTimeMillis() - start + " ");
 			
@@ -147,6 +147,9 @@ public class CoreDistances {
 	 * @return An array of core distances
 	 */
 	public static double[][] calculateCoreDistancesKdTree(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
+		
+		if (kdTree == null) kdTree = new KdTree(dataSet);
+		
 		int numNeighbors = k;
 		double[][] coreDistances = new double[dataSet.length][numNeighbors];
 		Integer[][] kNN = new Integer[dataSet.length][numNeighbors];
@@ -169,7 +172,7 @@ public class CoreDistances {
 				kNNDistances[i] = Double.MAX_VALUE;
 				kNN[point][i] = Integer.MAX_VALUE;
 			}
-
+			
 			Collection<Integer> r = kdTree.nearestNeighbourSearch(k, point);
 			
 			if (r.size() > k) {

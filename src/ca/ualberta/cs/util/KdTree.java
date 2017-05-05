@@ -22,9 +22,9 @@ public class KdTree {
 	public static int axis = 0;
 
 	public static int n = 0;
-	
+
 	public static long time = 0;
-	
+
 	private final static Comparator<Integer> COMPARATOR = new Comparator<Integer>() {
 		/**
 		 * {@inheritDoc}
@@ -45,7 +45,7 @@ public class KdTree {
 			if (o1[i] < o2[i]) return -1;
 			if (o1[i] > o2[i]) return 1;						
 		}
-		
+
 		return 0;
 	}
 
@@ -59,9 +59,9 @@ public class KdTree {
 	 * 
 	 * @param list of XYZPoints.
 	 */
-	public KdTree(double[][] list, int d) {
+	public KdTree(double[][] list) {
 		points = list;
-		this.d = d;
+		this.d = list[0].length;
 
 		List<Integer> l = new ArrayList<Integer>();
 
@@ -82,14 +82,14 @@ public class KdTree {
 	 */
 	private static KdNode createNode(List<Integer> list, int k, int depth) {
 		n++;
-		
+
 		if (list == null || list.size() == 0) return null;
 
 		axis = depth % k;
 
 		Collections.sort(list, COMPARATOR);
-//		System.out.println(list);
-		
+		//		System.out.println(list);
+
 		int mediaIndex = list.size()/2;
 
 		KdNode node = new KdNode(k, depth, list.get(mediaIndex));
@@ -98,19 +98,19 @@ public class KdTree {
 		List<Integer> more = list.subList(mediaIndex+1, list.size());
 
 		if (list.size() > 0) {
-			
+
 			if ((mediaIndex-1) >= 0) {
 				less = list.subList(0, mediaIndex);
-			
+
 				if (less.size() > 0) {
 					node.lesser = createNode(less, k, depth + 1);
 					node.lesser.parent = node;
 				}
 			}
-			
+
 			if ((mediaIndex + 1) <= (list.size() - 1)) {
 				more = list.subList(mediaIndex + 1, list.size());
-				
+
 				if (more.size() > 0) {
 					node.greater = createNode(more, k, depth+1);
 					node.greater.parent = node;
@@ -287,9 +287,9 @@ public class KdTree {
 	 * @return collection of T neighbors.
 	 */
 	public Collection<Integer> nearestNeighbourSearch(int K, Integer value) {
-        if (value == null || root == null)
-            return Collections.emptyList();
-        
+		if (value == null || root == null)
+			return Collections.emptyList();
+
 		//Map used for results
 		TreeSet<Tuple> results = new TreeSet<Tuple>(new TupleComparator());
 
@@ -310,7 +310,7 @@ public class KdTree {
 		}
 
 		KdNode leaf = prev;
-		
+
 		if (leaf != null) {
 			//Used to not re-examine nodes
 			BitSet examined = new BitSet(points.length);
@@ -328,7 +328,7 @@ public class KdTree {
 
 		//Load up the collection of the results
 		Collection<Integer> collection = new ArrayList<Integer>(K);
-		
+
 		for (Tuple t : results) {
 			collection.add(t.id);
 		}
@@ -340,11 +340,11 @@ public class KdTree {
 		examined.set(node.id);
 
 		EuclideanDistance euclidean = new EuclideanDistance();
-		
+
 		//Search node
 		Tuple lastNode = null;
 		Double lastDistance = Double.MAX_VALUE;
-		
+
 		if (results.size() > 0) {
 			lastNode = results.last();
 			lastDistance = lastNode.distance;
@@ -360,7 +360,7 @@ public class KdTree {
 		} else if (results.size() < K) {
 			results.add(new Tuple(node.id, nodeDistance));
 		}
-				
+
 		lastNode = results.last();
 		lastDistance = lastNode.distance;
 
@@ -381,7 +381,7 @@ public class KdTree {
 			//Continue down lesser branch
 			if (lineIntersectsCube) searchNode(value, lesser, K, results, examined);
 		}
-		
+
 		if (greater != null && !examined.get(greater.id)) {
 			examined.set(greater.id);
 
@@ -395,6 +395,163 @@ public class KdTree {
 		}
 	}
 
+	public Collection<Integer> range(double[] value, double eps) {
+		if (value == null) return null;
+
+		Collection<KdNode> results = new ArrayList<KdNode>();
+
+		searchNodeRangeRecursive(value, eps, this.root, results);
+
+		Collection<Integer> collection = new ArrayList<Integer>();
+
+		for (KdNode kdNode : results) {
+			collection.add(kdNode.id);
+		}
+
+		return collection;
+	}
+
+	public Collection<Integer> range(int value, double eps) {
+
+		Collection<KdNode> results = new ArrayList<KdNode>();
+
+		searchNodeRangeRecursive(points[value], eps, this.root, results);
+
+		Collection<Integer> collection = new ArrayList<Integer>();
+
+		for (KdNode kdNode : results) {
+			if (kdNode.id != value) collection.add(kdNode.id);
+		}
+
+		return collection;
+	}
+	
+	public boolean empty(double[] value, double eps) {
+		
+		Stack<KdNode> queue = new Stack<KdNode>();
+		EuclideanDistance euclidean = new EuclideanDistance();
+		
+		queue.add(this.root);
+		
+		while (!queue.isEmpty()) {
+			
+			double axisDistance = -1;
+			double rootDistance = euclidean.computeDistance(value, points[root.id]);
+
+			int axis = root.depth % root.k;
+			KdNode lesser = root.lesser;
+			KdNode greater = root.greater;
+
+			axisDistance = Math.abs(points[root.id][axis] - value[axis]);
+
+			if (lesser == null || greater == null) {
+
+				if (rootDistance <= eps && rootDistance != 0) {
+					return false;
+				}
+
+			} else {
+
+				if (axisDistance <= eps) {
+
+					if (rootDistance <= eps && rootDistance != 0) {
+						return false;
+					}
+					
+					queue.add(lesser);
+					queue.add(greater);
+				} else {
+					
+					if(value[axis] > points[root.id][axis]) {
+						queue.add(greater);
+					} else if (value[axis] < points[root.id][axis]) {
+						queue.add(lesser);
+					} else if (value[axis] == points[root.id][axis]) {
+						queue.add(lesser);
+						queue.add(greater);
+					}
+				}
+			}
+
+		}
+		
+		return true;
+	}
+		
+	public static final void searchNodeRangeRecursive(double[] value, double eps, KdNode root, Collection<KdNode> results) {
+
+		EuclideanDistance euclidean = new EuclideanDistance();
+
+		double axisDistance = -1;
+		double rootDistance = euclidean.computeDistance(value, points[root.id]);
+
+		int axis = root.depth % root.k;
+		KdNode lesser = root.lesser;
+		KdNode greater = root.greater;
+
+		axisDistance = Math.abs(points[root.id][axis] - value[axis]);
+				
+		if (lesser == null && greater == null) {
+
+			if (rootDistance < eps) {
+				results.add(root);
+			}
+
+		} else {
+
+			if (axisDistance <= eps) {
+				
+				if (rootDistance < eps) {
+					results.add(root);
+				}
+
+				if (lesser  != null) searchNodeRangeRecursive(value, eps, lesser, results);
+				if (greater != null) searchNodeRangeRecursive(value, eps, greater, results);
+
+			} else {
+				if(value[axis] > points[root.id][axis]) {
+					if (greater != null) searchNodeRangeRecursive(value, eps, greater, results);
+				} else if (value[axis] < points[root.id][axis]) {
+					if (lesser  != null) searchNodeRangeRecursive(value, eps, lesser, results);
+				} else if (value[axis] == points[root.id][axis]) {
+					if (lesser  != null) searchNodeRangeRecursive(value, eps, lesser, results);
+					if (greater != null) searchNodeRangeRecursive(value, eps, greater, results);					
+				}
+			}
+		}
+	}
+
+
+	public boolean emptyLune(int a, int b, double eps) {
+		Collection<Integer> neighborsA = range(points[a], eps);
+		Collection<Integer> neighborsB = range(points[b], eps);
+		
+//		System.out.println(neighborsA);
+//		
+//		System.out.println(neighborsB);
+
+		neighborsA.remove(b);
+		neighborsB.remove(a);
+		
+		return Collections.disjoint(neighborsA, neighborsB);
+	}
+
+
+	public Collection<Integer> lune(int a, int b, double eps) {
+		
+		Collection<Integer> neighborsA = range(points[a], eps);
+		Collection<Integer> neighborsB = range(points[b], eps);
+		
+//		System.out.println(neighborsA);
+//		
+//		System.out.println(neighborsB);
+
+		neighborsA.addAll(neighborsB);
+		
+		return neighborsA;
+	}
+
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -403,31 +560,31 @@ public class KdTree {
 		return TreePrinter.getString(this);
 	}
 
-//	protected static class EuclideanComparator implements Comparator<KdNode> {
-//
-//		private Integer point = null;
-//
-//
-//		public EuclideanComparator(Integer point) {
-//			this.point = point;
-//		}
-//
-//		/**
-//		 * {@inheritDoc}
-//		 */
-//		@Override
-//		public int compare(KdNode o1, KdNode o2) {
-//			EuclideanDistance euclidean = new EuclideanDistance();
-//
-//			Double d1 = euclidean.computeDistance(points[point], points[o1.id]);
-//			Double d2 = euclidean.computeDistance(points[point], points[o2.id]);
-//
-//			if (d1.compareTo(d2)<0) return -1;
-//			else if (d2.compareTo(d1)<0) return 1;
-//
-//			return compareTo(points[o1.id], points[o2.id]);
-//		}
-//	};
+	protected static class EuclideanComparator implements Comparator<KdNode> {
+
+		private Integer point = null;
+
+
+		public EuclideanComparator(Integer point) {
+			this.point = point;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public int compare(KdNode o1, KdNode o2) {
+			EuclideanDistance euclidean = new EuclideanDistance();
+
+			Double d1 = euclidean.computeDistance(points[point], points[o1.id]);
+			Double d2 = euclidean.computeDistance(points[point], points[o2.id]);
+
+			if (d1.compareTo(d2)<0) return -1;
+			else if (d2.compareTo(d1)<0) return 1;
+
+			return compareTo(points[o1.id], points[o2.id]);
+		}
+	};
 
 	protected static class TupleComparator implements Comparator<Tuple> {
 
@@ -440,7 +597,7 @@ public class KdTree {
 			return compareTo(points[o1.id], points[o2.id]);
 		}
 	};
-	
+
 	public static class KdNode implements Comparable<KdNode> {
 
 		public int k = 0;
@@ -502,14 +659,14 @@ public class KdTree {
 	public static class Tuple {
 		public int id;
 		public double distance;
-		
+
 		public Tuple(int id, double distance) {
 			super();
 			this.id = id;
 			this.distance = distance;
 		}
 	}
-	
+
 	public static class TreePrinter {
 
 		public static String getString(KdTree tree) {

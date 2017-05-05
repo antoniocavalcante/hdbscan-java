@@ -60,7 +60,7 @@ public class ExperimentIHDBSCANStar {
 		// Computes the RNG
 		long startRNG = System.currentTimeMillis();
 
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, minPoints, Boolean.parseBoolean(args[3]), Boolean.parseBoolean(args[4]), Boolean.parseBoolean(args[5]));
+		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, minPoints, Boolean.parseBoolean(args[3]), Boolean.parseBoolean(args[4]), Boolean.parseBoolean(args[5]), Boolean.parseBoolean(args[6]));
 		System.out.print(" " + (System.currentTimeMillis() - startRNG));
 
 		// Computes all the minPoints MSTs

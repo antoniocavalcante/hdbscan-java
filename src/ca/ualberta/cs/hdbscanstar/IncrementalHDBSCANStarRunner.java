@@ -80,7 +80,7 @@ public class IncrementalHDBSCANStarRunner {
 		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, parameters.minPoints, parameters.distanceFunction);
 		System.out.println("Time to compute core distances (ms): " + (System.currentTimeMillis() - startTime));
 
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, parameters.distanceFunction, parameters.minPoints, 1, "WS", true, false, true);
+		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, parameters.distanceFunction, parameters.minPoints, 1, "WS", true, false, true, true);
 		
 		UndirectedGraph mst;		
 		
