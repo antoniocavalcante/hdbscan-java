@@ -80,6 +80,7 @@ public class Prim {
 		while (numAttachedPoints < dataSet.length) {
 
 			int currentPoint = q.removeMin().getData();
+			System.out.print(currentPoint + " ");
 
 			//Attach the closest point found in this iteration to the tree:
 			attachedPoints.set(currentPoint);

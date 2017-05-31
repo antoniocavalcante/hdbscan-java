@@ -25,6 +25,8 @@ public class KdTree {
 
 	public static long time = 0;
 
+	public static int leafsize = 10;
+
 	private final static Comparator<Integer> COMPARATOR = new Comparator<Integer>() {
 		/**
 		 * {@inheritDoc}
@@ -73,6 +75,26 @@ public class KdTree {
 	}
 
 	/**
+	 * More efficient constructor.
+	 * 
+	 * @param list of XYZPoints.
+	 */
+	public KdTree(double[][] list, int leafsize) {
+		points = list;
+		this.d = list[0].length;
+
+		KdTree.leafsize = leafsize;
+
+		List<Integer> l = new ArrayList<Integer>();
+
+		for (int i = 0; i < list.length; i++) {
+			l.add(i);
+		}
+
+		root = createNode(l, d, 0);
+	}
+
+	/**
 	 * Create node from list of XYZPoints.
 	 * 
 	 * @param list of XYZPoints.
@@ -96,6 +118,15 @@ public class KdTree {
 
 		List<Integer> less = list.subList(0, mediaIndex);
 		List<Integer> more = list.subList(mediaIndex+1, list.size());
+
+		if (list.size() <= leafsize) {
+			node.lesser  = null;
+			node.greater = null;
+
+			node.bucket = list;
+
+			return node;
+		}
 
 		if (list.size() > 0) {
 
@@ -323,7 +354,6 @@ public class KdTree {
 
 				node = node.parent;
 			}
-
 		}
 
 		//Load up the collection of the results
@@ -398,43 +428,26 @@ public class KdTree {
 	public Collection<Integer> range(double[] value, double eps) {
 		if (value == null) return null;
 
-		Collection<KdNode> results = new ArrayList<KdNode>();
+		Collection<Integer> results = new ArrayList<Integer>();
 
 		searchNodeRangeRecursive(value, eps, this.root, results);
 
-		Collection<Integer> collection = new ArrayList<Integer>();
-
-		for (KdNode kdNode : results) {
-			collection.add(kdNode.id);
-		}
-
-		return collection;
+		return results;
 	}
 
 	public Collection<Integer> range(int value, double eps) {
-
-		Collection<KdNode> results = new ArrayList<KdNode>();
-
-		searchNodeRangeRecursive(points[value], eps, this.root, results);
-
-		Collection<Integer> collection = new ArrayList<Integer>();
-
-		for (KdNode kdNode : results) {
-			if (kdNode.id != value) collection.add(kdNode.id);
-		}
-
-		return collection;
+		return range(points[value], eps);
 	}
-	
+
 	public boolean empty(double[] value, double eps) {
-		
+
 		Stack<KdNode> queue = new Stack<KdNode>();
 		EuclideanDistance euclidean = new EuclideanDistance();
-		
+
 		queue.add(this.root);
-		
+
 		while (!queue.isEmpty()) {
-			
+
 			double axisDistance = -1;
 			double rootDistance = euclidean.computeDistance(value, points[root.id]);
 
@@ -457,11 +470,11 @@ public class KdTree {
 					if (rootDistance <= eps && rootDistance != 0) {
 						return false;
 					}
-					
+
 					queue.add(lesser);
 					queue.add(greater);
 				} else {
-					
+
 					if(value[axis] > points[root.id][axis]) {
 						queue.add(greater);
 					} else if (value[axis] < points[root.id][axis]) {
@@ -474,11 +487,11 @@ public class KdTree {
 			}
 
 		}
-		
+
 		return true;
 	}
-		
-	public static final void searchNodeRangeRecursive(double[] value, double eps, KdNode root, Collection<KdNode> results) {
+
+	public static final void searchNodeRangeRecursive(double[] value, double eps, KdNode root, Collection<Integer> results) {
 
 		EuclideanDistance euclidean = new EuclideanDistance();
 
@@ -490,19 +503,25 @@ public class KdTree {
 		KdNode greater = root.greater;
 
 		axisDistance = Math.abs(points[root.id][axis] - value[axis]);
-				
+
 		if (lesser == null && greater == null) {
 
 			if (rootDistance < eps) {
-				results.add(root);
+				results.add(root.id);
+			}
+
+			for (int i : root.bucket) {
+				if (euclidean.computeDistance(value, points[i]) < eps) {
+					results.add(i);
+				}
 			}
 
 		} else {
 
-			if (axisDistance <= eps) {
-				
+			if (axisDistance < eps) {
+
 				if (rootDistance < eps) {
-					results.add(root);
+					results.add(root.id);
 				}
 
 				if (lesser  != null) searchNodeRangeRecursive(value, eps, lesser, results);
@@ -512,10 +531,10 @@ public class KdTree {
 				if(value[axis] > points[root.id][axis]) {
 					if (greater != null) searchNodeRangeRecursive(value, eps, greater, results);
 				} else if (value[axis] < points[root.id][axis]) {
-					if (lesser  != null) searchNodeRangeRecursive(value, eps, lesser, results);
+					if (lesser  != null) searchNodeRangeRecursive(value, eps, lesser,  results);
 				} else if (value[axis] == points[root.id][axis]) {
-					if (lesser  != null) searchNodeRangeRecursive(value, eps, lesser, results);
-					if (greater != null) searchNodeRangeRecursive(value, eps, greater, results);					
+					if (lesser  != null) searchNodeRangeRecursive(value, eps, lesser,  results);
+					if (greater != null) searchNodeRangeRecursive(value, eps, greater, results);		
 				}
 			}
 		}
@@ -524,34 +543,32 @@ public class KdTree {
 
 	public boolean emptyLune(int a, int b, double eps) {
 		Collection<Integer> neighborsA = range(points[a], eps);
-		Collection<Integer> neighborsB = range(points[b], eps);
-		
-//		System.out.println(neighborsA);
-//		
-//		System.out.println(neighborsB);
-
 		neighborsA.remove(b);
-		neighborsB.remove(a);
+		if (neighborsA.isEmpty()) return true;
 		
+		Collection<Integer> neighborsB = range(points[b], eps);
+		neighborsB.remove(a);
+		if (neighborsB.isEmpty()) return true;
+
 		return Collections.disjoint(neighborsA, neighborsB);
 	}
 
 
 	public Collection<Integer> lune(int a, int b, double eps) {
-		
+
 		Collection<Integer> neighborsA = range(points[a], eps);
 		Collection<Integer> neighborsB = range(points[b], eps);
-		
-//		System.out.println(neighborsA);
-//		
-//		System.out.println(neighborsB);
+
+		//		System.out.println(neighborsA);
+		//		
+		//		System.out.println(neighborsB);
 
 		neighborsA.addAll(neighborsB);
-		
+
 		return neighborsA;
 	}
 
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -606,6 +623,8 @@ public class KdTree {
 		public KdNode parent = null;
 		public KdNode lesser = null;
 		public KdNode greater = null;
+
+		public Collection<Integer> bucket;
 
 		public KdNode(Integer id) {
 			this.id = id;

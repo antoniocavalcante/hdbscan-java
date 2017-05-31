@@ -1,6 +1,8 @@
 package ca.ualberta.cs.hdbscanstar;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Stack;
 
@@ -255,7 +257,10 @@ public class RelativeNeighborhoodGraph {
 
 		// Index Filter.
 		if (index) {
-			Collection<Integer> lune = kdTree.range(a, w);
+			long start = System.currentTimeMillis();
+			
+			Collection<Integer> lune = kdTree.range(a, (new EuclideanDistance()).computeDistance(dataSet[a], dataSet[b]));
+			
 			
 			for (Integer c : lune) {
 				
@@ -263,10 +268,12 @@ public class RelativeNeighborhoodGraph {
 				double dbc = mutualReachabilityDistance(dataSet, b, c, k);
 
 				if (w > Math.max(dac, dbc)) {
+					timenaivefilter = timenaivefilter + (System.currentTimeMillis() - start);
 					return false;
 				}
 			}
 			
+			timenaivefilter = timenaivefilter + (System.currentTimeMillis() - start);
 			return true;
 		}
 
