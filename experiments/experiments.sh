@@ -25,7 +25,7 @@ name() {
         output=$output-"kdtree"
     fi
 
-    output=$output".results"
+    output=$output".results.128"
 }
 
 dataset() {
@@ -41,7 +41,7 @@ dataset() {
             java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i $1 $2 $3 $4>> $output
 
             # HDBSCAN
-            java -jar -Xmx61g HDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false >> hdbscan-dataset.results
+            # java -jar -Xmx61g HDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false >> hdbscan-dataset.results
         done
     done
 }
@@ -56,10 +56,10 @@ minpoints() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, smartFilter, naiveFilter, incremental
-	        # java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i $1 $2 $3 $4 >> $output
+	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i $1 $2 $3 $4 >> $output
 
             # HDBSCAN
-            java -jar -Xmx61g HDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false >> hdbscan-minpoints.results
+            # java -jar -Xmx61g HDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false >> hdbscan-minpoints.results
         done
     done
 }
@@ -74,17 +74,17 @@ dimensions() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, smartFilter, naiveFilter, incremental
-	        # java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i $1 $2 $3 $4 >> $output
+	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/${d}d-128.dat" 128 $i $1 $2 $3 $4 >> $output
 
             # HDBSCAN
-            java -jar -Xmx3g HDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false >> hdbscan-dimensions.results
+            # java -jar -Xmx3g HDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false >> hdbscan-dimensions.results
         done
     done
 }
 
 dimensions
 
-# index="true"
+index="true"
 #
 # # NO FILTER
 # smartFilter="false"
@@ -125,30 +125,30 @@ dimensions
 # # dataset $smartFilter $naiveFilter $incremental
 #
 # # -----------------------------------------------------
-#
-# # SMART
-# smartFilter="true"
-# naiveFilter="false"
-# incremental="false"
-#
+
+# SMART
+smartFilter="true"
+naiveFilter="false"
+incremental="false"
+
 # minpoints $smartFilter $naiveFilter $incremental $index
-# dimensions $smartFilter $naiveFilter $incremental $index
+dimensions $smartFilter $naiveFilter $incremental $index
 # dataset $smartFilter $naiveFilter $incremental $index
-#
-# # SMART + NAIVE
-# smartFilter="true"
-# naiveFilter="true"
-# incremental="false"
-#
-# # minpoints $smartFilter $naiveFilter $incremental $index
-# # dimensions $smartFilter $naiveFilter $incremental $index
-# # dataset $smartFilter $naiveFilter $incremental $index
-#
-# # NAIVE
-# smartFilter="false"
-# naiveFilter="true"
-# incremental="false"
-#
-# # minpoints $smartFilter $naiveFilter $incremental $index
-# # dimensions $smartFilter $naiveFilter $incremental $index
-# # dataset $smartFilter $naiveFilter $incremental $index
+
+# SMART + NAIVE
+smartFilter="true"
+naiveFilter="true"
+incremental="false"
+
+# minpoints $smartFilter $naiveFilter $incremental $index
+dimensions $smartFilter $naiveFilter $incremental $index
+# dataset $smartFilter $naiveFilter $incremental $index
+
+# NAIVE
+smartFilter="false"
+naiveFilter="true"
+incremental="false"
+
+# minpoints $smartFilter $naiveFilter $incremental $index
+dimensions $smartFilter $naiveFilter $incremental $index
+# dataset $smartFilter $naiveFilter $incremental $index
