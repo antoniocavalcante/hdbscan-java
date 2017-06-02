@@ -45,7 +45,7 @@ public class ExperimentIHDBSCANStar {
 		try {
 			coreDistances = CoreDistances.fromFile(args[0] + "-" + args[1] + ".cd", minPoints, " ");
 			kNN = CoreDistances.knnFromFile(args[0] + "-" + args[1] + ".knn", minPoints, " ");
-			System.out.println(coreDistances[0].length);
+
 			IncrementalHDBSCANStar.kNN = kNN;
 			
 		} catch (IOException e) {
