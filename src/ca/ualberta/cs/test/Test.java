@@ -24,8 +24,8 @@ public class Test {
 	
 	public static double[][] dataSet = null;
 //	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/128d-128.dat";
-//	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-16.dat";
-	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/debug/jad.dat";
+	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-16.dat";
+//	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/debug/jad.dat";
 //	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/aloi25.txt";
 	
 	@SuppressWarnings("unused")
@@ -55,13 +55,13 @@ public class Test {
 		
 //		mergeHierarchies(dataSet, 15);
 		
-		performance(dataSet, 5, true, true, incremental, index);
+//		performance(dataSet, 5, true, true, incremental, index);
 		
 		int q = 29;
 		int k = 16;
 		double eps = 20;
 		
-//		KdTree kdTree = new KdTree(dataSet);
+		KdTree kdTree = new KdTree(dataSet);
 
 //		long start = System.currentTimeMillis();
 //		testRange(dataSet, q, eps);
@@ -71,13 +71,13 @@ public class Test {
 //		testKdTreeRange(dataSet, q, eps, kdTree);
 //		System.out.println("Total kd-tree: " + (System.currentTimeMillis() - start));
 		
-//		long start = System.currentTimeMillis();
-//		testKdTree(dataSet, q, k, kdTree);
-//		System.out.println("Total kd-tree: " + (System.currentTimeMillis() - start));
-//		
-//		start = System.currentTimeMillis();
-//		testKnn(dataSet, q, k);
-//		System.out.println("Total naive: " + (System.currentTimeMillis() - start));
+		long start = System.currentTimeMillis();
+		testKdTree(dataSet, q, k, kdTree);
+		System.out.println("Total kd-tree: " + (System.currentTimeMillis() - start));
+		
+		start = System.currentTimeMillis();
+		testKnn(dataSet, q, k);
+		System.out.println("Total naive: " + (System.currentTimeMillis() - start));
 	
 //		int a = 5;
 //		int b = 6;
@@ -155,14 +155,14 @@ public class Test {
 		
 		System.out.println(KdTree.time);
 		
-//		for (Integer ds : r) {
-//			System.out.print(ds + ": ");
-//			for (int i = 0; i < dataSet[ds].length; i++) {
-//				System.out.print(dataSet[ds][i] + " ");
-//			}
-//			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[ds]));
-//		}
-//		System.out.println();
+		for (Integer ds : r) {
+			System.out.print(ds + ": ");
+			for (int i = 0; i < dataSet[ds].length; i++) {
+				System.out.print(dataSet[ds][i] + " ");
+			}
+			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[ds]));
+		}
+		System.out.println();
 	}
 	
 	@SuppressWarnings("unused")
@@ -202,13 +202,13 @@ public class Test {
 		}
 		System.out.println("Time euclidean naive: " + time);
 		
-//		for (int a : kNN) {
-//			System.out.print(a + ": ");
-//			for (int i = 0; i < dataSet[a].length; i++) {
-//				System.out.print(dataSet[a][i] + " ");
-//			}
-//			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[a]));
-//		}
+		for (int a : kNN) {
+			System.out.print(a + ": ");
+			for (int i = 0; i < dataSet[a].length; i++) {
+				System.out.print(dataSet[a][i] + " ");
+			}
+			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[a]));
+		}
 	}
 	
 	public static void mergeHierarchies(double[][] dataSet, int k){

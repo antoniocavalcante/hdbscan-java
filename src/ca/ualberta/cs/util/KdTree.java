@@ -25,7 +25,7 @@ public class KdTree {
 
 	public static long time = 0;
 
-	public static int leafsize = 10;
+	public static int leafsize = 200;
 
 	private final static Comparator<Integer> COMPARATOR = new Comparator<Integer>() {
 		/**
@@ -391,6 +391,26 @@ public class KdTree {
 			results.add(new Tuple(node.id, nodeDistance));
 		}
 
+		if (node.bucket != null) {
+			for (Integer i : node.bucket) {
+				if (results.size() > 0) {
+					lastNode = results.last();
+					lastDistance = lastNode.distance;
+				}
+
+				nodeDistance = euclidean.computeDistance(points[i], points[value]);
+
+				if (nodeDistance < lastDistance) {
+					if (results.size() == K && lastNode != null) results.remove(lastNode);
+					results.add(new Tuple(i, nodeDistance));
+				} else if (nodeDistance == lastDistance) {
+					results.add(new Tuple(i, nodeDistance));
+				} else if (results.size() < K) {
+					results.add(new Tuple(i, nodeDistance));
+				}				
+			}
+		}
+		
 		lastNode = results.last();
 		lastDistance = lastNode.distance;
 
