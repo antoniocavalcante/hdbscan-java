@@ -174,7 +174,6 @@ public class CoreDistances {
 			Collection<Integer> r = kdTree.nearestNeighbourSearch(k, point);
 			
 			if (r.size() > k) {
-				System.out.println("aaaaa");
 				for (int i = 0; i < k; i++) {
 					kNN[point][i] = ((ArrayList<Integer>)(r)).get(i);
 				}
