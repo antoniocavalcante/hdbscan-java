@@ -259,8 +259,8 @@ public class CoreDistances {
 			String[] lineContents = line.split(delimiter);
 
 			if (numAttributes == -1)
-				numAttributes = Math.min(lineContents.length, minPoints);
-			else if (Math.min(lineContents.length, minPoints) != numAttributes)
+				numAttributes = lineContents.length;
+			else if (lineContents.length != numAttributes)
 				System.err.println("Line " + lineIndex + " of data set has incorrect number of attributes.");
 
 			double[] attributes = new double[numAttributes];
@@ -310,8 +310,8 @@ public class CoreDistances {
 			String[] lineContents = line.split(delimiter);
 
 			if (numAttributes == -1)
-				numAttributes = Math.min(lineContents.length, minPoints);
-			else if (Math.min(lineContents.length, minPoints) != numAttributes)
+				numAttributes = lineContents.length;
+			else if (lineContents.length != numAttributes)
 				System.err.println("Line " + lineIndex + " of data set has incorrect number of attributes.");
 
 			int[] attributes = new int[numAttributes];
