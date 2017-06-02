@@ -43,8 +43,8 @@ public class ExperimentIHDBSCANStar {
 		int[][] kNN = null;
 		
 		try {
-			coreDistances = CoreDistances.fromFile(args[0] + ".cd", minPoints, " ");
-			kNN = CoreDistances.knnFromFile(args[0] + ".knn", minPoints, " ");
+			coreDistances = CoreDistances.fromFile(args[0] + "-" + args[1] + ".cd", minPoints, " ");
+			kNN = CoreDistances.knnFromFile(args[0] + "-" + args[1] + ".knn", minPoints, " ");
 
 			IncrementalHDBSCANStar.kNN = kNN;
 			

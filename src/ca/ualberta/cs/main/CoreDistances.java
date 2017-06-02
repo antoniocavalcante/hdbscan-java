@@ -62,16 +62,14 @@ public class CoreDistances {
 		System.out.print(System.currentTimeMillis() - start + " ");
 		
 		// Time to write core-distances to file.
-//		start = System.currentTimeMillis();
-//		coreDistancesToFile(coreDistances, a + ".cd");
-//		coreDistancesToFile(coreDistances, args[0] + ".cd");
-//		System.out.print(System.currentTimeMillis() - start + " ");
+		start = System.currentTimeMillis();
+		coreDistancesToFile(coreDistances, args[0] + "-" + args[1] + ".cd");
+		System.out.print(System.currentTimeMillis() - start + " ");
 
 		// Time to write k-NN to file.
-//		start = System.currentTimeMillis();
-//		kNNToFile(kNN, a + ".knn");
-//		kNNToFile(kNN, args[0] + ".knn");
-//		System.out.print(System.currentTimeMillis() - start + " ");
+		start = System.currentTimeMillis();
+		kNNToFile(kNN, args[0] + "-" + args[1] + ".knn");
+		System.out.print(System.currentTimeMillis() - start + " ");
 		
 		// Total time.
 		System.out.println(System.currentTimeMillis() - s);		
