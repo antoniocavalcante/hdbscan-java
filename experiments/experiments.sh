@@ -38,7 +38,7 @@ dataset() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, smartFilter, naiveFilter, incremental
-            java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i $1 $2 $3 $4>> $output
+            java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i $1 $2 $3 $4 false >> $output
 
             # HDBSCAN
             # java -jar -Xmx61g HDBSCAN.jar "${DIR}/16d-${n}.dat" 16 $i false >> hdbscan-dataset.results
@@ -56,7 +56,7 @@ minpoints() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, smartFilter, naiveFilter, incremental
-	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i $1 $2 $3 $4 >> $output
+	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i $1 $2 $3 $4 false >> $output
 
             # HDBSCAN
             # java -jar -Xmx61g HDBSCAN.jar "${DIR}/16d-128.dat" ${minpoints} $i false >> hdbscan-minpoints.results
@@ -74,7 +74,7 @@ dimensions() {
 		do
             # IHDBSCAN
             # args: dataset, minpoints, run, outputfiles, smartFilter, naiveFilter, incremental
-	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/${d}d-128.dat" 128 $i $1 $2 $3 $4 >> $output
+	        java -jar -Xmx61g -XX:+UseConcMarkSweepGC -XX:+UseParNewGC IHDBSCAN.jar "${DIR}/${d}d-128.dat" 128 $i $1 $2 $3 $4 false >> $output
 
             # HDBSCAN
             # java -jar -Xmx3g HDBSCAN.jar "${DIR}/${d}d-128.dat" 16 $i false >> hdbscan-dimensions.results
@@ -84,7 +84,7 @@ dimensions() {
 
 dimensions
 
-index="true"
+index="false"
 #
 # # NO FILTER
 # smartFilter="false"

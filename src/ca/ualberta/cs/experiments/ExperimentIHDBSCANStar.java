@@ -71,9 +71,9 @@ public class ExperimentIHDBSCANStar {
 			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, RNG);			
 			mst.quicksortByEdgeWeight();
 			
-			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
+//			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
 			
-			if (Boolean.parseBoolean(args[6])) Experiments.computeOutputFiles(dataSet, mst, k, "RNG_" + inputFile, k);
+			if (Boolean.parseBoolean(args[7])) Experiments.computeOutputFiles(dataSet, mst, k, "RNG_" + inputFile, k);
 		}
 		
 		System.out.print(" " + (System.currentTimeMillis() - startMSTs));		
