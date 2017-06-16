@@ -23,7 +23,7 @@ public class ExperimentHDBSCANStar {
 		}
 
 		String inputFile = args[0].split("/")[args[0].split("/").length - 1];
-				
+		
 		int minPoints = Integer.parseInt(args[1]);
 		if (minPoints > dataSet.length) {
 			minPoints = dataSet.length;
@@ -53,14 +53,12 @@ public class ExperimentHDBSCANStar {
 		for (int k = minPoints; k >= 1; k--) {
 
 			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
-
+		
 			mst.quicksortByEdgeWeight();
 			
 			Experiments.writeMSTweight("HDBSCAN", inputFile, k, mst);
 			
-			if (Boolean.parseBoolean(args[3])) {
-				Experiments.computeOutputFiles(dataSet, mst, k, "ORI_" + inputFile, k);
-			}
+			if (Boolean.parseBoolean(args[3])) Experiments.computeOutputFiles(dataSet, mst, k, "ORI_" + inputFile, k);
 		}
 		
 		System.out.print(" " + (System.currentTimeMillis() - startmst));

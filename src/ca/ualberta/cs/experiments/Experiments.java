@@ -1,5 +1,6 @@
 package ca.ualberta.cs.experiments;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -38,11 +39,17 @@ public class Experiments {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	public static void computeOutputFiles(double[][] dataSet, UndirectedGraph mst, int minPts, String inputFile, int label) {
 		
 		int numPoints = dataSet.length;
 		
-		String outputPrefix = "tmp2/" + label + inputFile;
+		File output = new File("output");
+
+		// if the directory does not exist, create it
+		if (!output.exists()) output.mkdir();
+		
+		String outputPrefix = "output/" + label + inputFile;
 		
 		double[] pointNoiseLevels = new double[numPoints];
 		int[] pointLastClusters = new int[numPoints];
@@ -67,16 +74,16 @@ public class Experiments {
 		mst = null;
 		
 		//Propagate clusters:
-		boolean infiniteStability = HDBSCANStar.propagateTree(clusters);
+//		boolean infiniteStability = HDBSCANStar.propagateTree(clusters);
 
-		//Compute final flat partitioning:
-		try {
-
-			HDBSCANStar.findProminentClusters(clusters, hierarchyFile, partitionFile, separator, numPoints, infiniteStability);
-		
-		} catch (IOException ioe) {
-			System.err.println("Error writing to partitioning file.");
-			System.exit(-1);
-		}
+//		//Compute final flat partitioning:
+//		try {
+//
+//			HDBSCANStar.findProminentClusters(clusters, hierarchyFile, partitionFile, separator, numPoints, infiniteStability);
+//		
+//		} catch (IOException ioe) {
+//			System.err.println("Error writing to partitioning file.");
+//			System.exit(-1);
+//		}
 	}
 }
