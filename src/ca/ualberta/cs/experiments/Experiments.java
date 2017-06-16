@@ -62,9 +62,7 @@ public class Experiments {
 		String partitionFile = outputPrefix + ".partition";
 		String separator = ",";
 		try {
-
 			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minPts, true, null, hierarchyFile, treeFile, separator, pointNoiseLevels, pointLastClusters, visFile);
-		
 		} catch (IOException ioe) {
 			System.err.println("Error writing to hierarchy file or cluster tree file.");
 			System.exit(-1);
