@@ -61,7 +61,7 @@ import java.util.Comparator;
  *
  * @author Josh Bloch
  */
-class TimSort<T> {
+public class TimSort<T> {
     /**
      * This is the minimum sized sequence that will be merged.  Shorter
      * sequences will be lengthened by calling binarySort.  If the entire
@@ -138,7 +138,7 @@ class TimSort<T> {
      * @param a the array to be sorted
      * @param c the comparator to determine the order of the sort
      */
-    private TimSort(T[] a, Comparator<? super T> c) {
+    public TimSort(T[] a, Comparator<? super T> c) {
         this.a = a;
         this.c = c;
 
@@ -172,7 +172,7 @@ class TimSort<T> {
      * of the public method with the same signature in java.util.Arrays.
      */
 
-    static <T> void sort(T[] a, Comparator<? super T> c) {
+    public static <T> void sort(T[] a, Comparator<? super T> c) {
         sort(a, 0, a.length, c);
     }
 

@@ -8,10 +8,15 @@ import ca.ualberta.cs.distance.DistanceCalculator;
  * An undirected graph, with weights assigned to each edge.  Vertices in the graph are 0 indexed.
  * @author zjullion
  */
-public class UndirectedGraph {
+public class UndirectedGraph implements java.io.Serializable {
 
 	// ------------------------------ PRIVATE VARIABLES ------------------------------
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private int numVertices;
 	public int[] verticesA;
 	public int[] verticesB;

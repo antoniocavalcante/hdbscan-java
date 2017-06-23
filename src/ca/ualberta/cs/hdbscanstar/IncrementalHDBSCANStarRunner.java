@@ -105,7 +105,7 @@ public class IncrementalHDBSCANStarRunner {
 				startTime = System.currentTimeMillis();
 				clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, parameters.minClusterSize, 
 						parameters.compactHierarchy, constraints, k + parameters.hierarchyFile, 
-						k + parameters.clusterTreeFile, ",", pointNoiseLevels, pointLastClusters, k + parameters.visualizationFile);
+						k + parameters.clusterTreeFile, ",", pointNoiseLevels, pointLastClusters, k + parameters.visualizationFile, null, null);
 				System.out.println("Time to compute hierarchy and cluster tree (ms): " + (System.currentTimeMillis() - startTime));
 			}
 			catch (IOException ioe) {

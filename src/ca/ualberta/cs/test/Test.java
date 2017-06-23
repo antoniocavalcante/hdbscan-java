@@ -226,7 +226,7 @@ public class Test {
 			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, i, false, RNG);
 			mst.quicksortByEdgeWeight();
 			MSTs[i] = mst;
-			Experiments.computeOutputFiles(dataSet, mst, i, inputFile, i);
+			Experiments.computeOutputFiles(dataSet, coreDistances, mst, i, inputFile, i);
 		}
 		
 		new MergeHierarchies(dataSet.length);
@@ -237,7 +237,7 @@ public class Test {
 		// Compute MST from resulting graph and extract partitioning from it.
 		UndirectedGraph mst = MergeHierarchies.constructMST(MergeHierarchies.G);
 		MSTs[0] = mst;
-		Experiments.computeOutputFiles(dataSet, mst, 2, inputFile, 0);
+		Experiments.computeOutputFiles(dataSet, coreDistances, mst, 2, inputFile, 0);
 	}
 	
 	public static void printData(double[][] dataSet){
@@ -545,13 +545,12 @@ public class Test {
 		try {
 			HDBSCANStar.computeHierarchyAndClusterTree(mst1, minPts, 
 					false, null, "h1.csv", 
-					"ct1.csv", ",", pointNoiseLevels, pointLastClusters, "vis1.vis");
+					"ct1.csv", ",", pointNoiseLevels, pointLastClusters, "vis1.vis", null, null);
 		}
 		catch (IOException ioe) {
 			System.err.println("Error writing to hierarchy file or cluster tree file.");
 			System.exit(-1);
 		}
-
 
 		pointNoiseLevels = new double[dataSet.length];
 		pointLastClusters = new int[dataSet.length];
@@ -559,7 +558,7 @@ public class Test {
 		try {
 			HDBSCANStar.computeHierarchyAndClusterTree(mst2, minPts, 
 					false, null, "h2.csv", 
-					"ct2.csv", ",", pointNoiseLevels, pointLastClusters, "vis2.vis");
+					"ct2.csv", ",", pointNoiseLevels, pointLastClusters, "vis2.vis", null, null);
 		}
 		catch (IOException ioe) {
 			System.err.println("Error writing to hierarchy file or cluster tree file.");

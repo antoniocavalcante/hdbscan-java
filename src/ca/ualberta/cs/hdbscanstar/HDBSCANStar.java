@@ -1,10 +1,15 @@
 package ca.ualberta.cs.hdbscanstar;
 
+import ca.ualberta.cs.colorize.WaveLength;
+import ca.ualberta.cs.SHM.HMatrix.HMatrix;
+import ca.ualberta.cs.SHM.HMatrix.ObjInstance;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -12,20 +17,30 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.hdbscanstar.Constraint.CONSTRAINT_TYPE;
+import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner.WrapInt;
+import ca.ualberta.cs.util.PairDoubleInteger;
+import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
+
+import java.awt.Color;
 
 /**
  * Implementation of the HDBSCAN* algorithm, which is broken into several methods.
  * @author zjullion
  */
-public class HDBSCANStar {
+public class HDBSCANStar implements Serializable {
 
 	// ------------------------------ PRIVATE VARIABLES ------------------------------
 
 	// ------------------------------ CONSTANTS ------------------------------
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 
 	public static final String WARNING_MESSAGE = 
 			"----------------------------------------------- WARNING -----------------------------------------------\n" + 
@@ -58,6 +73,7 @@ public class HDBSCANStar {
 		ArrayList<double[]> dataSet = new ArrayList<double[]>();
 		int numAttributes = -1;
 		int lineIndex = 0;
+		
 		String line = reader.readLine();
 
 		while (line != null) {
@@ -73,7 +89,7 @@ public class HDBSCANStar {
 			for (int i = 0; i < numAttributes; i++) {
 				try {
 					//If an exception occurs, the attribute will remain 0:
-					attributes[i] = (double) Double.parseDouble(lineContents[i]);
+					attributes[i] = Double.parseDouble(lineContents[i]);
 				}
 				catch (NumberFormatException nfe) {
 					System.err.println("Illegal value on line " + lineIndex + " of data set: " + lineContents[i]);
@@ -93,6 +109,7 @@ public class HDBSCANStar {
 
 		return finalDataSet;
 	}
+
 
 	/**
 	 * Reads in constraints from the file given, assuming the delimiter separates the points involved
@@ -150,13 +167,15 @@ public class HDBSCANStar {
 	 * @return An array of core distances
 	 */
 	public static double[] calculateCoreDistances(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
-		int numNeighbors = k - 1;
+		int numNeighbors = k -1;
 		double[] coreDistances = new double[dataSet.length];
 
 		if (k == 1) {
+			
 			for (int point = 0; point < dataSet.length; point++) {
-				coreDistances[point] = 0.0;
+				coreDistances[point] = 0;
 			}
+			
 			return coreDistances;
 		}
 
@@ -169,7 +188,7 @@ public class HDBSCANStar {
 			for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
 				if (point == neighbor)
 					continue;
-				Double distance = distanceFunction.computeDistance(dataSet[point], dataSet[neighbor]);
+				double distance = distanceFunction.computeDistance(dataSet[point], dataSet[neighbor]);
 
 				//Check at which position in the nearest distances the current distance would fit:
 				int neighborIndex = numNeighbors;
@@ -179,7 +198,7 @@ public class HDBSCANStar {
 
 				//Shift elements in the array to make room for the current distance:
 				if (neighborIndex < numNeighbors) {
-					for (int shiftIndex = numNeighbors-1; shiftIndex > neighborIndex; shiftIndex--) {
+					for (int shiftIndex = numNeighbors - 1; shiftIndex > neighborIndex; shiftIndex--) {
 						kNNDistances[shiftIndex] = kNNDistances[shiftIndex-1];
 					}
 					kNNDistances[neighborIndex] = distance;
@@ -209,10 +228,10 @@ public class HDBSCANStar {
 		if (selfEdges)
 			selfEdgeCapacity = dataSet.length;
 
-		//One bit is set (true) for each attached point, or unset (false) for unattached points:
+		// One bit is set (true) for each attached point, or unset (false) for unattached points:
 		BitSet attachedPoints = new BitSet(dataSet.length);
 
-		//Each point has a current neighbor point in the tree, and a current nearest distance:
+		// Each point has a current neighbor point in the tree, and a current nearest distance:
 		int[] nearestMRDNeighbors = new int[dataSet.length-1 + selfEdgeCapacity];
 		double[] nearestMRDDistances = new double[dataSet.length-1 + selfEdgeCapacity];
 
@@ -220,17 +239,17 @@ public class HDBSCANStar {
 			nearestMRDDistances[i] = Double.MAX_VALUE;
 		}
 
-		//The MST is expanded starting with the last point in the data set:
+		// The MST is expanded starting with the last point in the data set:
 		int currentPoint = dataSet.length-1;
 		int numAttachedPoints = 1;
 		attachedPoints.set(dataSet.length-1);
 
-		//Continue attaching points to the MST until all points are attached:
+		// Continue attaching points to the MST until all points are attached:
 		while (numAttachedPoints < dataSet.length) {
 			int nearestMRDPoint = -1;
 			double nearestMRDDistance = Double.MAX_VALUE;
 
-			//Iterate through all unattached points, updating distances using the current point:
+			// Iterate through all unattached points, updating distances using the current point:
 			for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
 				if (currentPoint == neighbor)
 					continue;
@@ -250,26 +269,26 @@ public class HDBSCANStar {
 					nearestMRDNeighbors[neighbor] = currentPoint;
 				}
 
-				//Check if the unattached point being updated is the closest to the tree:
+				// Check if the unattached point being updated is the closest to the tree:
 				if (nearestMRDDistances[neighbor] <= nearestMRDDistance) {
 					nearestMRDDistance = nearestMRDDistances[neighbor];
 					nearestMRDPoint = neighbor;
 				}
 			}
 
-			//Attach the closest point found in this iteration to the tree:
+			// Attach the closest point found in this iteration to the tree:
 			attachedPoints.set(nearestMRDPoint);
 			numAttachedPoints++;
 			currentPoint = nearestMRDPoint;
 		}
 
-		//Create an array for vertices in the tree that each point attached to:
+		// Create an array for vertices in the tree that each point attached to:
 		int[] otherVertexIndices = new int[dataSet.length-1 + selfEdgeCapacity];
 		for (int i = 0; i < dataSet.length-1; i++) {
 			otherVertexIndices[i] = i;
 		}
 
-		//If necessary, attach self edges:
+		// If necessary, attach self edges:
 		if (selfEdges) {
 			for (int i = dataSet.length-1; i < dataSet.length*2-1; i++) {
 				int vertex = i - (dataSet.length-1);
@@ -298,56 +317,88 @@ public class HDBSCANStar {
 	 * @param delimiter The delimiter to be used while writing both files
 	 * @param pointNoiseLevels A double[] to be filled with the levels at which each point becomes noise
 	 * @param pointLastClusters An int[] to be filled with the last label each point had before becoming noise
+	 * @param outType The outputExtension to be generated by the HDBSCAN (i.e. .shm and/or (.csv and .vis)
+	 * @param HMatrix The hierarchy matrix using the SHM structure.
+	 * @param lineCount Integer used to count the lines written on the hierarchy file.
 	 * @return The cluster tree
 	 * @throws IOException If any errors occur opening or writing to the files
 	 */
 	public static ArrayList<Cluster> computeHierarchyAndClusterTree(UndirectedGraph mst,
 			int minClusterSize, boolean compactHierarchy, ArrayList<Constraint> constraints, 
 			String hierarchyOutputFile, String treeOutputFile, String delimiter, 
-			double[] pointNoiseLevels, int[] pointLastClusters, String visualizationOutputFile) throws IOException {
+			double[] pointNoiseLevels, int[] pointLastClusters, String outType, HMatrix HMatrix, WrapInt lineCount) throws IOException {
 
-		BufferedWriter hierarchyWriter = new BufferedWriter(new FileWriter(hierarchyOutputFile), FILE_BUFFER_SIZE);
-		BufferedWriter treeWriter = new BufferedWriter(new FileWriter(treeOutputFile), FILE_BUFFER_SIZE);
+		BufferedWriter hierarchyWriter = null;
+		BufferedWriter treeWriter = null;
+
 		long hierarchyCharsWritten = 0;
+		
+		if (outType != HDBSCANStarRunner.SHM_OUT) {
+			
+			hierarchyWriter = new BufferedWriter(new FileWriter(hierarchyOutputFile), FILE_BUFFER_SIZE);
+			treeWriter = new BufferedWriter(new FileWriter(treeOutputFile), FILE_BUFFER_SIZE);
+		
+		}
+		
+		// This maps the last clusterID that was read on the file for each object.
+		// These values should be inserted into the matrix only when the clusterID changes, reducing the number of insertions on ObjInstance.
+		// On the .shm structure only the level where the clusters die is saved.
+		PairDoubleInteger[] lastValues = new PairDoubleInteger[mst.getNumVertices()];
 
-		int lineCount = 0; //Indicates the number of lines written into hierarchyFile.
+		// If it outputs the .shm file, adding the objects to HMatrix structure.
+		if(outType != HDBSCANStarRunner.VIS_OUT) {
+			for(int id = 0; id < mst.getNumVertices(); id++) {
+				HMatrix.add(new ObjInstance(id));
+				
+				// The first line of the hierarchy will surely be different than -1. 
+				// But since the cluster will surely be 1, the density -1 will be overwritten.
+				lastValues[id] = new PairDoubleInteger(-1.0, 1);	
+			}
+		}
 
-		//The current edge being removed from the MST:
-		int currentEdgeIndex = mst.getNumEdges()-1;
+		lineCount.setValue(0); //Indicates the number of lines written into hierarchyFile.
+
+		// The current edge being removed from the MST. The one with higher edge weight.
+		int currentEdgeIndex = mst.getNumEdges() - 1;
 
 		int nextClusterLabel = 2;
 		boolean nextLevelSignificant = true;
 
-		//The previous and current cluster numbers of each point in the data set:
+		//The previous and current cluster numbers of each point in the data set.
 		int[] previousClusterLabels = new int[mst.getNumVertices()];
-		int[] currentClusterLabels = new int[mst.getNumVertices()];
+		int[] currentClusterLabels  = new int[mst.getNumVertices()];
+		
 		for (int i = 0; i < currentClusterLabels.length; i++) {
-			currentClusterLabels[i] = 1;
 			previousClusterLabels[i] = 1;
+			currentClusterLabels[i]  = 1;
 		}
-
-		//A list of clusters in the cluster tree, with the 0th cluster (noise) null:
+		
+		// A list of clusters in the cluster tree, with the 0th cluster (noise) null.
 		ArrayList<Cluster> clusters = new ArrayList<Cluster>();
 		clusters.add(null);
-		clusters.add(new Cluster(1, null, Double.NaN, mst.getNumVertices()));
+		clusters.add(new Cluster(1, null, Double.NaN, mst.getNumVertices(), null));
 
-		//Calculate number of constraints satisfied for cluster 1:
-		TreeSet<Integer> clusterOne = new TreeSet<Integer>();
+		// Calculate number of constraints satisfied for cluster 1.
+		IntAVLTreeSet clusterOne = new IntAVLTreeSet();
 		clusterOne.add(1);
 		calculateNumConstraintsSatisfied(clusterOne, clusters, constraints, currentClusterLabels);		
 
-		//Sets for the clusters and vertices that are affected by the edge(s) being removed:
-		TreeSet<Integer> affectedClusterLabels = new TreeSet<Integer>();
-		TreeSet<Integer> affectedVertices = new TreeSet<Integer>();		
-
+		// Sets for the clusters and vertices that are affected by the edge(s) being removed.
+		IntAVLTreeSet affectedClusters = new IntAVLTreeSet();
+		IntAVLTreeSet affectedVertices = new IntAVLTreeSet();
+				
 		while(currentEdgeIndex >= 0) {
+			// Retrieves the largest edge weight in the current tree.
 			double currentEdgeWeight = mst.getEdgeWeightAtIndex(currentEdgeIndex);
+			
+			// ArrayList to store the clusters being created at this iteration.
 			ArrayList<Cluster> newClusters = new ArrayList<Cluster>();
 
-			//Remove all edges tied with the current edge weight, and store relevant clusters and vertices:
-			while (currentEdgeIndex >= 0 && mst.getEdgeWeightAtIndex(currentEdgeIndex) == currentEdgeWeight){
+			// Loop to remove all edges tied with the current edge weight and store affected clusters and vertices.
+			while (currentEdgeIndex >= 0 && mst.getEdgeWeightAtIndex(currentEdgeIndex) == currentEdgeWeight) {
 				int firstVertex = mst.getFirstVertexAtIndex(currentEdgeIndex);
 				int secondVertex = mst.getSecondVertexAtIndex(currentEdgeIndex);
+	
 				mst.getEdgeListForVertex(firstVertex).remove((Integer)secondVertex);
 				mst.getEdgeListForVertex(secondVertex).remove((Integer)firstVertex);
 
@@ -358,18 +409,20 @@ public class HDBSCANStar {
 
 				affectedVertices.add(firstVertex);
 				affectedVertices.add(secondVertex);
-				affectedClusterLabels.add(currentClusterLabels[firstVertex]);
+				affectedClusters.add(currentClusterLabels[firstVertex]);
 				currentEdgeIndex--;
 			}
 
-			if (affectedClusterLabels.isEmpty())
-				continue;
+			// Treats the case where edge removals do not affect any of the clusters.
+			if (affectedClusters.isEmpty()) continue;
 
-			//Check each cluster affected for a possible split:
-			while (!affectedClusterLabels.isEmpty()) {
-				int examinedClusterLabel = affectedClusterLabels.last();
-				affectedClusterLabels.remove(examinedClusterLabel);
-				TreeSet<Integer> examinedVertices = new TreeSet<Integer>();
+			// Check each affected cluster for a possible split:
+			while (!affectedClusters.isEmpty()) {
+				// Retrieves and removes the last affected cluster... does it have to be the last?
+				int examinedClusterLabel = affectedClusters.lastInt();
+				affectedClusters.remove(examinedClusterLabel);
+				
+				IntAVLTreeSet examinedVertices = new IntAVLTreeSet();
 
 				//Get all affected vertices that are members of the cluster currently being examined:
 				Iterator<Integer> vertexIterator = affectedVertices.iterator();
@@ -382,7 +435,7 @@ public class HDBSCANStar {
 					}
 				}
 
-				TreeSet<Integer> firstChildCluster = null;
+				IntAVLTreeSet firstChildCluster = null;
 				LinkedList<Integer> unexploredFirstChildClusterPoints = null;
 				int numChildClusters = 0;
 
@@ -395,17 +448,17 @@ public class HDBSCANStar {
 				 * them noise.
 				 */
 				while (!examinedVertices.isEmpty()) {
-					TreeSet<Integer> constructingSubCluster = new TreeSet<Integer>();
+					IntAVLTreeSet constructingSubCluster = new IntAVLTreeSet();
 					LinkedList<Integer> unexploredSubClusterPoints = new LinkedList<Integer>();
 					boolean anyEdges = false;
 					boolean incrementedChildCount = false;
 
-					int rootVertex = examinedVertices.last();
+					int rootVertex = examinedVertices.lastInt();
 					constructingSubCluster.add(rootVertex);
 					unexploredSubClusterPoints.add(rootVertex);
 					examinedVertices.remove(rootVertex);
 
-					//Explore this potential child cluster as long as there are unexplored points:
+					// Explore this potential child cluster as long as there are unexplored points:
 					while (!unexploredSubClusterPoints.isEmpty()) {
 						int vertexToExplore = unexploredSubClusterPoints.poll();
 
@@ -417,12 +470,12 @@ public class HDBSCANStar {
 							}	
 						}
 
-						//Check if this potential child cluster is a valid cluster:
+						// Check if this potential child cluster is a valid cluster:
 						if (!incrementedChildCount && constructingSubCluster.size() >= minClusterSize && anyEdges) {
 							incrementedChildCount = true;
 							numChildClusters++;
 
-							//If this is the first valid child cluster, stop exploring it:
+							// If this is the first valid child cluster, stop exploring it:
 							if (firstChildCluster == null) {
 								firstChildCluster = constructingSubCluster;
 								unexploredFirstChildClusterPoints = unexploredSubClusterPoints;
@@ -431,15 +484,15 @@ public class HDBSCANStar {
 						}
 					}
 
-					//If there could be a split, and this child cluster is valid:
+					// If there could be a split, and this child cluster is valid:
 					if (numChildClusters >= 2 && constructingSubCluster.size() >= minClusterSize && anyEdges) {
 
-						//Check this child cluster is not equal to the unexplored first child cluster:
-						int firstChildClusterMember = firstChildCluster.last();
+						// Check this child cluster is not equal to the unexplored first child cluster:
+						int firstChildClusterMember = firstChildCluster.lastInt();
 						if (constructingSubCluster.contains(firstChildClusterMember))
 							numChildClusters--;
 
-						//Otherwise, create a new cluster:
+						// Otherwise, create a new cluster:
 						else {
 							Cluster newCluster = createNewCluster(constructingSubCluster, currentClusterLabels, 
 									clusters.get(examinedClusterLabel), nextClusterLabel, currentEdgeWeight);
@@ -449,8 +502,8 @@ public class HDBSCANStar {
 						}	
 					}
 
-					//If this child cluster is not valid cluster, assign it to noise:
-					else if (constructingSubCluster.size() < minClusterSize || !anyEdges){
+					// If this child cluster is not valid cluster, assign it to noise:
+					else if (constructingSubCluster.size() < minClusterSize || !anyEdges) {
 						createNewCluster(constructingSubCluster, currentClusterLabels, 
 								clusters.get(examinedClusterLabel), 0, currentEdgeWeight);
 
@@ -461,8 +514,8 @@ public class HDBSCANStar {
 					}
 				}
 
-				//Finish exploring and cluster the first child cluster if there was a split and it was not already clustered:
-				if (numChildClusters >= 2 && currentClusterLabels[firstChildCluster.first()] == examinedClusterLabel) {
+				// Finish exploring and cluster the first child cluster if there was a split and it was not already clustered:
+				if (numChildClusters >= 2 && currentClusterLabels[firstChildCluster.firstInt()] == examinedClusterLabel) {
 
 					while (!unexploredFirstChildClusterPoints.isEmpty()) {
 						int vertexToExplore = unexploredFirstChildClusterPoints.poll();
@@ -481,111 +534,203 @@ public class HDBSCANStar {
 				}
 			}
 
-			//Write out the current level of the hierarchy:
+
+			// Write out the current level of the hierarchy:
 			if (!compactHierarchy || nextLevelSignificant || !newClusters.isEmpty()) {
-				int outputLength = 0;
 
-				String output = currentEdgeWeight + delimiter;
-				hierarchyWriter.write(output);
-				outputLength+=output.length();
-
-				for (int i = 0; i < previousClusterLabels.length-1; i++) {
-					output = previousClusterLabels[i] + delimiter;
-					hierarchyWriter.write(output);
-					outputLength+=output.length();
+				if(outType != HDBSCANStarRunner.VIS_OUT) {
+					// Updating densities.
+					HMatrix.getDensities().add(currentEdgeWeight);
 				}
 
-				output = previousClusterLabels[previousClusterLabels.length-1] + "\n";
-				hierarchyWriter.write(output);
-				outputLength+=output.length();
+				int outputLength = 0;
+				StringBuilder output = new StringBuilder();
+				
+				if(outType != HDBSCANStarRunner.SHM_OUT) {
+					output.append(currentEdgeWeight);
+					output.append(delimiter);
+					hierarchyWriter.write(output.toString());
+					outputLength += output.length();
+					output.setLength(0);
+				}
+				
+				for (int i = 0; i < previousClusterLabels.length; i++) {
 
-				lineCount++;
+					if(outType != HDBSCANStarRunner.SHM_OUT) {
+						output.append(previousClusterLabels[i]);
+						if (i < previousClusterLabels.length - 1)
+							output.append(delimiter);
+						else
+							output.append("\n");
+						hierarchyWriter.write(output.toString());
+						outputLength += output.length();
+						output.setLength(0);
+					}
+					
+					if(outType != HDBSCANStarRunner.VIS_OUT) {
 
-				hierarchyCharsWritten+=outputLength;
+						// Checking if the cluster changed.
+						int lastCluster = lastValues[i].getValue();
+
+						if(previousClusterLabels[i] != lastCluster) {	
+							// Updating Object i.
+
+							HMatrix.getMatrix()[i].put(lastValues[i].getKey(), lastCluster);
+							
+							if(lastCluster > HMatrix.getMaxClusterID()) {
+								HMatrix.setMaxClusterID(lastCluster);
+							}
+						}
+
+						// lastValues is updated anyway
+						lastValues[i].setKey(currentEdgeWeight);
+						lastValues[i].setValue(previousClusterLabels[i]);
+					}
+					
+					previousClusterLabels[i] = currentClusterLabels[i];
+				}
+												
+				lineCount.inc();
+			
+				if (outType != HDBSCANStarRunner.SHM_OUT) hierarchyCharsWritten+=outputLength;
 			}
 
 			//Assign file offsets and calculate the number of constraints satisfied:
-			TreeSet<Integer> newClusterLabels = new TreeSet<Integer>();
+			IntAVLTreeSet newClusterLabels = new IntAVLTreeSet();
+
 			for (Cluster newCluster : newClusters) {
-				newCluster.setFileOffset(hierarchyCharsWritten);
+				if (outType != HDBSCANStarRunner.SHM_OUT) newCluster.setFileOffset(hierarchyCharsWritten);
 				newClusterLabels.add(newCluster.getLabel());
 			}
+
 			if (!newClusterLabels.isEmpty())
 				calculateNumConstraintsSatisfied(newClusterLabels, clusters, constraints, currentClusterLabels);
-
-			for (int i = 0; i < previousClusterLabels.length; i++) {
-				previousClusterLabels[i] = currentClusterLabels[i];
-			}
 
 			if (newClusters.isEmpty())
 				nextLevelSignificant = false;
 			else
 				nextLevelSignificant = true;
 		}
-
+				
 		//Write out the final level of the hierarchy (all points noise):
-		hierarchyWriter.write(0 + delimiter);
-		for (int i = 0; i < previousClusterLabels.length-1; i++) {
+		if(outType != HDBSCANStarRunner.SHM_OUT) {
 			hierarchyWriter.write(0 + delimiter);
+			
+			for (int i = 0; i < previousClusterLabels.length - 1; i++) {
+				hierarchyWriter.write(0 + delimiter);
+			}
+			
+			hierarchyWriter.write(0 + "\n");
+			lineCount.inc();
 		}
-		hierarchyWriter.write(0 + "\n");
-		lineCount++;
+				
+		if(outType != HDBSCANStarRunner.VIS_OUT) {
+			
+			HMatrix.getDensities().add(0.0);
+			
+			for(int i = 0; i < HMatrix.getMatrix().length; i++) {
+				// Only updates if the clusterID isn't noise (i.e. different than 0)
+				if(lastValues[i].getValue() != 0) {
+					HMatrix.getMatrix()[i].put(lastValues[i].getKey(), lastValues[i].getValue());
+				}
+			
+				HMatrix.getMatrix()[i].put(0.0, 0);
+			}
+			
+			//Ordering Hierarchy
+			HMatrix.lexicographicSort();
+
+			//Updating lastClusters
+			HMatrix.updateLastClusters();
+		}
 
 		//Write out the cluster tree:
-		for (Cluster cluster : clusters) {
-			if (cluster == null)
-				continue;
+		if(outType != HDBSCANStarRunner.SHM_OUT) {
+			for (Cluster cluster : clusters) {
+				if (cluster == null)
+					continue;
 
-			treeWriter.write(cluster.getLabel() + delimiter);
-			treeWriter.write(cluster.getBirthLevel() + delimiter);
-			treeWriter.write(cluster.getDeathLevel() + delimiter);
-			treeWriter.write(cluster.getStability() + delimiter);
+				treeWriter.write(cluster.getLabel() + delimiter);
+				treeWriter.write(cluster.getBirthLevel() + delimiter);
+				treeWriter.write(cluster.getDeathLevel() + delimiter);
+				treeWriter.write(cluster.getStability() + delimiter);
 
-			if (constraints != null) {
-				treeWriter.write((0.5 * cluster.getNumConstraintsSatisfied() / constraints.size()) + delimiter);
-				treeWriter.write((0.5 * cluster.getPropagatedNumConstraintsSatisfied() / constraints.size()) + delimiter);
+				if (constraints != null) {
+					treeWriter.write((0.5 * cluster.getNumConstraintsSatisfied() / constraints.size()) + delimiter);
+					treeWriter.write((0.5 * cluster.getPropagatedNumConstraintsSatisfied() / constraints.size()) + delimiter);
+				}
+				else {
+					treeWriter.write(0 + delimiter);
+					treeWriter.write(0 + delimiter);
+				}
+
+				treeWriter.write(cluster.getFileOffset() + delimiter);
+
+				if (cluster.getParent() != null)
+					treeWriter.write(cluster.getParent().getLabel() + "\n");
+				else
+					treeWriter.write(0 + "\n");
+			}                       
+
+		}
+
+		//Generating colors
+		if(outType != HDBSCANStarRunner.VIS_OUT) {
+			Color[] colors = new Color[HMatrix.getMaxClusterID()+1];
+
+			ArrayList<Double> colorAUX = new ArrayList<Double>(); //responsible for the time-to-live values of the colors
+			int[] colorRNA = new int[HMatrix.getMaxClusterID()+1];          //responsible by assign the colorID to a cluster. The +1 is the noise value.
+
+			colorAUX.add(clusters.get(1).getDeathLevel());
+			//colorRNA[0] is noise, so we start from index 1.
+			colorRNA[1] = 0;
+
+			//the file has one line for each clusterID counting from 1
+			for(int i = 2; i <= HMatrix.getMaxClusterID(); i++) {
+				double bornVal = clusters.get(i).getBirthLevel();
+				double deathVal = clusters.get(i).getDeathLevel();
+
+				colorRNA[i] = -1;
+				//Given that exists a color to be reutilized, searches for the first one that can be reutilized.
+				for(int j = 0; j < colorAUX.size(); j++) {
+					if(colorAUX.get(j) > bornVal) {
+						colorAUX.set(j, deathVal);
+						colorRNA[i] = j;
+						break;
+					}    
+				}
+
+				//If no color could be reutilized. Assigns to a new color.
+				if(colorRNA[i] == -1) {
+					colorAUX.add(deathVal);
+					colorRNA[i] = colorAUX.size()-1;
+				}
+
 			}
-			else {
-				treeWriter.write(0 + delimiter);
-				treeWriter.write(0 + delimiter);
+
+			//converting integers to actual colors.
+
+			//0 is always noise and always white.
+			colors[0] = (new Color(255,255,255));
+			//dividing the space between the colors
+			double step = (double)1/(colorAUX.size()+1);
+
+			for(int i = 1 ; i < colorRNA.length; i++) {
+				colors[i] = (WaveLength.toRGB(step*colorRNA[i] + 0.5));
 			}
 
-			treeWriter.write(cluster.getFileOffset() + delimiter);
-
-			if (cluster.getParent() != null)
-				treeWriter.write(cluster.getParent().getLabel() + "\n");
-			else
-				treeWriter.write(0 + "\n");
+			HMatrix.setColor(colors);
 		}
+		// End color generation.
 
-		/*Author: Fernando S. de Aguiar Neto
-		 *  Generating .vis File
-		 */
-
-		String out = "";
-		if(!compactHierarchy)
-		{
-			out = "1\n";
-
+		if(hierarchyWriter != null) {
+			hierarchyWriter.close();
+			treeWriter.close();
 		}
-		else
-		{
-			out = "0\n";
-		}
-		out = out + Integer.toString(lineCount);
-
-		BufferedWriter visualizationWriter = new BufferedWriter(new FileWriter(visualizationOutputFile), FILE_BUFFER_SIZE);
-		visualizationWriter.write(out);
-
-		/*End Author Fernando S. de Aguiar Neto*/
-
-
-		hierarchyWriter.close();
-		treeWriter.close();
-		visualizationWriter.close();
 
 		return clusters;
 	}
+
 
 
 	/**
@@ -628,6 +773,7 @@ public class HDBSCANStar {
 
 		if (infiniteStability)
 			System.out.println(WARNING_MESSAGE);
+
 		return infiniteStability;
 	}
 
@@ -644,13 +790,14 @@ public class HDBSCANStar {
 	 * @return An array of labels for the flat clustering result
 	 * @throws IOException If any errors occur opening, reading, or writing to the files
 	 * @throws NumberFormatException If illegal number values are found in the hierarchyFile
+	 * 
+	 * @param rootTree 01/08/2016. included on function to search for the cluster solution on a subtree of the hierarchy. 
 	 */
-	public static int[] findProminentClusters(ArrayList<Cluster> clusters, String hierarchyFile,
-			String flatOutputFile, String delimiter, int numPoints, boolean infiniteStability) 
-					throws IOException, NumberFormatException {
+	public static int[] findProminentClusters(ArrayList<Cluster> clusters, int rootTree, String hierarchyFile,
+			String flatOutputFile, String delimiter, int numPoints, boolean infiniteStability) throws IOException, NumberFormatException {
 
 		//Take the list of propagated clusters from the root cluster:
-		ArrayList<Cluster> solution = clusters.get(1).getPropagatedDescendants();
+		ArrayList<Cluster> solution = clusters.get(rootTree).getPropagatedDescendants();
 
 		BufferedReader reader = new BufferedReader(new FileReader(hierarchyFile));
 		int[] flatPartitioning = new int[numPoints];
@@ -658,6 +805,7 @@ public class HDBSCANStar {
 
 		//Store all the file offsets at which to find the birth points for the flat clustering:
 		TreeMap<Long, ArrayList<Integer>> significantFileOffsets = new TreeMap<Long, ArrayList<Integer>>();
+		
 		for (Cluster cluster: solution) {
 			ArrayList<Integer> clusterList = significantFileOffsets.get(cluster.getFileOffset());
 
@@ -704,6 +852,66 @@ public class HDBSCANStar {
 		return flatPartitioning;
 	}
 
+	/**
+	 * Produces a flat clustering result using constraint satisfaction and cluster stability, and 
+	 * returns an array of labels.  propagateTree() must be called before calling this method.
+	 * @param clusters A list of Clusters forming a cluster tree which has already been propagated
+	 * @param matrix The hierarchy matrix.
+	 * @param flatOutputFile The path to the flat clustering output file
+	 * @return An array of labels for the flat clustering result
+	 * @throws IOException If any errors occur opening, reading, or writing to the files
+	 * @throws NumberFormatException If illegal number values are found in the hierarchyFile
+	 * @author Fernando S. de Aguiar Neto.
+	 * 
+	 * @param rootTree 01/08/2016. included on function to search for the cluster solution on a subtree of the hierarchy.
+	 */
+	public static int[] findProminentClustersSHM(ArrayList<Cluster> clusters, HMatrix matrix) throws NumberFormatException {
+
+		int numPoints = matrix.getMatrix().length;
+
+		//Take the list of propagated clusters from the root cluster:
+		ArrayList<Cluster> solution = clusters.get(1).getPropagatedDescendants();
+		
+		int[] flatPartitioning = new int[numPoints];
+
+		//Store all the densities where the significant clusters are born:
+		TreeMap<Double, ArrayList<Integer>> significantLevels = new TreeMap<Double, ArrayList<Integer>>();
+		for (Cluster cluster: solution) {
+
+			int lineIdx = matrix.getDensities().indexOf(clusters.get(cluster.getLabel()).getBirthLevel()) +1;
+			Double firstLine = matrix.getDensity(lineIdx);
+
+			ArrayList<Integer> clusterList = significantLevels.get(firstLine);
+
+			if (clusterList == null) {
+				clusterList = new ArrayList<Integer>();
+				significantLevels.put(firstLine, clusterList);
+			}
+
+			clusterList.add(cluster.getLabel());
+		}
+
+		//Go through the hierarchy file, setting labels for the flat clustering:
+		while (!significantLevels.isEmpty())
+		{
+			Map.Entry<Double, ArrayList<Integer>> entry = significantLevels.pollFirstEntry();
+			ArrayList<Integer> clusterList = entry.getValue();
+			Double level = entry.getKey();
+
+			for(int i = 0; i < numPoints; i++)
+			{
+				int label = matrix.getObjInstanceByID(i).getClusterID(level);
+
+				if(clusterList.contains(label))
+				{
+					flatPartitioning[i] = label;
+				}
+			}
+		}
+
+		return flatPartitioning;
+	}
+
 
 	/**
 	 * Produces the outlier score for each point in the data set, and returns a sorted list of outlier
@@ -715,12 +923,14 @@ public class HDBSCANStar {
 	 * @param outlierScoresOutputFile The path to the outlier scores output file
 	 * @param delimiter The delimiter for the output file
 	 * @param infiniteStability true if there are any clusters with infinite stability, false otherwise
+	 * @param outType indicates if the .shm or the .vis file must be generated
+	 * @param HMatrix Hierarchy matrix using the shm structure
 	 * @return An ArrayList of OutlierScores, sorted in descending order
 	 * @throws IOException If any errors occur opening or writing to the output file
 	 */
 	public static ArrayList<OutlierScore> calculateOutlierScores(ArrayList<Cluster> clusters, 
-			double[] pointNoiseLevels, int[] pointLastClusters, double[] coreDistances, 
-			String outlierScoresOutputFile, String delimiter, boolean infiniteStability) throws IOException {
+			double[] pointNoiseLevels, int[] pointLastClusters, double[][] coreDistances, int minPoints,
+			String outlierScoresOutputFile, String delimiter, boolean infiniteStability, String outType, HMatrix HMatrix) throws IOException {
 
 		int numPoints = pointNoiseLevels.length;
 		ArrayList<OutlierScore> outlierScores = new ArrayList<OutlierScore>(numPoints);
@@ -734,25 +944,119 @@ public class HDBSCANStar {
 			if (epsilon != 0)
 				score = 1-(epsilon_max/epsilon);
 
-			outlierScores.add(new OutlierScore(score, coreDistances[i], i));
+			outlierScores.add(new OutlierScore(score, coreDistances[i][minPoints-1], i));
+			if(!outType.equals(HDBSCANStarRunner.VIS_OUT)) {
+				HMatrix.getObjInstanceByID(i).setOutlierScore(score);
+				HMatrix.getObjInstanceByID(i).setCoreDistance(coreDistances[i][minPoints-1]);
+			}
 		}
 
 		//Sort the outlier scores:
 		Collections.sort(outlierScores);
 
-		//Output the outlier scores:
-		BufferedWriter writer = new BufferedWriter(new FileWriter(outlierScoresOutputFile), FILE_BUFFER_SIZE);
-		if (infiniteStability)
-			writer.write(WARNING_MESSAGE + "\n");
+		if(!outType.equals(HDBSCANStarRunner.SHM_OUT)) {
+			//Output the outlier scores:
+			BufferedWriter writer = new BufferedWriter(new FileWriter(outlierScoresOutputFile), FILE_BUFFER_SIZE);
+			if (infiniteStability)
+				writer.write(WARNING_MESSAGE + "\n");
 
-		for (OutlierScore outlierScore : outlierScores) {
-			writer.write(outlierScore.getScore() + delimiter + outlierScore.getId() + "\n");
+			for (OutlierScore outlierScore : outlierScores) {
+				writer.write(outlierScore.getScore() + delimiter + outlierScore.getId() + "\n");
+			}
+			writer.close();
 		}
-		writer.close();
 
 		return outlierScores;
 	}
 
+	/**
+	 * Calculates the constraints satisfied for all clusters using the entire matrix.
+	 * @param matrix The hierarchy matrix.
+	 * @param clusters ArrayList of Clusters
+	 * @param constraints an array of current cluster labels for points
+	 */
+	public static void calculateAllNumContraintsSatisfied(HMatrix matrix, ArrayList<Cluster> clusters, ArrayList<Constraint> constraints)
+	{
+		if (constraints == null)
+			return;
+
+		//The current cluster numbers of each point in the data set:
+		int[] currentClusterLabels = new int[matrix.getMatrix().length];
+		for (int i = 0; i < currentClusterLabels.length; i++) {
+			currentClusterLabels[i] = 1;
+		}
+
+		//Calculate number of constraints satisfied for cluster 1:
+		IntAVLTreeSet clusterOne = new IntAVLTreeSet();
+		clusterOne.add(1);
+		calculateNumConstraintsSatisfied(clusterOne, clusters, constraints, currentClusterLabels);
+
+		//Finding split levels
+		TreeMap<Double, IntAVLTreeSet> splitLevels = new TreeMap<Double, IntAVLTreeSet>();
+
+		for (int i = 2; i < clusters.size(); i++) {
+			int lineIdx = matrix.getDensities().indexOf(clusters.get(i).getBirthLevel()) +1;
+			Double firstLine = matrix.getDensity(lineIdx);
+
+			IntAVLTreeSet clusterList = splitLevels.get(firstLine);
+
+			if (clusterList == null) {
+				clusterList = new IntAVLTreeSet();
+				splitLevels.put(firstLine, clusterList);
+			}
+
+			clusterList.add(clusters.get(i).getLabel());
+		}
+
+		//Given the split points, calculateNumConstraintsSatisfied.
+		for(Double level : splitLevels.keySet()) {
+			for (int i = 0; i < currentClusterLabels.length; i++) {
+				currentClusterLabels[i] = matrix.getObjInstanceByID(i).getClusterID(level);
+			}                
+
+			ArrayList<Cluster> parents = new ArrayList<Cluster>();
+			for (int label : splitLevels.get(level)) {
+				Cluster parent = clusters.get(label).getParent();
+				if (parent != null && !parents.contains(parent))
+					parents.add(parent);
+			}
+
+			for (Constraint constraint : constraints) {
+				int labelA = currentClusterLabels[constraint.getPointA()];
+				int labelB = currentClusterLabels[constraint.getPointB()];
+
+				if (constraint.getType() == CONSTRAINT_TYPE.MUST_LINK && labelA == labelB) {
+					if (splitLevels.get(level).contains(labelA))
+						clusters.get(labelA).addConstraintsSatisfied(2);
+				}
+
+				else if (constraint.getType() == CONSTRAINT_TYPE.CANNOT_LINK && (labelA != labelB || labelA == 0)) {
+					if (labelA != 0 && splitLevels.get(level).contains(labelA))
+						clusters.get(labelA).addConstraintsSatisfied(1);
+					if (labelB != 0 && splitLevels.get(level).contains(labelB))
+						clusters.get(labelB).addConstraintsSatisfied(1);
+
+					if (labelA == 0) {
+						for (Cluster parent : parents) {
+							if (parent.getObjects().contains(constraint.getPointA())) {
+								parent.addVirtualChildConstraintsSatisfied(1);
+								break;
+							}
+						}
+					}
+
+					if (labelB == 0) {
+						for (Cluster parent : parents) {
+							if (parent.getObjects().contains(constraint.getPointB())) {
+								parent.addVirtualChildConstraintsSatisfied(1);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 	// ------------------------------ PRIVATE METHODS ------------------------------
 
@@ -766,23 +1070,24 @@ public class HDBSCANStar {
 	 * @param edgeWeight The edge weight at which to remove the points from their previous Cluster
 	 * @return The new Cluster, or null if the clusterId was 0
 	 */
-	private static Cluster createNewCluster(TreeSet<Integer> points, int[] clusterLabels, Cluster parentCluster, 
+	private static Cluster createNewCluster(IntAVLTreeSet points, int[] clusterLabels, Cluster parentCluster, 
 			int clusterLabel, double edgeWeight) {
 
 		for (int point : points) {
 			clusterLabels[point] = clusterLabel;
 		}
+		
 		parentCluster.detachPoints(points.size(), edgeWeight);
 
-		if (clusterLabel != 0)
-			return new Cluster(clusterLabel, parentCluster, edgeWeight, points.size());
-
-		else {
+		if (clusterLabel != 0) {
+			Cluster cluster = new Cluster(clusterLabel, parentCluster, edgeWeight, points.size(), points);
+			cluster.setObjects(points);
+			return cluster;
+		} else {
 			parentCluster.addPointsToVirtualChildCluster(points);
 			return null;
 		}
 	}
-
 
 	/**
 	 * Calculates the number of constraints satisfied by the new clusters and virtual children of the
@@ -792,7 +1097,7 @@ public class HDBSCANStar {
 	 * @param constraints An ArrayList of constraints
 	 * @param clusterLabels an array of current cluster labels for points
 	 */
-	private static void calculateNumConstraintsSatisfied(TreeSet<Integer> newClusterLabels, 
+	private static void calculateNumConstraintsSatisfied(IntAVLTreeSet newClusterLabels, 
 			ArrayList<Cluster> clusters, ArrayList<Constraint> constraints, int[] clusterLabels) {
 
 		if (constraints == null)
@@ -844,8 +1149,5 @@ public class HDBSCANStar {
 			parent.releaseVirtualChildCluster();
 		}
 	}
-
-
 	// ------------------------------ GETTERS & SETTERS ------------------------------
-
 }

@@ -7,7 +7,7 @@ import java.util.Iterator;
 
 import ca.ualberta.cs.util.FibonacciHeap;
 import ca.ualberta.cs.util.FibonacciHeapNode;
-import ca.ualberta.cs.util.Pair;
+import ca.ualberta.cs.util.PairInt;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 
 public class MergeHierarchies {
@@ -35,7 +35,7 @@ public class MergeHierarchies {
 				int u = MSTs[i].verticesA[j];
 				int v = MSTs[i].verticesB[j];
 
-				Pair p = new Pair(u,v);
+				PairInt p = new PairInt(u,v);
 
 				if (!G[u].containsKey(v)) {
 					G[u].put(v, 0);

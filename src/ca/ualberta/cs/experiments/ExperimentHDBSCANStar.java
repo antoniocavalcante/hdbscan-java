@@ -10,7 +10,7 @@ import ca.ualberta.cs.main.CoreDistances;
 public class ExperimentHDBSCANStar {
 
 	public static void main(String[] args) {
-		long start, end, duration;
+		long start;
 		
 		double[][] dataSet = null;
 
@@ -34,7 +34,7 @@ public class ExperimentHDBSCANStar {
 		
 		// Computes all the core-distances from 1 to minPoints
 //		long startcore = System.currentTimeMillis();
-//		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+//		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
 //		System.out.print(" " + (System.currentTimeMillis() - startcore));
 
 		double[][] coreDistances = null;
@@ -48,23 +48,26 @@ public class ExperimentHDBSCANStar {
 
 		start = System.currentTimeMillis();
 		
-		//  Constructs all the the MST
-		long startmst = System.currentTimeMillis();
+		// Constructs all the the MSTs.
+		long mstTime = 0;
+		long hierarchyTime = 0;
+		
+		long s = 0;
+		
 		for (int k = minPoints; k >= 1; k--) {
-
-			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());
-		
+			
+			s = System.currentTimeMillis();
+			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());			
 			mst.quicksortByEdgeWeight();
-			
-//			Experiments.writeMSTweight("HDBSCAN", inputFile, k, mst);
-			
-			if (Boolean.parseBoolean(args[3])) Experiments.computeOutputFiles(dataSet, mst, k, "ORI_" + inputFile, k);
+			mstTime += (System.currentTimeMillis() - s);
+						
+			s = System.currentTimeMillis();
+			if (Boolean.parseBoolean(args[3])) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "ORI_" + inputFile, k);
+			hierarchyTime += (System.currentTimeMillis() - s);
 		}
+			
+		System.out.print(" " + mstTime + " " + hierarchyTime);
 		
-		System.out.print(" " + (System.currentTimeMillis() - startmst));
-		
-		end = System.currentTimeMillis();
-		duration = end - start;
-		System.out.println(" " + duration);
+		System.out.println(" " + (System.currentTimeMillis() - start));
 	}
 }

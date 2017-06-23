@@ -8,7 +8,7 @@ import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.util.FairSplitTree;
 import ca.ualberta.cs.util.KdTree;
-import ca.ualberta.cs.util.Pair;
+import ca.ualberta.cs.util.PairInt;
 import it.unimi.dsi.fastutil.BigList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
@@ -417,7 +417,7 @@ public class RelativeNeighborhoodGraph {
 			return;
 		}
 		
-		HashSet<Pair> AB  = new HashSet<Pair>();
+		HashSet<PairInt> AB  = new HashSet<PairInt>();
 		IntOpenHashSet B = new IntOpenHashSet((int)T2.getCount());
 		
 		// General case where both sets have more than one element.
@@ -439,7 +439,7 @@ public class RelativeNeighborhoodGraph {
 			}
 
 			for (int i = 0; i < tempA.size(); i++) {
-				AB.add(new Pair(tempA.get(i), tempB.get(i)));
+				AB.add(new PairInt(tempA.get(i), tempB.get(i)));
 				B.add(tempB.get(i));
 			}
 
@@ -466,7 +466,7 @@ public class RelativeNeighborhoodGraph {
 
 			for (int i = 0; i < tempA.size(); i++) {
 
-				Pair candidate = new Pair(tempA.get(i), tempB.get(i));
+				PairInt candidate = new PairInt(tempA.get(i), tempB.get(i));
 
 				if (AB.contains(candidate)) {
 					addEdge(candidate.a, candidate.b);					
