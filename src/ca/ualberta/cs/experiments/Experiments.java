@@ -92,8 +92,6 @@ public class Experiments {
 			System.exit(-1);
 		}
 
-		long startTime = System.currentTimeMillis();
-
 		SHM.setMatrix(HMatrix);
 		SHM.setHDBSCANStarClusterTree(clusters);
 
@@ -106,10 +104,6 @@ public class Experiments {
 			System.out.println("An error occurred while saving the .shm file, please check disk space and permissions.");
 			System.exit(-1);
 		}
-
-		System.out.println(" " + (System.currentTimeMillis() - startTime));
-
-
 
 		//Remove references to unneeded objects:
 		mst = null;

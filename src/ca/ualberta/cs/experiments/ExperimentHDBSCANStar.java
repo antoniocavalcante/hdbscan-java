@@ -65,7 +65,7 @@ public class ExperimentHDBSCANStar {
 			if (Boolean.parseBoolean(args[3])) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "ORI_" + inputFile, k);
 			hierarchyTime += (System.currentTimeMillis() - s);
 		}
-			
+		System.out.println("hhhhhhhhhhhh");
 		System.out.print(" " + mstTime + " " + hierarchyTime);
 		
 		System.out.println(" " + (System.currentTimeMillis() - start));
