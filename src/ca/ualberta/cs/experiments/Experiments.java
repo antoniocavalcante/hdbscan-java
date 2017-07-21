@@ -3,11 +3,15 @@ package ca.ualberta.cs.experiments;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
+
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Output;
 
 import ca.ualberta.cs.SHM.HMatrix.HMatrix;
 import ca.ualberta.cs.SHM.Structure.Structure;
@@ -79,7 +83,7 @@ public class Experiments {
 		WrapInt lineCount = new WrapInt(0);
 
 		try {
-			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minPts, true, null, 
+			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minPts, false, null, 
 					hierarchyFile, treeFile, separator, 
 					pointNoiseLevels, pointLastClusters, HDBSCANStarRunner.SHM_OUT, HMatrix, lineCount);
 
@@ -94,31 +98,24 @@ public class Experiments {
 
 		SHM.setMatrix(HMatrix);
 		SHM.setHDBSCANStarClusterTree(clusters);
-
+		
 		//Serializing .SHM
-		try (FileOutputStream outFile = new FileOutputStream(shmFile);
-				ObjectOutputStream out = new ObjectOutputStream(outFile)) {
-			out.writeObject(SHM);
+		try {
+			Kryo kryo = new Kryo();
+
+			FileOutputStream outFile = new FileOutputStream(shmFile);
+			Output out = new Output(new DeflaterOutputStream(outFile, new Deflater(Deflater.BEST_SPEED, true)));
+
+			kryo.writeObject(out, SHM);
+			out.close();
+
 		} catch (Exception ex) {
-			ex.printStackTrace();
 			System.out.println("An error occurred while saving the .shm file, please check disk space and permissions.");
 			System.exit(-1);
 		}
 
+		
 		//Remove references to unneeded objects:
 		mst = null;
-
-		//Propagate clusters:
-		//		boolean infiniteStability = HDBSCANStar.propagateTree(clusters);
-
-		//		//Compute final flat partitioning:
-		//		try {
-		//
-		//			HDBSCANStar.findProminentClusters(clusters, hierarchyFile, partitionFile, separator, numPoints, infiniteStability);
-		//		
-		//		} catch (IOException ioe) {
-		//			System.err.println("Error writing to partitioning file.");
-		//			System.exit(-1);
-		//		}
 	}
 }

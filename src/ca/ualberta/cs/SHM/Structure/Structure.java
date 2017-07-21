@@ -4,6 +4,8 @@
  * and open the template in the editor.
  */
 package ca.ualberta.cs.SHM.Structure;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +18,7 @@ import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
  *
  * @author fsan
  */
-public class Structure implements java.io.Serializable{
+public class Structure implements Serializable {
     
     private static final long serialVersionUID = 3L;
     

@@ -13,18 +13,18 @@ import ca.ualberta.cs.distance.PearsonCorrelation;
 import ca.ualberta.cs.distance.SupremumDistance;
 
 import java.awt.Color;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 
 /**
  *
  * @author fsan
  */
-public class HMatrix implements java.io.Serializable {
+public class HMatrix implements Serializable {
 	protected ArrayList<Double> densities;
 	protected ObjInstance[] matrix;
 	protected int maxClusterID;
@@ -33,7 +33,7 @@ public class HMatrix implements java.io.Serializable {
 	protected int[] objectOrderbyID;    	// HM <ID, array position>, maps an ID to its position on the ArrayList.
 	protected boolean isShaved;             // Flag to tell if this file is a complete or a shaved hierarchy.
 
-	private boolean hasReachabilities;		// Says if the reachability distances where set before saving.
+	private boolean hasReachabilities;		// Says if the reachability distances were set before saving.
 	private boolean infiniteStability;		// Given from HDBSCAN*.
 
 	//Parameters used in HDBSCAN*
@@ -46,14 +46,10 @@ public class HMatrix implements java.io.Serializable {
 
 	private int next = 0;
 
-	// This can probably be converted to an array: easy and inexpensive access, cheap add, smaller footprint.
-	protected HashMap<Integer, Integer> lastClusters;   //holds the clusterId where the objects become noise.
-
 	private static final long serialVersionUID = 10L;
 
 	public HMatrix() {
 		this.densities = new ArrayList<Double>();
-		this.lastClusters = new HashMap<Integer, Integer>();
 		this.maxClusterID = 0;
 		this.maxLabelValue = -1;
 		this.isCompact = false;
@@ -69,24 +65,6 @@ public class HMatrix implements java.io.Serializable {
 	public void setHMatrix(int n) {
 		this.matrix = new ObjInstance[n];
 		this.objectOrderbyID = new int[n];
-	}
-
-	public HashMap<Integer, Integer> getLastClusters() {
-		return this.lastClusters;
-	}
-
-	public void setLastClusters(HashMap<Integer, Integer> lastClusters) {
-		this.lastClusters = lastClusters;
-	}
-
-	//this function must be called if the .vis file was loaded.
-	public void updateLastClusters() {
-		for(ObjInstance obj : this.matrix) {
-			obj.updateDeathLevel();
-			//gets the Idx of the last index that is not noise.
-			int lastCluster = obj.getAllClusters().get(obj.getDeathLevel());
-			this.lastClusters.put(obj.getID(), lastCluster);                
-		}
 	}
 
 	public void setVisParams(String inputFile, int minClSize, int minPts, String distanceFunction, boolean distanceMatrixUsed, boolean isCompact) {
@@ -158,12 +136,12 @@ public class HMatrix implements java.io.Serializable {
 		return this.maxLabelValue;
 	}
 
-	//this method increases the MaxLabel to the value passed as parameter, only if its greater than the old value.
+	// This method increases the MaxLabel to the value passed as parameter, only if its greater than the old value.
 	public void increaseMaxLabelValue(int newValue) {
 		this.maxLabelValue = Math.max(newValue, this.maxLabelValue);
 	}
 
-	//this method forces the maximum value to be the one passed as parameter.
+	// This method forces the maximum value to be the one passed as parameter.
 	public void setMaxLabelValue(int maxLabelValue) {
 		this.maxLabelValue = maxLabelValue;
 	}
@@ -188,7 +166,7 @@ public class HMatrix implements java.io.Serializable {
 	}
 
 	// Similar to the one above, the only difference is that it automatically gets the j-th density (greatest to lowest order)
-	// Notice that this method does not assert the existance of any of the indexes (i,j) used. This must be handled by the developer.
+	// Notice that this method does not assert the existence of any of the indexes (i,j) used. This must be handled by the developer.
 	public int getClusterID(int i, int j) {
 		return this.matrix[i].getClusterID(this.densities.get(j));
 	}
@@ -222,8 +200,8 @@ public class HMatrix implements java.io.Serializable {
 				for (int i = densities.size() - 1; i >= 0 ; i--) {
 					double k = densities.get(i);
 					
-					int l1 = o1.getClusterIDHash(k);
-					int l2 = o2.getClusterIDHash(k);
+					int l1 = o1.getClusterID(k);
+					int l2 = o2.getClusterID(k);
 					
 					if (l1 < l2) return -1;
 					if (l1 > l2) return 1;						
@@ -254,7 +232,7 @@ public class HMatrix implements java.io.Serializable {
 
 		System.out.println();
 		System.out.println("H Matrix");
-		for(int i=0 ; i<this.matrix.length ; i++ ) {
+		for(int i = 0 ; i < this.matrix.length ; i++ ) {
 			System.out.println(this.matrix[i].toString());
 		}
 	}

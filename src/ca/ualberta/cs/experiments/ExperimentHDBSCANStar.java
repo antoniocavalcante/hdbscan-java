@@ -33,18 +33,18 @@ public class ExperimentHDBSCANStar {
 		System.out.print(args[0] + " " + args[1] + " " + args[2]);
 		
 		// Computes all the core-distances from 1 to minPoints
-//		long startcore = System.currentTimeMillis();
-//		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
-//		System.out.print(" " + (System.currentTimeMillis() - startcore));
+		long startcore = System.currentTimeMillis();
+		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+		System.out.print(" " + (System.currentTimeMillis() - startcore));
 
-		double[][] coreDistances = null;
-		
-		try {
-			coreDistances = CoreDistances.fromFile(args[0] + ".cd", minPoints, " ");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		double[][] coreDistances = null;
+//		
+//		try {
+//			coreDistances = CoreDistances.fromFile(args[0] + ".cd", minPoints, " ");
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 
 		start = System.currentTimeMillis();
 		
@@ -54,7 +54,7 @@ public class ExperimentHDBSCANStar {
 		
 		long s = 0;
 		
-		for (int k = minPoints; k >= 1; k--) {
+		for (int k = minPoints; k > 1; k--) {
 			
 			s = System.currentTimeMillis();
 			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());			

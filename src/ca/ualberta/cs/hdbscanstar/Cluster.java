@@ -1,6 +1,8 @@
 package ca.ualberta.cs.hdbscanstar;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -14,8 +16,7 @@ import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
  * @author zjullion
  * @author jadson (updated in 24/09/2016)
  */
-public class Cluster implements java.io.Serializable
-{
+public class Cluster implements Serializable {
 
 	private static final long serialVersionUID = 2L;
 
@@ -54,11 +55,11 @@ public class Cluster implements java.io.Serializable
 	public ArrayList<Cluster> propagatedDescendants;
 
 	// Attribute include by @author jadson
-	private IntAVLTreeSet objectsAtBirthLevel;
+	private HashSet<Integer> objectsAtBirthLevel;
 	private IntAVLTreeSet children;
 
 	//The attribute below (objects) was created by Fernando S. de Aguiar Neto
-	private IntAVLTreeSet objects; //Objects that belong to this cluster i.e. become noise before/at the death level of this cluster.
+	private HashSet<Integer> objects; //Objects that belong to this cluster i.e. become noise before/at the death level of this cluster.
 
 
 	// ------------------------------ CONSTANTS ------------------------------
@@ -72,7 +73,7 @@ public class Cluster implements java.io.Serializable
 	 * @param birthLevel The MST edge level at which this cluster first appeared
 	 * @param numPoints The initial number of points in this cluster
 	 */
-	public Cluster(int label, Cluster parent, double birthLevel, int numPoints, IntAVLTreeSet pointsAtBirthLevel) {
+	public Cluster(int label, Cluster parent, double birthLevel, int numPoints, HashSet<Integer> pointsAtBirthLevel) {
 		this.label = label;
 		this.birthLevel = birthLevel;
 		this.deathLevel = 0;
@@ -93,7 +94,7 @@ public class Cluster implements java.io.Serializable
 
 		this.preLabeledObjectsInNode = new TreeMap<Integer, IntAVLTreeSet>();
 
-		this.objects = new IntAVLTreeSet();
+		this.objects = new HashSet<Integer>();
 
 		this.parent = parent;
 		if (this.parent != null)
@@ -116,8 +117,7 @@ public class Cluster implements java.io.Serializable
 	 * @param numPoints The number of points to remove from the cluster
 	 * @param level The MST edge level at which to remove these points
 	 */
-	public void detachPoints(int numPoints, double level) 
-	{
+	public void detachPoints(int numPoints, double level) {
 		this.numPoints-=numPoints;
 		this.stability+=(numPoints * (1/level - 1/this.birthLevel));
 
@@ -134,8 +134,7 @@ public class Cluster implements java.io.Serializable
 	 * Additionally, this cluster propagates the lowest death level of any of its descendants to its
 	 * parent.
 	 */
-	public void propagate()
-	{
+	public void propagate() {
 		if (this.parent != null) {
 
 			//Propagate lowest death level of any descendants:
@@ -147,36 +146,37 @@ public class Cluster implements java.io.Serializable
 
 			//If this cluster has no children, it must propagate itself:
 			if (!this.hasChildren) {
+			
 				this.parent.propagatedNumConstraintsSatisfied+= this.numConstraintsSatisfied;
 				this.parent.propagatedStability+= this.stability;
 				this.parent.propagatedDescendants.add(this);
-			}
-
-			else if (this.numConstraintsSatisfied > this.propagatedNumConstraintsSatisfied) {
+			
+			} else if (this.numConstraintsSatisfied > this.propagatedNumConstraintsSatisfied) {
+				
 				this.parent.propagatedNumConstraintsSatisfied+= this.numConstraintsSatisfied;
 				this.parent.propagatedStability+= this.stability;
 				this.parent.propagatedDescendants.add(this);
-			}
-
-			else if (this.numConstraintsSatisfied < this.propagatedNumConstraintsSatisfied) {
+			
+			} else if (this.numConstraintsSatisfied < this.propagatedNumConstraintsSatisfied) {
+			
 				this.parent.propagatedNumConstraintsSatisfied+= this.propagatedNumConstraintsSatisfied;
 				this.parent.propagatedStability+= this.propagatedStability;
 				this.parent.propagatedDescendants.addAll(this.propagatedDescendants);
-			}
-
-			else if (this.numConstraintsSatisfied == this.propagatedNumConstraintsSatisfied) 
-			{
+			
+			} else if (this.numConstraintsSatisfied == this.propagatedNumConstraintsSatisfied) {
 
 				if (this.stability >= this.propagatedStability) {
+
 					this.parent.propagatedNumConstraintsSatisfied+= this.numConstraintsSatisfied;
 					this.parent.propagatedStability+= this.stability;
 					this.parent.propagatedDescendants.add(this);
-				}
-
-				else {
+				
+				} else {
+				
 					this.parent.propagatedNumConstraintsSatisfied+= this.propagatedNumConstraintsSatisfied;
 					this.parent.propagatedStability+= this.propagatedStability;
 					this.parent.propagatedDescendants.addAll(this.propagatedDescendants);
+				
 				}	
 			}	
 		}
@@ -193,8 +193,7 @@ public class Cluster implements java.io.Serializable
 	 * Additionally, this cluster propagates the lowest death level of any of its descendants to its
 	 * parent.
 	 */
-	public void propagateSupervised()
-	{
+	public void propagateSupervised() {
 		if (this.parent != null) {
 
 			//Propagate lowest death level of any descendants:
@@ -206,32 +205,31 @@ public class Cluster implements java.io.Serializable
 
 			//If this cluster has no children, it must propagate itself:
 			if (!this.hasChildren) {
+			
 				this.parent.propagatedConsistencyIndex+= this.consistencyIndex;
 				this.parent.propagatedStability+= this.stability;
 				this.parent.propagatedDescendants.add(this);
-			}
-
-			else if (this.consistencyIndex > this.propagatedConsistencyIndex) {
+			
+			} else if (this.consistencyIndex > this.propagatedConsistencyIndex) {
+			
 				this.parent.propagatedConsistencyIndex+= this.consistencyIndex;
 				this.parent.propagatedStability+= this.stability;
 				this.parent.propagatedDescendants.add(this);
-			}
-
-			else if (this.consistencyIndex < this.propagatedConsistencyIndex) {
+			
+			} else if (this.consistencyIndex < this.propagatedConsistencyIndex) {
+			
 				this.parent.propagatedConsistencyIndex+= this.propagatedConsistencyIndex;
 				this.parent.propagatedStability+= this.propagatedStability;
 				this.parent.propagatedDescendants.addAll(this.propagatedDescendants);
-			}
-
-			else if (this.consistencyIndex == this.propagatedConsistencyIndex) 
-			{
+			
+			} else if (this.consistencyIndex == this.propagatedConsistencyIndex) {
 
 				if (this.stability >= this.propagatedStability) {
+				
 					this.parent.propagatedStability+= this.stability;
 					this.parent.propagatedDescendants.add(this);
-				}
-
-				else {
+				
+				} else {
 					this.parent.propagatedConsistencyIndex+= this.propagatedConsistencyIndex;
 					this.parent.propagatedStability+= this.propagatedStability;
 					this.parent.propagatedDescendants.addAll(this.propagatedDescendants);
@@ -250,8 +248,7 @@ public class Cluster implements java.io.Serializable
 	 * TODO: update function to store the propagated purity and the propagated stability
 	 */
 
-	public void propagateMixed()
-	{
+	public void propagateMixed() {
 		if (this.parent != null) {
 
 			//Propagate lowest death level of any descendants:
@@ -263,35 +260,36 @@ public class Cluster implements java.io.Serializable
 
 			//If this cluster has no children, it must propagate itself:
 			if (!this.hasChildren) {
+
 				this.parent.propagatedMixedStability+= this.mixedStability;
 				this.parent.propagatedStability+= this.stability;
 				this.parent.propagatedDescendants.add(this);
-			}
-			else if (this.mixedStability > this.propagatedMixedStability)
-			{
+
+			} else if (this.mixedStability > this.propagatedMixedStability) {
+
 				this.parent.propagatedMixedStability += this.mixedStability;
 				this.parent.propagatedStability+= this.stability;
 				this.parent.propagatedDescendants.add(this);
-			}
 
-			else if (this.mixedStability < this.propagatedMixedStability) {
+			} else if (this.mixedStability < this.propagatedMixedStability) {
+
 				this.parent.propagatedMixedStability += this.propagatedMixedStability;
 				this.parent.propagatedStability+= this.propagatedStability;
 				this.parent.propagatedDescendants.addAll(this.propagatedDescendants);
-			}
 
-			else if (this.mixedStability == this.propagatedMixedStability) 
-			{
+			} else if (this.mixedStability == this.propagatedMixedStability) {
 
 				if (this.stability >= this.propagatedStability) {
+
 					this.parent.propagatedStability+= this.stability;
 					this.parent.propagatedDescendants.add(this);
-				}
 
-				else {
+				} else {
+
 					this.parent.propagatedMixedStability+= this.propagatedMixedStability;
 					this.parent.propagatedStability+= this.propagatedStability;
 					this.parent.propagatedDescendants.addAll(this.propagatedDescendants);
+
 				}	
 			}	
 		}
@@ -319,35 +317,36 @@ public class Cluster implements java.io.Serializable
 
 			//If this cluster has no children, it must propagate itself:
 			if (!this.hasChildren) {
+			
 				this.parent.propagatedMixedForConstraints += this.mixedForConstraints;
 				this.parent.propagatedStability+= this.stability;
 				this.parent.propagatedDescendants.add(this);
-			}
-			else if (this.mixedForConstraints > this.propagatedMixedForConstraints)
-			{
-				this.parent.propagatedMixedForConstraints += this.mixedForConstraints;
-				this.parent.propagatedStability+= this.stability;
-				this.parent.propagatedDescendants.add(this);
-			}
 
-			else if (this.mixedForConstraints < this.propagatedMixedForConstraints) {
+			} else if (this.mixedForConstraints > this.propagatedMixedForConstraints) {
+				
+				this.parent.propagatedMixedForConstraints += this.mixedForConstraints;
+				this.parent.propagatedStability+= this.stability;
+				this.parent.propagatedDescendants.add(this);
+			
+			} else if (this.mixedForConstraints < this.propagatedMixedForConstraints) {
+			
 				this.parent.propagatedMixedForConstraints += this.propagatedMixedForConstraints;
 				this.parent.propagatedStability+= this.propagatedStability;
 				this.parent.propagatedDescendants.addAll(this.propagatedDescendants);
-			}
-
-			else if (this.mixedForConstraints == this.propagatedMixedForConstraints) 
-			{
+			
+			} else if (this.mixedForConstraints == this.propagatedMixedForConstraints) {
 
 				if (this.stability >= this.propagatedStability) {
+				
 					this.parent.propagatedStability+= this.stability;
 					this.parent.propagatedDescendants.add(this);
-				}
 
-				else {
+				} else {
+					
 					this.parent.propagatedMixedForConstraints += this.propagatedMixedForConstraints;
 					this.parent.propagatedStability+= this.propagatedStability;
 					this.parent.propagatedDescendants.addAll(this.propagatedDescendants);
+				
 				}	
 			}	
 		}
@@ -421,7 +420,7 @@ public class Cluster implements java.io.Serializable
 
 	//------------------------------------------------------------------------------
 
-	public void addPointsToVirtualChildCluster(IntAVLTreeSet points) {
+	public void addPointsToVirtualChildCluster(HashSet<Integer> points) {
 		this.virtualChildCluster.addAll(points);
 	}
 
@@ -442,7 +441,7 @@ public class Cluster implements java.io.Serializable
 	}
 
 	/**
-	 * Sets the virtual child cluster to null, thereby saving memory.  Only call this method after computing the
+	 * Sets the virtual child cluster to null, thereby saving memory. Only call this method after computing the
 	 * number of constraints satisfied by the virtual child cluster.
 	 */
 	public void releaseVirtualChildCluster() {
@@ -581,15 +580,15 @@ public class Cluster implements java.io.Serializable
 		return this.children;
 	}
 
-	public IntAVLTreeSet getObjectsAtBirthLevel() {
+	public HashSet<Integer> getObjectsAtBirthLevel() {
 		return this.objectsAtBirthLevel;
 	}
 
-	public IntAVLTreeSet getObjects() {
+	public HashSet<Integer> getObjects() {
 		return this.objects;
 	}
 
-	public void setObjects(IntAVLTreeSet objects) {
+	public void setObjects(HashSet<Integer> objects) {
 		this.objects = objects;
 	}
 

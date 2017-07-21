@@ -6,6 +6,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
+
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Output;
 
 import ca.ualberta.cs.SHM.HMatrix.HMatrix;
 import ca.ualberta.cs.SHM.Structure.Structure;
@@ -191,16 +196,16 @@ public class HDBSCANStarRunner {
 				}
 
 				//Output the flat clustering result:
-					try ( BufferedWriter writer = new BufferedWriter(new FileWriter(parameters.partitionFile), 32678)) {
-						if (infiniteStability)
-							writer.write(WARNING_MESSAGE + "\n");
+				try ( BufferedWriter writer = new BufferedWriter(new FileWriter(parameters.partitionFile), 32678)) {
+					if (infiniteStability)
+						writer.write(WARNING_MESSAGE + "\n");
 
-						for (int i = 0; i < flatPartitioningSHM.length-1; i++) {
-							writer.write(flatPartitioningSHM[i] + ",");
-						}
-						writer.write(flatPartitioningSHM[flatPartitioningSHM.length-1] + "\n");
+					for (int i = 0; i < flatPartitioningSHM.length-1; i++) {
+						writer.write(flatPartitioningSHM[i] + ",");
 					}
-					System.out.println("Time to find flat result"+/*using just the SHM structure:*/" (ms): " + (System.currentTimeMillis() - startTime));
+					writer.write(flatPartitioningSHM[flatPartitioningSHM.length-1] + "\n");
+				}
+				System.out.println("Time to find flat result"+/*using just the SHM structure:*/" (ms): " + (System.currentTimeMillis() - startTime));
 			}
 			catch (IOException ioe) {
 				System.err.println("Error writing to partitioning file.");
@@ -244,20 +249,23 @@ public class HDBSCANStarRunner {
 			System.exit(-1);
 		}
 
-		//updating structure SHM
-		if(!parameters.outType.equals(VIS_OUT))
-		{
+		// Updating structure SHM
+		if(!parameters.outType.equals(VIS_OUT)) {
 			startTime = System.currentTimeMillis();
 			SHM.setMatrix(HMatrix);
 			SHM.setHDBSCANStarClusterTree(clusters);
 
-			//Serializing .SHM
-			try (FileOutputStream outFile = new FileOutputStream(parameters.shmFile);
-					ObjectOutputStream out = new ObjectOutputStream(outFile))
-			{                
-				out.writeObject(SHM);
-			}catch (Exception ex) 
-			{
+			// Serializing SHM
+			try {
+				Kryo kryo = new Kryo();
+				
+				FileOutputStream outFile = new FileOutputStream(parameters.shmFile);
+				Output output = new Output(new DeflaterOutputStream(outFile, new Deflater(Deflater.BEST_SPEED, true)));
+
+				kryo.writeObject(output, SHM);
+				output.close();
+
+			} catch (Exception ex) {
 				System.out.println("An error occurred while saving the .shm file, please check disk space and permissions.");
 				System.exit(-1);
 			}
@@ -266,8 +274,7 @@ public class HDBSCANStarRunner {
 		}
 
 		//Generating .vis file
-		if(!parameters.outType.equals(HDBSCANStarRunner.SHM_OUT))
-		{
+		if(!parameters.outType.equals(HDBSCANStarRunner.SHM_OUT)) {
 			String out = "";
 			if(!parameters.compactHierarchy)
 			{
