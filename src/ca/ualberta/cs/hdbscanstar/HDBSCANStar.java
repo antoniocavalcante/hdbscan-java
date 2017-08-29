@@ -631,7 +631,7 @@ public class HDBSCANStar implements Serializable {
 				double deathVal = clusters.get(i).getDeathLevel();
 
 				colorRNA[i] = -1;
-				//Given that exists a color to be reutilized, searches for the first one that can be reutilized.
+				// Given that exists a color to be reused, searches for the first one that can be reutilized.
 				for(int j = 0; j < colorAUX.size(); j++) {
 					if(colorAUX.get(j) > bornVal) {
 						colorAUX.set(j, deathVal);
@@ -640,7 +640,7 @@ public class HDBSCANStar implements Serializable {
 					}    
 				}
 
-				//If no color could be reutilized. Assigns to a new color.
+				// If no color could be reused. Assigns to a new color.
 				if(colorRNA[i] == -1) {
 					colorAUX.add(deathVal);
 					colorRNA[i] = colorAUX.size()-1;
@@ -648,9 +648,9 @@ public class HDBSCANStar implements Serializable {
 
 			}
 
-			//converting integers to actual colors.
+			// Converting integers to actual colors.
 
-			//0 is always noise and always white.
+			// 0 is always noise and always white.
 			colors[0] = (new Color(255,255,255));
 			//dividing the space between the colors
 			double step = (double)1/(colorAUX.size()+1);

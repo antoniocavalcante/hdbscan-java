@@ -38,15 +38,15 @@ public class Cluster implements Serializable {
 
 	private TreeMap<Integer, IntAVLTreeSet> preLabeledObjectsInNode;
 
-	//Define the variable to store the consistency of a cluster with respect to the labeled objects
+	// Define the variable to store the consistency of a cluster with respect to the labeled objects
 	private double consistencyIndex;
 	private double propagatedConsistencyIndex;	
 
-	//Define the mixed stability function (stability and consistency index)
+	// Define the mixed stability function (stability and consistency index)
 	private double mixedStability;
 	private double propagatedMixedStability;	
 
-	//Define the mixed stability function for the constraint based approach (stability and consistency index)
+	// Define the mixed stability function for the constraint based approach (stability and consistency index)
 	private double mixedForConstraints;
 	private double propagatedMixedForConstraints;	
 
@@ -58,7 +58,7 @@ public class Cluster implements Serializable {
 	private HashSet<Integer> objectsAtBirthLevel;
 	private IntAVLTreeSet children;
 
-	//The attribute below (objects) was created by Fernando S. de Aguiar Neto
+	// The attribute below (objects) was created by Fernando S. de Aguiar Neto
 	private HashSet<Integer> objects; //Objects that belong to this cluster i.e. become noise before/at the death level of this cluster.
 
 

@@ -59,24 +59,28 @@ public class ExperimentIHDBSCANStar {
 		
 		// Computes the RNG
 		long startRNG = System.currentTimeMillis();
-
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, minPoints, Boolean.parseBoolean(args[3]), Boolean.parseBoolean(args[4]), Boolean.parseBoolean(args[5]), Boolean.parseBoolean(args[6]));
 		System.out.print(" " + (System.currentTimeMillis() - startRNG));
-
-		// Computes all the minPoints MSTs
-		long startMSTs = System.currentTimeMillis();
 		
-		for (int k = minPoints; k >= 1; k--) {
-
+		// Constructs all the the MSTs.
+		long mstTime = 0;
+		long hierarchyTime = 0;
+		
+		long s = 0;
+		
+		for (int k = minPoints; k > 1; k--) {
+			
+			s = System.currentTimeMillis();
 			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, RNG);			
 			mst.quicksortByEdgeWeight();
-			
-//			Experiments.writeMSTweight("IHDBSCAN", inputFile, k, mst);
-			
+			mstTime += (System.currentTimeMillis() - s);
+
+			s = System.currentTimeMillis();
 			if (Boolean.parseBoolean(args[7])) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "RNG_" + inputFile, k);
+			hierarchyTime += (System.currentTimeMillis() - s);			
 		}
 		
-		System.out.print(" " + (System.currentTimeMillis() - startMSTs));		
+		System.out.print(" " + mstTime + " " + hierarchyTime);		
 		
 		end = System.currentTimeMillis();
 		duration = end - start;
