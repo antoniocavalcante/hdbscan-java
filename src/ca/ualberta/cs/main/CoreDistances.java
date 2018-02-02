@@ -30,7 +30,7 @@ public class CoreDistances {
 		long start = System.currentTimeMillis();
 		long s = start;
 		try {
-			dataSet = HDBSCANStar.readInDataSet(args[0], " ");
+			dataSet = HDBSCANStar.readInDataSet(args[0], ",");
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");

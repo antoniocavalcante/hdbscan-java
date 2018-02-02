@@ -15,7 +15,7 @@ public class ExperimentHDBSCANStar {
 		double[][] dataSet = null;
 
 		try {
-			dataSet = HDBSCANStar.readInDataSet(args[0], " ");
+			dataSet = HDBSCANStar.readInDataSet(args[0], ",");
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
@@ -33,18 +33,18 @@ public class ExperimentHDBSCANStar {
 		System.out.print(args[0] + " " + args[1] + " " + args[2]);
 		
 		// Computes all the core-distances from 1 to minPoints
-//		long startcore = System.currentTimeMillis();
-//		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
-//		System.out.print(" " + (System.currentTimeMillis() - startcore));
+		long startcore = System.currentTimeMillis();
+		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+		System.out.print(" " + (System.currentTimeMillis() - startcore));
 
-		double[][] coreDistances = null;
-		
-		try {
-			coreDistances = CoreDistances.fromFile(args[0] + ".cd", minPoints, " ");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		double[][] coreDistances = null;
+//		
+//		try {
+//			coreDistances = CoreDistances.fromFile(args[0] + ".cd", minPoints, " ");
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 
 		start = System.currentTimeMillis();
 		
@@ -60,7 +60,7 @@ public class ExperimentHDBSCANStar {
 			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());			
 			mst.quicksortByEdgeWeight();
 			mstTime += (System.currentTimeMillis() - s);
-						
+					
 			s = System.currentTimeMillis();
 			if (Boolean.parseBoolean(args[3])) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "ORI_" + inputFile, k);
 			hierarchyTime += (System.currentTimeMillis() - s);

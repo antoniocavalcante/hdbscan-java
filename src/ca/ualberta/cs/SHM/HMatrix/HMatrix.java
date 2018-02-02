@@ -11,8 +11,11 @@ import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.distance.ManhattanDistance;
 import ca.ualberta.cs.distance.PearsonCorrelation;
 import ca.ualberta.cs.distance.SupremumDistance;
+import it.unimi.dsi.fastutil.ints.IntOpenHashBigSet;
 
 import java.awt.Color;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +33,7 @@ public class HMatrix implements Serializable {
 	protected int maxClusterID;
 	protected int maxLabelValue;    		// Holds the maximum label value used it starts as -1 (unlabelled).
 	protected Color[] colors;
-	protected int[] objectOrderbyID;    	// HM <ID, array position>, maps an ID to its position on the ArrayList.
+	public int[] objectOrderbyID;    	// HM <ID, array position>, maps an ID to its position on the ArrayList.
 	protected boolean isShaved;             // Flag to tell if this file is a complete or a shaved hierarchy.
 
 	private boolean hasReachabilities;		// Says if the reachability distances were set before saving.
@@ -220,12 +223,145 @@ public class HMatrix implements Serializable {
 		}
 	}
 
+	public void lexicographicSortIgnoreNoise()	{
+
+		List<ObjInstance> aux = Arrays.asList(this.matrix);
+
+		Collections.sort(aux, new Comparator<ObjInstance>() {
+			@Override
+			public int compare(ObjInstance o1, ObjInstance o2) {
+
+				for (int i = 0; i <= densities.size() - 1; i++) {
+					double k = densities.get(i);
+					
+					int l1 = o1.getClusterID(k);
+					int l2 = o2.getClusterID(k);
+					
+					if (l1 < l2) return -1;
+					if (l1 > l2) return 1;						
+				}
+
+				return 0;
+			}
+		});
+
+		// Converts the list back to a matrix.
+		this.matrix = aux.toArray(this.matrix);
+//		System.out.println();
+//		for (int d = 0; d <= densities.size() - 1; d++) {
+//			double k = densities.get(d);
+//			System.out.print(k + " ");
+//			for (int i = 0; i < this.matrix.length; i++) {
+//				System.out.print(this.matrix[i].getClusterID(k) + " ");
+//			}
+//			System.out.println();
+//		}
+		// Taking note of the new position of the object, this way you can find it by ID directly.
+		for(int i = 0; i < this.matrix.length; i++) {
+			this.objectOrderbyID[this.matrix[i].getID()] = i;
+		}
+	}
+	
 	// This method is called to clear both matrix and densities data structures.
 	public void clearAll() {
 		this.matrix = null;
 		this.densities.clear();
 	}
 
+	public void toFile(BufferedWriter hierarchyWriter) throws IOException {
+		String delimiter = ",";
+				
+		// Write Order to File
+		for (int i = 0; i < this.objectOrderbyID.length - 1; i++) {
+			hierarchyWriter.write(this.matrix[i].getID() + delimiter);
+		}
+		hierarchyWriter.write(this.matrix[this.objectOrderbyID.length - 1].getID() + "\n");
+		
+		IntOpenHashBigSet writtenClusters = new IntOpenHashBigSet();
+		
+		writtenClusters.add(0);
+		
+		// Write Hierarchy to File
+		for (double d : this.getDensities()) {
+			String output = "";
+
+			if (d == 0) {
+				break;
+			}
+			
+			int i = 0;				
+			int cluster = this.getClusterID(i, d);
+			
+			while (writtenClusters.contains(cluster) && i < this.objectOrderbyID.length - 1) {
+				i++;
+				cluster = this.getClusterID(i, d);
+			}
+						
+			if (!writtenClusters.contains(cluster)) {
+				output += d + delimiter;
+				
+				output += cluster + ":" + i + "-";
+			}
+			
+			for (int p = i; p < this.objectOrderbyID.length; p++) {
+
+				int currentCluster = this.getClusterID(p, d);
+			
+				if (currentCluster != cluster) {
+					
+					// Noise || Ignored Cluster -> Noise || Ignored Cluster
+					if (writtenClusters.contains(cluster) && writtenClusters.contains(currentCluster)) {
+						cluster = currentCluster;
+						continue;
+					}
+					
+					// Cluster -> Noise || Ignored Cluster.
+					if (cluster != 0 && (currentCluster == 0 || writtenClusters.contains(currentCluster))) {
+
+						output += Integer.toString(p - 1);
+						
+						writtenClusters.add(cluster);
+
+						cluster = currentCluster;
+
+					}
+					
+					// Cluster -> Cluster.
+					if (cluster != 0 && currentCluster != 0 && !writtenClusters.contains(currentCluster)) {
+
+						output += Integer.toString(p - 1);
+						
+						writtenClusters.add(cluster);
+						
+						cluster = currentCluster;
+						
+						output += delimiter + cluster + ":" + p + "-";							
+					}
+					
+					// Noise || Ignored Cluster -> Cluster.
+					if (cluster == 0 && currentCluster != 0 && !writtenClusters.contains(currentCluster)) {
+						cluster = currentCluster;
+							
+						output += delimiter + cluster + ":" + p + "-";
+					}
+
+				}
+				
+				if (p == this.objectOrderbyID.length - 1 && !writtenClusters.contains(currentCluster)) {
+					output += Integer.toString(p);					
+
+					writtenClusters.add(cluster);
+				}
+			}
+			
+			if (output != "") {
+				hierarchyWriter.write(output + "\n");				
+			}
+			
+			output = "";
+		}
+	}
+	
 	public void print() {
 		System.out.println("Densities");
 		System.out.println(this.densities.toString());

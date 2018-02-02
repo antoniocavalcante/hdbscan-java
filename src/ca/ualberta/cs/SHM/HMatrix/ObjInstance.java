@@ -104,7 +104,9 @@ public class ObjInstance implements Serializable {
 		long hi = this.densityLevels.size64() - 1;
 		long middle = 0;
 		
-		while (lo < hi) {
+		if (d == 0.0) return 0;
+		
+		while (lo <= hi) {
 			
 			middle = (int) Math.floor((lo + hi)/2);
 			
@@ -122,7 +124,7 @@ public class ObjInstance implements Serializable {
 			}
 			
 			if (d > this.densityLevels.getDouble(middle)) {
-				hi = middle;
+				hi = middle - 1;
 				continue;
 			}
 		}

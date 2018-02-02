@@ -40,6 +40,7 @@ public class HDBSCANStarRunner {
 
 	public static final String SHM_OUT = "shm";
 	public static final String VIS_OUT = "vis";
+	public static final String TXT_OUT = "vis";
 	public static final String DEFAULT_OUT = "default";	//See checkInputParameters method for the default value
 	public static final String BOTH_OUT = "both";
 

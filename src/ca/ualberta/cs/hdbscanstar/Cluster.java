@@ -2,12 +2,12 @@ package ca.ualberta.cs.hdbscanstar;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
+import it.unimi.dsi.fastutil.ints.IntOpenHashBigSet;
 
 
 /**
@@ -24,7 +24,7 @@ public class Cluster implements Serializable {
 	private int label;
 	private double birthLevel;
 	private double deathLevel;
-	private int numPoints;
+	private long numPoints;
 	private long fileOffset;	//First level where points with this cluster's label appear
 
 	private double stability;
@@ -55,11 +55,11 @@ public class Cluster implements Serializable {
 	public ArrayList<Cluster> propagatedDescendants;
 
 	// Attribute include by @author jadson
-	private HashSet<Integer> objectsAtBirthLevel;
+	private IntOpenHashBigSet objectsAtBirthLevel;
 	private IntAVLTreeSet children;
 
 	// The attribute below (objects) was created by Fernando S. de Aguiar Neto
-	private HashSet<Integer> objects; //Objects that belong to this cluster i.e. become noise before/at the death level of this cluster.
+	private IntOpenHashBigSet objects; //Objects that belong to this cluster i.e. become noise before/at the death level of this cluster.
 
 
 	// ------------------------------ CONSTANTS ------------------------------
@@ -73,7 +73,7 @@ public class Cluster implements Serializable {
 	 * @param birthLevel The MST edge level at which this cluster first appeared
 	 * @param numPoints The initial number of points in this cluster
 	 */
-	public Cluster(int label, Cluster parent, double birthLevel, int numPoints, HashSet<Integer> pointsAtBirthLevel) {
+	public Cluster(int label, Cluster parent, double birthLevel, long numPoints, IntOpenHashBigSet pointsAtBirthLevel) {
 		this.label = label;
 		this.birthLevel = birthLevel;
 		this.deathLevel = 0;
@@ -94,7 +94,7 @@ public class Cluster implements Serializable {
 
 		this.preLabeledObjectsInNode = new TreeMap<Integer, IntAVLTreeSet>();
 
-		this.objects = new HashSet<Integer>();
+		this.objects = new IntOpenHashBigSet();
 
 		this.parent = parent;
 		if (this.parent != null)
@@ -117,7 +117,7 @@ public class Cluster implements Serializable {
 	 * @param numPoints The number of points to remove from the cluster
 	 * @param level The MST edge level at which to remove these points
 	 */
-	public void detachPoints(int numPoints, double level) {
+	public void detachPoints(long numPoints, double level) {
 		this.numPoints-=numPoints;
 		this.stability+=(numPoints * (1/level - 1/this.birthLevel));
 
@@ -420,7 +420,7 @@ public class Cluster implements Serializable {
 
 	//------------------------------------------------------------------------------
 
-	public void addPointsToVirtualChildCluster(HashSet<Integer> points) {
+	public void addPointsToVirtualChildCluster(IntOpenHashBigSet points) {
 		this.virtualChildCluster.addAll(points);
 	}
 
@@ -580,15 +580,15 @@ public class Cluster implements Serializable {
 		return this.children;
 	}
 
-	public HashSet<Integer> getObjectsAtBirthLevel() {
+	public IntOpenHashBigSet getObjectsAtBirthLevel() {
 		return this.objectsAtBirthLevel;
 	}
 
-	public HashSet<Integer> getObjects() {
+	public IntOpenHashBigSet getObjects() {
 		return this.objects;
 	}
 
-	public void setObjects(HashSet<Integer> objects) {
+	public void setObjects(IntOpenHashBigSet objects) {
 		this.objects = objects;
 	}
 

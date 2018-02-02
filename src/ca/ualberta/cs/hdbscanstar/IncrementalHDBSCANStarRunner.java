@@ -81,17 +81,17 @@ public class IncrementalHDBSCANStarRunner {
 		System.out.println("Time to compute core distances (ms): " + (System.currentTimeMillis() - startTime));
 
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, parameters.distanceFunction, parameters.minPoints, 1, "WS", true, false, true, true);
-		
+
 		UndirectedGraph mst;		
-		
+
 		for (int k = parameters.minPoints; k > 1; k--) {
 			//Compute minimum spanning tree:
 			startTime = System.currentTimeMillis();
 
 			System.out.println("Computing MST for minPts = " + k);
-			
+
 			mst = Prim.constructMST(dataSet, coreDistances, k, false, RNG);
-			
+
 			System.out.println("1st weight: " + mst.getEdgeWeightAtIndex(0));
 			System.out.println("Time to calculate MST (ms): " + (System.currentTimeMillis() - startTime));
 
@@ -112,43 +112,42 @@ public class IncrementalHDBSCANStarRunner {
 				System.err.println("Error writing to hierarchy file or cluster tree file.");
 				System.exit(-1);
 			}
-		}
+			
+			//Propagate clusters:
+			boolean infiniteStability = HDBSCANStar.propagateTree(clusters);
 
+			//Compute final flat partitioning:
+			try {
+				startTime = System.currentTimeMillis();
+				HDBSCANStar.findProminentClusters(clusters, parameters.hierarchyFile, parameters.partitionFile, 
+						",", numPoints, infiniteStability);
+				System.out.println("Time to find flat result (ms): " + (System.currentTimeMillis() - startTime));
+			}
+			catch (IOException ioe) {
+				System.err.println("Error writing to partitioning file.");
+				System.exit(-1);
+			}
+
+
+			//Compute outlier scores for each point:
+			try {
+				startTime = System.currentTimeMillis();
+				HDBSCANStar.calculateOutlierScores(clusters, pointNoiseLevels, pointLastClusters, 
+						coreDistances, k, parameters.outlierScoreFile, ",", infiniteStability, null, null);
+				System.out.println("Time to compute outlier scores (ms): " + (System.currentTimeMillis() - startTime));
+			}
+			catch (IOException ioe) {
+				System.err.println("Error writing to outlier score file.");
+				System.exit(-1);
+			}			
+			
+		}
 
 		//Remove references to unneeded objects:
 		dataSet = null;
 
-
 		//Remove references to unneeded objects:
 		mst = null;
-
-//		//Propagate clusters:
-//		boolean infiniteStability = HDBSCANStar.propagateTree(clusters);
-//
-//		//Compute final flat partitioning:
-//		try {
-//			startTime = System.currentTimeMillis();
-//			HDBSCANStar.findProminentClusters(clusters, parameters.hierarchyFile, parameters.partitionFile, 
-//					",", numPoints, infiniteStability);
-//			System.out.println("Time to find flat result (ms): " + (System.currentTimeMillis() - startTime));
-//		}
-//		catch (IOException ioe) {
-//			System.err.println("Error writing to partitioning file.");
-//			System.exit(-1);
-//		}
-
-
-		//Compute outlier scores for each point:
-		//		try {
-		//			startTime = System.currentTimeMillis();
-		//			HDBSCANStar.calculateOutlierScores(clusters, pointNoiseLevels, pointLastClusters, 
-		//					coreDistances, parameters.outlierScoreFile, ",", infiniteStability);
-		//			System.out.println("Time to compute outlier scores (ms): " + (System.currentTimeMillis() - startTime));
-		//		}
-		//		catch (IOException ioe) {
-		//			System.err.println("Error writing to outlier score file.");
-		//			System.exit(-1);
-		//		}
 
 		System.out.println("Overall runtime (ms): " + (System.currentTimeMillis() - overallStartTime));
 	}

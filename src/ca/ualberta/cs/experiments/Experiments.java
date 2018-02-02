@@ -1,18 +1,15 @@
 package ca.ualberta.cs.experiments;
 
+import static ca.ualberta.cs.hdbscanstar.HDBSCANStar.WARNING_MESSAGE;
+
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterOutputStream;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Output;
-
 import ca.ualberta.cs.SHM.HMatrix.HMatrix;
 import ca.ualberta.cs.SHM.Structure.Structure;
 import ca.ualberta.cs.hdbscanstar.Cluster;
@@ -28,7 +25,7 @@ public class Experiments {
 		double[][] dataSet = null;
 
 		try {
-			dataSet = HDBSCANStar.readInDataSet(file, " ");
+			dataSet = HDBSCANStar.readInDataSet(file, ",");
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
@@ -71,6 +68,7 @@ public class Experiments {
 		String visFile = outputPrefix + ".vis";
 		String shmFile = outputPrefix + ".shm";
 		String partitionFile = outputPrefix + ".partition";
+		String mstFile = outputPrefix + ".mst";
 		String separator = ",";
 
 		Structure SHM = new Structure();
@@ -83,13 +81,9 @@ public class Experiments {
 		WrapInt lineCount = new WrapInt(0);
 
 		try {
-			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minPts, false, null, 
+			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minPts, true, null, 
 					hierarchyFile, treeFile, separator, 
-					pointNoiseLevels, pointLastClusters, HDBSCANStarRunner.SHM_OUT, HMatrix, lineCount);
-
-			for(int i = 0; i < coreDistances.length; i++) {
-				HMatrix.getObjInstanceByID(i).setCoreDistance(coreDistances[i][minPts-1]);
-			}
+					pointNoiseLevels, pointLastClusters, HDBSCANStarRunner.BOTH_OUT, HMatrix, lineCount);
 
 		} catch (IOException ioe) {
 			System.err.println("Error writing to hierarchy file or cluster tree file.");
@@ -98,24 +92,58 @@ public class Experiments {
 
 		SHM.setMatrix(HMatrix);
 		SHM.setHDBSCANStarClusterTree(clusters);
-		
-		//Serializing .SHM
-		try {
-			Kryo kryo = new Kryo();
 
-			FileOutputStream outFile = new FileOutputStream(shmFile);
-			Output out = new Output(new DeflaterOutputStream(outFile, new Deflater(Deflater.BEST_SPEED, true)));
+		boolean infiniteStability = HDBSCANStar.propagateTree(clusters);
 
-			kryo.writeObject(out, SHM);
-			out.close();
+		int[] flatPartitioningSHM = HDBSCANStar.findProminentClustersSHM(clusters, HMatrix);
 
-		} catch (Exception ex) {
-			System.out.println("An error occurred while saving the .shm file, please check disk space and permissions.");
-			System.exit(-1);
+
+		//Output the flat clustering result:
+		try ( BufferedWriter writer = new BufferedWriter(new FileWriter(partitionFile), 32678)) {
+			if (infiniteStability)
+				writer.write(WARNING_MESSAGE + "\n");
+
+			for (int i = 0; i < flatPartitioningSHM.length-1; i++) {
+				writer.write(flatPartitioningSHM[i] + ",");
+			}
+			writer.write(flatPartitioningSHM[flatPartitioningSHM.length-1] + "\n");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
+		//		//Serializing .SHM
+		//		try {
+		//			Kryo kryo = new Kryo();
+		//
+		//			FileOutputStream outFile = new FileOutputStream(shmFile);
+		//			Output out = new Output(new DeflaterOutputStream(outFile, new Deflater(Deflater.BEST_SPEED, true)));
+		//
+		//			kryo.writeObject(out, SHM);
+		//			out.close();
+		//
+		//		} catch (Exception ex) {
+		//			System.out.println("An error occurred while saving the .shm file, please check disk space and permissions.");
+		//			System.exit(-1);
+		//		}
 		
+		writeMST(mst, mstFile);
+
 		//Remove references to unneeded objects:
 		mst = null;
+	}
+
+	public static void writeMST(UndirectedGraph MST, String fileName) {
+
+		try ( BufferedWriter writer = new BufferedWriter(new FileWriter(fileName), 32678)) {
+
+			for (int i = 0; i < MST.getNumEdges(); i++) {
+				writer.write(MST.verticesA[i] + " " + MST.verticesB[i] + " " + MST.edgeWeights[i] + "\n");	
+			}
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
