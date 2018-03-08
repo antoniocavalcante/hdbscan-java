@@ -1,6 +1,6 @@
 package ca.ualberta.cs.util;
 
-import ca.ualberta.cs.distance.EuclideanDistance;
+import ca.ualberta.cs.distance.DistanceCalculator;
 import it.unimi.dsi.fastutil.BigList;
 import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -10,7 +10,11 @@ public class FairSplitTree {
 	public static double[][] S;
 	private static int dimensions;
 	public static Long2ObjectOpenHashMap<FairSplitTree> root;
-	
+
+	public static int globalId;
+
+	public static DistanceCalculator distanceFunction;
+
 	private double[][] boundingBox;
 	private long parent;
 	private long left;
@@ -23,19 +27,21 @@ public class FairSplitTree {
 	private double diameterMRD = -1;
 
 	private double maxCD = 0;
-	
+
 	public BigList<Integer> P;
 	public long id;
-	
+
 	/** Receives a set S of d-dimensional points and calls the constructor to build a FairSplitTree.
 	 * 
 	 * @param S Set of d-dimensional points.
 	 * @return FairSplitTree from S.
 	 */
-	public static FairSplitTree build(double[][] S, double[][] coreDistances, int k) {
+	public static FairSplitTree build(double[][] S, double[][] coreDistances, int k, DistanceCalculator distanceFunction) {
 		FairSplitTree.S = S;
 		FairSplitTree.dimensions = S[0].length;
 		FairSplitTree.root = new Long2ObjectOpenHashMap<FairSplitTree>();
+
+		FairSplitTree.distanceFunction = distanceFunction;
 
 		BigList<Integer> P = new IntBigArrayBigList();
 
@@ -43,13 +49,15 @@ public class FairSplitTree {
 			P.add(i);
 		}
 
+		globalId = 1;
+
 		FairSplitTree T = new FairSplitTree(null, P, 0, 0, 1, k, coreDistances);
 		root.put(1, T);
-		
+
 		return T;
 	}
 
-	
+
 	/** Main constructor of a FairSplitTree. Receives a set of integers, representing
 	 *  the points IDs and the current level of the tree.
 	 * 
@@ -57,31 +65,33 @@ public class FairSplitTree {
 	 * @param level Current level of the tree.
 	 */
 	public FairSplitTree(FairSplitTree parent, BigList<Integer> P, double maxCD, int level, long id, int k, double[][] coreDistances){
+
 		// Update parent.
 		if (id == 1){
 			this.parent = 1;
 		} else {
 			this.parent = parent.id;
 		}
+
 		// Update the id of the tree.
 		this.id = id;
-		
+
 		// Update the level of the tree.
 		this.setLevel(level);
-		
+
 		// Check the cardinality of the set, to distinguish leaf from internal nodes.
 		this.setCount(P.size());
-	
+
 		// Store the id's of the points under this tree.
 		this.P = P;
-		
+
 		this.maxCD = maxCD;
-		
+
 		if (this.count == 0) {
 			this.leaf = true;
 			this.right = -1;
 			this.left = -1;
-		
+
 		} else {
 
 			// Construct Bounding Box.
@@ -92,18 +102,19 @@ public class FairSplitTree {
 				this.boundingBox[0][i] = S[P.get(0)][i];
 				this.boundingBox[1][i] = S[P.get(0)][i];
 			}
-			
+
 			if (this.count == 1) {
 				this.leaf = true;
 				this.right = -1;
 				this.left = -1;
 				this.p = P.get(0);
-				
+
 			} else {
 				// This should be an internal node.
 				this.leaf = false;
-				
+
 				for (Integer p : P) {
+
 					for (int i = 0; i < dimensions; i++) {
 
 						if (S[p][i] < this.boundingBox[0][i]) {
@@ -116,10 +127,10 @@ public class FairSplitTree {
 					}
 					this.diameterMRD = Math.max(this.diameterMRD, coreDistances[p][k-1]);
 				}
-				
-				this.diameter = (new EuclideanDistance()).computeDistance(boundingBox[0], boundingBox[1]);
+
+				this.diameter = FairSplitTree.distanceFunction.computeDistance(boundingBox[0], boundingBox[1]);
 				this.diameterMRD = Math.max(this.diameter, this.diameterMRD);
-				
+
 				// Find the dimension j where the hyper-rectangle edge is larger.
 				int j = 0;
 				double max = 0;
@@ -127,22 +138,22 @@ public class FairSplitTree {
 				for (int i = 0; i < boundingBox[0].length; i++) {
 
 					double d = (boundingBox[1][i] - boundingBox[0][i]);
-					
+
 					if (d > max) {
 						j = i;
 						max = d;
 					}
 				}
-				
+
 				// Split this dimension in two hyper-rectangles.
 				BigList<Integer> right = new IntBigArrayBigList();
 				BigList<Integer> left  = new IntBigArrayBigList();
 
 				double cutPoint = (boundingBox[0][j] + boundingBox[1][j])/2;
-				
+
 				double leftMaxCd  = -Double.MAX_VALUE;
 				double rightMaxCd = -Double.MAX_VALUE;
-				
+
 				for (Integer p : P) {
 					if (S[p][j] < cutPoint) {
 						leftMaxCd = Math.max(leftMaxCd, coreDistances[p][k-1]);
@@ -152,16 +163,18 @@ public class FairSplitTree {
 						right.add(p);
 					}
 				}
-				
+
 				// Recursive call for left and right children.
-				this.left  = this.id*2;
+
+				this.left = nextId();
 				root.put(this.left, new FairSplitTree(this, left, leftMaxCd, this.level + 1, this.left, k, coreDistances));
-				this.right = this.id*2 + 1;
+
+				this.right = nextId();
 				root.put(this.right, new FairSplitTree(this, right, rightMaxCd, this.level + 1, this.right, k, coreDistances));
 			}
 		}
 	}
-	
+
 	// 
 	/** Returns all the points under the tree.
 	 * @return List containing the IDs of the points under the tree.
@@ -169,7 +182,12 @@ public class FairSplitTree {
 	public BigList<Integer> retrieve() {		
 		return this.P;
 	}
-	
+
+	public static int nextId() {
+		globalId = globalId + 1;
+		return globalId;
+	}
+
 	public static void print(FairSplitTree T) {
 		System.out.print("|");
 		for (int i = 0; i < T.level; i++) {
@@ -184,21 +202,21 @@ public class FairSplitTree {
 	public static double circleDistanceMRD(FairSplitTree T1, FairSplitTree T2) {		
 		return Math.max(circleDistance(T1, T2), Math.max(T1.maxCD, T2.maxCD));
 	}
-	
+
 	public static double circleDistance(FairSplitTree T1, FairSplitTree T2) {
-		return (new EuclideanDistance()).computeDistance(T1.center(), T2.center()) - T1.diameter()/2 - T2.diameter()/2;
+		return FairSplitTree.distanceFunction.computeDistance(T1.center(), T2.center()) - T1.diameter()/2 - T2.diameter()/2;
 	}
 
 	public static double circleDistance(double[] point, FairSplitTree T) {
-		return (new EuclideanDistance()).computeDistance(point, T.center()) - T.diameter()/2;
+		return FairSplitTree.distanceFunction.computeDistance(point, T.center()) - T.diameter()/2;
 	}
-	
+
 	public double diameter() {
 
 		if (this.isLeaf()) {
 			return 0;
 		}
-				
+
 		return diameter;		
 	}
 
@@ -207,10 +225,10 @@ public class FairSplitTree {
 		if (this.isLeaf()) {
 			return 0;
 		}
-				
+
 		return diameterMRD;
 	}
-	
+
 	public double[] center() {
 		double[] center = new double[dimensions];
 
@@ -220,11 +238,11 @@ public class FairSplitTree {
 
 		return center;
 	}
-	
+
 	public static FairSplitTree parent(FairSplitTree T) {
 		return root.get(T.parent);
 	}
-	
+
 	public static BigList<Integer> rangeSearch(FairSplitTree root, double[] queryPoint, double r, BigList<Integer> arrayList) {
 		double left  = circleDistance(queryPoint, FairSplitTree.root.get(root.left));
 		double right = circleDistance(queryPoint, FairSplitTree.root.get(root.right));
@@ -237,7 +255,7 @@ public class FairSplitTree {
 				rangeSearch(FairSplitTree.root.get(root.left), queryPoint, r, arrayList);
 			}
 		}
-		
+
 		if (right < r) {
 			if (FairSplitTree.root.get(root.right).isLeaf()) {
 				// Add to the results
@@ -246,10 +264,10 @@ public class FairSplitTree {
 				rangeSearch(FairSplitTree.root.get(root.right), queryPoint, r, arrayList);
 			}
 		}
-		
+
 		return arrayList;
 	}
-	
+
 	public int getDimensions() {
 		return dimensions;
 	}
@@ -273,7 +291,7 @@ public class FairSplitTree {
 	public long right() {
 		return right;
 	}
-	
+
 	public long getCount() {
 		return count;
 	}
@@ -321,7 +339,7 @@ public class FairSplitTree {
 	public void setMaxCD(double maxCD) {
 		this.maxCD = maxCD;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

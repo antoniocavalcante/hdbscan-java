@@ -37,13 +37,25 @@ public class HDBSCANStarRunner {
 	private static final String COMPACT_FLAG = "compact=";
 	private static final String DISTANCE_FUNCTION_FLAG = "dist_function=";
 	private static final String OUT_TYPE_FLAG = "outputExtension=";
+	private static final String OUT_FLAG = "output=";
+	private static final String RNG_FILTER_FLAG = "filter=";
 
+	private static final String INDEX_FLAG = "index=";
+	private static final String INCREMENTAL_FLAG = "incremental=";
+
+	private static final String RUN_FLAG = "run=";
+	
 	public static final String SHM_OUT = "shm";
 	public static final String VIS_OUT = "vis";
 	public static final String TXT_OUT = "vis";
 	public static final String DEFAULT_OUT = "default";	//See checkInputParameters method for the default value
 	public static final String BOTH_OUT = "both";
 
+	public static final String RNG_FILTER_SMART = "smart";
+	public static final String RNG_FILTER_NAIVE = "naive";
+	public static final String RNG_FILTER_BOTH = "both";
+	public static final String RNG_FILTER_NONE = "none";
+	
 	private static final String EUCLIDEAN_DISTANCE = "euclidean";
 	private static final String COSINE_SIMILARITY = "cosine";
 	private static final String PEARSON_CORRELATION = "pearson";
@@ -328,7 +340,7 @@ public class HDBSCANStarRunner {
 	 * @param args The input arguments for the program
 	 * @return Input parameters for HDBSCAN*
 	 */
-	private static HDBSCANStarParameters checkInputParameters(String[] args, HMatrix HMatrix) {
+	public static HDBSCANStarParameters checkInputParameters(String[] args, HMatrix HMatrix) {
 		HDBSCANStarParameters parameters = new HDBSCANStarParameters();
 		parameters.distanceFunction = new EuclideanDistance();
 		HMatrix.setParam_distanceFunction(EUCLIDEAN_DISTANCE);
@@ -408,9 +420,9 @@ public class HDBSCANStarRunner {
 					parameters.distanceFunction = null;
 
 			}
+			
 			//Assign output type file:
-			else if (argument.startsWith(OUT_TYPE_FLAG) && argument.length() > OUT_TYPE_FLAG.length())
-			{		
+			else if (argument.startsWith(OUT_TYPE_FLAG) && argument.length() > OUT_TYPE_FLAG.length()) {		
 				String outType = argument.substring(OUT_TYPE_FLAG.length());
 
 				switch (outType) {
@@ -429,6 +441,56 @@ public class HDBSCANStarRunner {
 					break;
 				}
 			}
+			
+			//Assign if the output files will be computed or not.
+			else if (argument.startsWith(OUT_FLAG) && argument.length() > OUT_FLAG.length()) {
+				parameters.outputFiles = Boolean.parseBoolean(argument.substring(OUT_FLAG.length()));
+			}
+			
+			//Assign the type of filter of the RNG.
+			else if (argument.startsWith(RNG_FILTER_FLAG) && argument.length() > RNG_FILTER_FLAG.length()) {
+				String rngFilter = argument.substring(RNG_FILTER_FLAG.length());				
+			
+				switch (rngFilter) {
+				//for now, the option to generate only the .shm file is unavailable
+				case RNG_FILTER_BOTH:
+					parameters.RNGNaive = true;
+					parameters.RNGSmart = true;
+					break;
+				case RNG_FILTER_NAIVE:
+					parameters.RNGNaive = true;
+					parameters.RNGSmart = false;
+					break;
+				case RNG_FILTER_SMART:
+					parameters.RNGNaive = false;
+					parameters.RNGSmart = true;
+					break;
+				case RNG_FILTER_NONE:
+					parameters.RNGNaive = false;
+					parameters.RNGSmart = false;
+					break;					
+				default:
+					parameters.RNGNaive = false;
+					parameters.RNGSmart = true;
+					break;
+				}
+			}
+			
+			//Assign if an index will be used or not.
+			else if (argument.startsWith(INDEX_FLAG) && argument.length() > INDEX_FLAG.length()) {
+				parameters.index = Boolean.parseBoolean(argument.substring(INDEX_FLAG.length()));
+			}
+
+			//Assign if the RNG filter is incremental or not.
+			else if (argument.startsWith(INCREMENTAL_FLAG) && argument.length() > INCREMENTAL_FLAG.length()) {
+				parameters.RNGIncremental = Boolean.parseBoolean(argument.substring(INCREMENTAL_FLAG.length()));
+			}
+
+			//Assign if the RNG filter is incremental or not.
+			else if (argument.startsWith(RUN_FLAG) && argument.length() > RUN_FLAG.length()) {
+				parameters.runNumber = argument.substring(RUN_FLAG.length());
+			}
+			
 		}
 
 		//Check that each input parameter has been assigned:
@@ -561,7 +623,7 @@ public class HDBSCANStarRunner {
 	/**
 	 * Simple class for storing input parameters.
 	 */
-	private static class HDBSCANStarParameters {
+	public static class HDBSCANStarParameters {
 		public String inputFile;
 		public String constraintsFile;
 		public Integer minPoints;
@@ -578,6 +640,15 @@ public class HDBSCANStarRunner {
 		public String visualizationFile;
 		public String clusterTreeSerializableFile;
 		public String MSTSerializableFile;
+		
+		public String runNumber;
+		
+		public boolean outputFiles;
+		
+		public boolean RNGNaive;
+		public boolean RNGSmart;
+		public boolean RNGIncremental;
+		public boolean index;
 	}
 
 	public static class WrapInt{

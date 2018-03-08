@@ -11,6 +11,8 @@ import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.distance.ManhattanDistance;
 import ca.ualberta.cs.distance.PearsonCorrelation;
 import ca.ualberta.cs.distance.SupremumDistance;
+import it.unimi.dsi.fastutil.doubles.DoubleBigArrayBigList;
+import it.unimi.dsi.fastutil.ints.IntBigArrayBigList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashBigSet;
 
 import java.awt.Color;
@@ -28,8 +30,8 @@ import java.util.List;
  * @author fsan
  */
 public class HMatrix implements Serializable {
-	protected ArrayList<Double> densities;
-	protected ObjInstance[] matrix;
+	protected DoubleBigArrayBigList densities;
+	public ObjInstance[] matrix;
 	protected int maxClusterID;
 	protected int maxLabelValue;    		// Holds the maximum label value used it starts as -1 (unlabelled).
 	protected Color[] colors;
@@ -49,10 +51,12 @@ public class HMatrix implements Serializable {
 
 	private int next = 0;
 
+	private IntBigArrayBigList level;
+	
 	private static final long serialVersionUID = 10L;
 
 	public HMatrix() {
-		this.densities = new ArrayList<Double>();
+		this.densities = new DoubleBigArrayBigList();
 		this.maxClusterID = 0;
 		this.maxLabelValue = -1;
 		this.isCompact = false;
@@ -63,8 +67,10 @@ public class HMatrix implements Serializable {
 		this.param_minPts = 1;
 		this.param_distanceFunction = "euclidean";
 		this.param_distanceMatrixUsed  = false;
+
+		this.level = new IntBigArrayBigList();
 	}
-	
+
 	public void setHMatrix(int n) {
 		this.matrix = new ObjInstance[n];
 		this.objectOrderbyID = new int[n];
@@ -123,7 +129,7 @@ public class HMatrix implements Serializable {
 		return this.isShaved;
 	}
 
-	public ArrayList<Double> getDensities() {
+	public DoubleBigArrayBigList getDensities() {
 		return this.densities;
 	}
 
@@ -171,7 +177,7 @@ public class HMatrix implements Serializable {
 	// Similar to the one above, the only difference is that it automatically gets the j-th density (greatest to lowest order)
 	// Notice that this method does not assert the existence of any of the indexes (i,j) used. This must be handled by the developer.
 	public int getClusterID(int i, int j) {
-		return this.matrix[i].getClusterID(this.densities.get(j));
+		return this.matrix[i].getClusterID(this.densities.getDouble(j));
 	}
 
 	public void add(ObjInstance newOI) {
@@ -188,24 +194,24 @@ public class HMatrix implements Serializable {
 		return this.matrix[i];
 	}
 
-	public Double getDensity(int i)	{
-		return this.densities.get(i);
+	public Double getDensity(long i)	{
+		return this.densities.getDouble(i);
 	}
-	
+
 	public void lexicographicSort()	{
 
 		List<ObjInstance> aux = Arrays.asList(this.matrix);
-				
+
 		Collections.sort(aux, new Comparator<ObjInstance>() {
 			@Override
 			public int compare(ObjInstance o1, ObjInstance o2) {
 
-				for (int i = densities.size() - 1; i >= 0 ; i--) {
-					double k = densities.get(i);
-					
+				for (long i = densities.size64() - 1; i >= 0 ; i--) {
+					double k = densities.getDouble(i);
+
 					int l1 = o1.getClusterID(k);
 					int l2 = o2.getClusterID(k);
-					
+
 					if (l1 < l2) return -1;
 					if (l1 > l2) return 1;						
 				}
@@ -216,7 +222,7 @@ public class HMatrix implements Serializable {
 
 		// Converts the list back to a matrix.
 		this.matrix = aux.toArray(this.matrix);
-		
+
 		// Taking note of the new position of the object, this way you can find it by ID directly.
 		for(int i = 0; i < this.matrix.length; i++) {
 			this.objectOrderbyID[this.matrix[i].getID()] = i;
@@ -231,12 +237,12 @@ public class HMatrix implements Serializable {
 			@Override
 			public int compare(ObjInstance o1, ObjInstance o2) {
 
-				for (int i = 0; i <= densities.size() - 1; i++) {
-					double k = densities.get(i);
-					
+				for (int i = 0; i <= densities.size64() - 1; i++) {
+					double k = densities.getDouble(i);
+
 					int l1 = o1.getClusterID(k);
 					int l2 = o2.getClusterID(k);
-					
+
 					if (l1 < l2) return -1;
 					if (l1 > l2) return 1;						
 				}
@@ -247,20 +253,180 @@ public class HMatrix implements Serializable {
 
 		// Converts the list back to a matrix.
 		this.matrix = aux.toArray(this.matrix);
-//		System.out.println();
-//		for (int d = 0; d <= densities.size() - 1; d++) {
-//			double k = densities.get(d);
-//			System.out.print(k + " ");
-//			for (int i = 0; i < this.matrix.length; i++) {
-//				System.out.print(this.matrix[i].getClusterID(k) + " ");
-//			}
-//			System.out.println();
-//		}
+
 		// Taking note of the new position of the object, this way you can find it by ID directly.
 		for(int i = 0; i < this.matrix.length; i++) {
 			this.objectOrderbyID[this.matrix[i].getID()] = i;
 		}
 	}
+
+	public void lexicographicSortIgnoreNoiseDynamic(int[] labels, double d, BufferedWriter hierarchyWriter)	{
+		
+		if (d == 0) return;
+		
+		for (int i = 0; i < level.size64() - 1; i = i + 2) {
+
+			int s = level.getInt(i);
+			int e = level.getInt(i+1);
+
+			Arrays.sort(this.matrix, s, e+1, new Comparator<ObjInstance>() {
+				@Override
+				public int compare(ObjInstance o1, ObjInstance o2) {
+
+					int l1 = labels[o1.getID()];
+					int l2 = labels[o2.getID()];
+
+					if (l1 < l2) return -1;
+					if (l1 > l2) return 1;						
+
+					return 0;
+				}
+			});
+
+		}
+
+		try {
+			this.level = this.toFileDynamic(labels, d, hierarchyWriter);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public void writeOrder(BufferedWriter orderWriter) throws IOException {
+		String delimiter = ",";
+		
+		// Taking note of the new position of the object, this way you can find it by ID directly.
+		for(int i = 0; i < this.matrix.length; i++) {
+			this.objectOrderbyID[this.matrix[i].getID()] = i;
+		}
+		
+		// Write Order to File
+		for (int i = 0; i < this.objectOrderbyID.length - 1; i++) {
+			orderWriter.write(this.matrix[i].getID() + delimiter);
+		}
+		orderWriter.write(this.matrix[this.objectOrderbyID.length - 1].getID() + "\n");
+	}
+	
+	public IntBigArrayBigList toFileDynamic(int[] labels, double d, BufferedWriter hierarchyWriter) throws IOException {
+		
+//		ArrayList<Integer> level = new ArrayList<Integer>();
+		
+		IntBigArrayBigList level = new IntBigArrayBigList();
+		
+		String delimiter = ",";
+
+		IntOpenHashBigSet writtenClusters = new IntOpenHashBigSet();
+
+		writtenClusters.add(0);
+
+		// Write Hierarchy Level to File
+
+		StringBuilder builder = new StringBuilder();
+
+		int i = 0;
+		int cluster = labels[this.matrix[i].getID()];
+
+		int start = Integer.MIN_VALUE;
+		int end   = Integer.MAX_VALUE;
+		
+		while (writtenClusters.contains(cluster) && i < this.objectOrderbyID.length - 1) {
+			i++;
+			cluster = labels[this.matrix[i].getID()];
+		}
+
+		if (!writtenClusters.contains(cluster)) {
+			builder.append(d + delimiter + cluster + ":" + i + "-");
+			level.add(i);
+		}
+
+		for (int p = i; p < this.matrix.length; p++) {
+
+			int currentCluster = labels[this.matrix[p].getID()];
+			
+			if (currentCluster != cluster) {
+
+				// Noise || Ignored Cluster -> Noise || Ignored Cluster
+				if (writtenClusters.contains(cluster) && writtenClusters.contains(currentCluster)) {
+					cluster = currentCluster;
+					continue;
+				}
+				
+				// End of a cluster
+				// Cluster -> Noise || Ignored Cluster.
+				if (cluster != 0 && (currentCluster == 0 || writtenClusters.contains(currentCluster))) {
+					builder.append(p - 1);
+					level.add(p - 1);
+					end = p - 1;
+					
+					// Check if the cluster has been added in a previous level.
+//					if (!hasReachabilities) {
+//						builder.append(cluster);
+//					}
+					
+					//						writtenClusters.add(cluster);
+
+					cluster = currentCluster;
+
+				}
+
+				// End of a cluster, beginning of another cluster.
+				// Cluster -> Cluster.
+				if (cluster != 0 && currentCluster != 0 && !writtenClusters.contains(currentCluster)) {
+					builder.append(p - 1);
+					level.add(p-1);
+					
+					//						writtenClusters.add(cluster);
+
+					cluster = currentCluster;
+
+					builder.append(delimiter + cluster + ":" + p + "-");
+					level.add(p);
+				}
+
+				// Beginning of a cluster.
+				// Noise || Ignored Cluster -> Cluster.
+				if (cluster == 0 && currentCluster != 0 && !writtenClusters.contains(currentCluster)) {
+					cluster = currentCluster;
+
+					builder.append(delimiter + cluster + ":" + p + "-");
+					level.add(p);
+				}
+
+			}
+
+			if (p == this.matrix.length - 1 && !writtenClusters.contains(currentCluster)) {			
+				builder.append(Integer.toString(p));
+				level.add(p);
+				//					writtenClusters.add(cluster);
+			}
+		}
+		
+		String output = builder.toString();
+		if (output != "") {
+			hierarchyWriter.write(output + "\n");
+		}
+		
+		return level;
+	}
+
+	
+	public boolean changed(int start, int end) {
+		for (int i = 0; i < this.level.size64(); i = i + 2) {
+			
+			if (this.level.getInt(i) > start) {
+				break;
+			}
+			
+			if (this.level.getInt(i) == start && this.level.getInt(i+1) == end) {
+				return false;
+			}
+			
+		}
+		
+		return true;
+	}
+
 	
 	// This method is called to clear both matrix and densities data structures.
 	public void clearAll() {
@@ -270,98 +436,93 @@ public class HMatrix implements Serializable {
 
 	public void toFile(BufferedWriter hierarchyWriter) throws IOException {
 		String delimiter = ",";
-				
+
 		// Write Order to File
 		for (int i = 0; i < this.objectOrderbyID.length - 1; i++) {
 			hierarchyWriter.write(this.matrix[i].getID() + delimiter);
 		}
 		hierarchyWriter.write(this.matrix[this.objectOrderbyID.length - 1].getID() + "\n");
-		
+
 		IntOpenHashBigSet writtenClusters = new IntOpenHashBigSet();
-		
+
 		writtenClusters.add(0);
-		
+
 		// Write Hierarchy to File
 		for (double d : this.getDensities()) {
-			String output = "";
+
+			StringBuilder builder = new StringBuilder();
 
 			if (d == 0) {
 				break;
 			}
-			
-			int i = 0;				
+
+			int i = 0;
 			int cluster = this.getClusterID(i, d);
-			
+
 			while (writtenClusters.contains(cluster) && i < this.objectOrderbyID.length - 1) {
 				i++;
 				cluster = this.getClusterID(i, d);
 			}
-						
+
 			if (!writtenClusters.contains(cluster)) {
-				output += d + delimiter;
-				
-				output += cluster + ":" + i + "-";
+				builder.append(d + delimiter + cluster + ":" + i + "-");
 			}
-			
+
 			for (int p = i; p < this.objectOrderbyID.length; p++) {
 
 				int currentCluster = this.getClusterID(p, d);
-			
+
 				if (currentCluster != cluster) {
-					
+
 					// Noise || Ignored Cluster -> Noise || Ignored Cluster
 					if (writtenClusters.contains(cluster) && writtenClusters.contains(currentCluster)) {
 						cluster = currentCluster;
 						continue;
 					}
-					
+
 					// Cluster -> Noise || Ignored Cluster.
 					if (cluster != 0 && (currentCluster == 0 || writtenClusters.contains(currentCluster))) {
+						builder.append(p - 1);
 
-						output += Integer.toString(p - 1);
-						
-						writtenClusters.add(cluster);
+						//						writtenClusters.add(cluster);
 
 						cluster = currentCluster;
 
 					}
-					
+
 					// Cluster -> Cluster.
 					if (cluster != 0 && currentCluster != 0 && !writtenClusters.contains(currentCluster)) {
+						builder.append(p - 1);
 
-						output += Integer.toString(p - 1);
-						
-						writtenClusters.add(cluster);
-						
+						//						writtenClusters.add(cluster);
+
 						cluster = currentCluster;
-						
-						output += delimiter + cluster + ":" + p + "-";							
+
+						builder.append(delimiter + cluster + ":" + p + "-");
 					}
-					
+
 					// Noise || Ignored Cluster -> Cluster.
 					if (cluster == 0 && currentCluster != 0 && !writtenClusters.contains(currentCluster)) {
 						cluster = currentCluster;
-							
-						output += delimiter + cluster + ":" + p + "-";
+
+						builder.append(delimiter + cluster + ":" + p + "-");
 					}
 
 				}
-				
-				if (p == this.objectOrderbyID.length - 1 && !writtenClusters.contains(currentCluster)) {
-					output += Integer.toString(p);					
 
-					writtenClusters.add(cluster);
+				if (p == this.objectOrderbyID.length - 1 && !writtenClusters.contains(currentCluster)) {			
+					builder.append(Integer.toString(p));
+
+					//					writtenClusters.add(cluster);
 				}
 			}
-			
+			String output = builder.toString();
 			if (output != "") {
-				hierarchyWriter.write(output + "\n");				
-			}
-			
-			output = "";
+				hierarchyWriter.write(output + "\n");
+			}	
 		}
 	}
-	
+
 	public void print() {
 		System.out.println("Densities");
 		System.out.println(this.densities.toString());

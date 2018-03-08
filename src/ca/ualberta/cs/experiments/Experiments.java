@@ -81,7 +81,7 @@ public class Experiments {
 		WrapInt lineCount = new WrapInt(0);
 
 		try {
-			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minPts, true, null, 
+			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minPts, false, null, 
 					hierarchyFile, treeFile, separator, 
 					pointNoiseLevels, pointLastClusters, HDBSCANStarRunner.BOTH_OUT, HMatrix, lineCount);
 
@@ -111,21 +111,6 @@ public class Experiments {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		//		//Serializing .SHM
-		//		try {
-		//			Kryo kryo = new Kryo();
-		//
-		//			FileOutputStream outFile = new FileOutputStream(shmFile);
-		//			Output out = new Output(new DeflaterOutputStream(outFile, new Deflater(Deflater.BEST_SPEED, true)));
-		//
-		//			kryo.writeObject(out, SHM);
-		//			out.close();
-		//
-		//		} catch (Exception ex) {
-		//			System.out.println("An error occurred while saving the .shm file, please check disk space and permissions.");
-		//			System.exit(-1);
-		//		}
 		
 		writeMST(mst, mstFile);
 

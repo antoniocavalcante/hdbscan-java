@@ -2,6 +2,7 @@ package ca.ualberta.cs.hdbscanstar;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -327,10 +328,14 @@ public class HDBSCANStar implements Serializable {
 
 		BufferedWriter hierarchyWriter = null;
 		BufferedWriter treeWriter = null;
-		
+		BufferedWriter orderWriter = null;
+
+		String orderOutputFile = treeOutputFile.replace("tree", "order");
+
 		if (outType != HDBSCANStarRunner.SHM_OUT) {
 			hierarchyWriter = new BufferedWriter(new FileWriter(hierarchyOutputFile), FILE_BUFFER_SIZE);
 			treeWriter = new BufferedWriter(new FileWriter(treeOutputFile), FILE_BUFFER_SIZE);
+			orderWriter = new BufferedWriter(new FileWriter(orderOutputFile), FILE_BUFFER_SIZE);
 		}
 
 		long hierarchyCharsWritten = 0;
@@ -341,7 +346,7 @@ public class HDBSCANStar implements Serializable {
 
 		double[] lastValuesKeys = new double[mst.getNumVertices()];
 		int[] lastValuesValues = new int[mst.getNumVertices()];
-		
+
 		// If it outputs the .shm file, adding the objects to HMatrix structure.
 		if(outType != HDBSCANStarRunner.VIS_OUT) {
 			for(int id = 0; id < mst.getNumVertices(); id++) {
@@ -384,6 +389,8 @@ public class HDBSCANStar implements Serializable {
 		// Sets for the clusters and vertices that are affected by the edge(s) being removed.
 		LinkedList<Integer> affectedClusters = new LinkedList<Integer>();
 		LinkedList<Integer> affectedVertices = new LinkedList<Integer>();
+
+		long total = 0;
 
 		while(currentEdgeIndex >= 0) {
 			// Retrieves the largest edge weight in the current tree.
@@ -446,10 +453,8 @@ public class HDBSCANStar implements Serializable {
 				 * them noise.
 				 */
 
-
 				while (!examinedVertices.isEmpty()) {
 					IntOpenHashBigSet constructingSubCluster = new IntOpenHashBigSet();
-//					HashSet<Integer> constructingSubCluster = new HashSet<Integer>();
 
 					LinkedList<Integer> unexploredSubClusterPoints = new LinkedList<Integer>();
 					boolean anyEdges = false;
@@ -534,61 +539,27 @@ public class HDBSCANStar implements Serializable {
 					nextClusterLabel++;
 				}
 			}
+			long b = System.currentTimeMillis();
 
 			// Write out the current level of the hierarchy.
 			if (!compactHierarchy || nextLevelSignificant || !newClusters.isEmpty()) {
 
 				int outputLength = 0;
 
-//				String output = currentEdgeWeight + delimiter;
-//				if(!outType.equals(HDBSCANStarRunner.SHM_OUT)) hierarchyWriter.write(output);
-				
 				if(!outType.equals(HDBSCANStarRunner.VIS_OUT))
 				{
 					//updating densities
 					HMatrix.getDensities().add(currentEdgeWeight);
 				}
 
-//				outputLength+=output.length();
-				
-				for (int i = 0; i < previousClusterLabels.length-1; i++) {
-//					output = previousClusterLabels[i] + delimiter;
-					
-//					if(!outType.equals(HDBSCANStarRunner.SHM_OUT)) hierarchyWriter.write(output);
-					if(!outType.equals(HDBSCANStarRunner.VIS_OUT))
-					{
-						//checking if the cluster changed
-						Integer lastCluster = lastValuesValues[i];
-						if(previousClusterLabels[i] != lastCluster)
-						{	
-							// Updating Object i
-							HMatrix.getMatrix()[i].put(lastValuesKeys[i], lastCluster);
-														
-							if(lastCluster > HMatrix.getMaxClusterID())
-							{
-								HMatrix.setMaxClusterID(lastCluster);
-							}
-						}
+				for (int i = 0; i < previousClusterLabels.length; i++) {
 
-						// lastValues is updated anyway
-						lastValuesKeys[i] = currentEdgeWeight;
-						lastValuesValues[i] = previousClusterLabels[i];
-					}
-//					outputLength+=output.length();
-				}
-
-//				output = previousClusterLabels[previousClusterLabels.length-1] + "\n";
-//				if(!outType.equals(HDBSCANStarRunner.SHM_OUT)) hierarchyWriter.write(output);
-
-				// Last Column (i.e Object)
-				if(!outType.equals(HDBSCANStarRunner.VIS_OUT))
-				{
-					// Checking if the cluster changed
-					Integer lastCluster = lastValuesValues[previousClusterLabels.length-1];
-					if(previousClusterLabels[previousClusterLabels.length-1] != lastCluster)
+					//checking if the cluster changed
+					int lastCluster = lastValuesValues[i];
+					if(previousClusterLabels[i] != lastCluster)
 					{	
 						// Updating Object i
-						HMatrix.getMatrix()[previousClusterLabels.length-1].put(lastValuesKeys[previousClusterLabels.length-1], lastCluster);
+						HMatrix.matrix[i].put(lastValuesKeys[i], lastCluster);
 
 						if(lastCluster > HMatrix.getMaxClusterID())
 						{
@@ -597,17 +568,19 @@ public class HDBSCANStar implements Serializable {
 					}
 
 					// lastValues is updated anyway
-					lastValuesKeys[previousClusterLabels.length-1] = currentEdgeWeight;
-					lastValuesValues[previousClusterLabels.length-1] = previousClusterLabels[previousClusterLabels.length-1];
+					lastValuesKeys[i] = currentEdgeWeight;
+					lastValuesValues[i] = previousClusterLabels[i];
 				}
 
-
-//				outputLength += output.length();
+				// Update the order of the points to consider the current level just added.
+				HMatrix.lexicographicSortIgnoreNoiseDynamic(lastValuesValues, currentEdgeWeight, hierarchyWriter);
 
 				lineCount.inc();
 
 				hierarchyCharsWritten+=outputLength;
 			}
+
+			total = total + (System.currentTimeMillis() - b);
 
 			//Assign file offsets and calculate the number of constraints satisfied:
 			IntAVLTreeSet newClusterLabels = new IntAVLTreeSet();
@@ -623,7 +596,7 @@ public class HDBSCANStar implements Serializable {
 			for (int i = 0; i < previousClusterLabels.length; i++) {
 				previousClusterLabels[i] = currentClusterLabels[i];
 			}
-			
+
 			if (newClusters.isEmpty())
 				nextLevelSignificant = false;
 			else
@@ -640,19 +613,19 @@ public class HDBSCANStar implements Serializable {
 			for(int i = 0; i < HMatrix.getMatrix().length; i++) {
 				// Only updates if the clusterID isn't noise (i.e. different than 0)
 				if(lastValuesValues[i] != 0) {
-					HMatrix.getMatrix()[i].put(lastValuesKeys[i], lastValuesValues[i]);
+					HMatrix.matrix[i].put(lastValuesKeys[i], lastValuesValues[i]);
 				}
 
 				HMatrix.getMatrix()[i].put(0.0, 0);
 			}
 
-			// Sorting Hierarchy
-			HMatrix.lexicographicSortIgnoreNoise();
-			
-			// Store HMatrix in compact text file.
-			HMatrix.toFile(hierarchyWriter);
+
+			HMatrix.lexicographicSortIgnoreNoiseDynamic(lastValuesValues, 0.0, hierarchyWriter);
+
+			HMatrix.writeOrder(orderWriter);
+
 		}
-				
+
 		// Write out the cluster tree:
 		if(outType != HDBSCANStarRunner.SHM_OUT) {
 			for (Cluster cluster : clusters) {
@@ -682,64 +655,46 @@ public class HDBSCANStar implements Serializable {
 			}                       
 		}
 
-//		//Generating colors
-//		if(outType != HDBSCANStarRunner.VIS_OUT) {
-//			Color[] colors = new Color[HMatrix.getMaxClusterID()+1];
-//
-//			ArrayList<Double> colorAUX = new ArrayList<Double>(); //responsible for the time-to-live values of the colors
-//			int[] colorRNA = new int[HMatrix.getMaxClusterID()+1];          //responsible by assign the colorID to a cluster. The +1 is the noise value.
-//
-//			colorAUX.add(clusters.get(1).getDeathLevel());
-//			//colorRNA[0] is noise, so we start from index 1.
-//			colorRNA[1] = 0;
-//
-//			//the file has one line for each clusterID counting from 1
-//			for(int i = 2; i <= HMatrix.getMaxClusterID(); i++) {
-//				double bornVal = clusters.get(i).getBirthLevel();
-//				double deathVal = clusters.get(i).getDeathLevel();
-//
-//				colorRNA[i] = -1;
-//				// Given that exists a color to be reused, searches for the first one that can be reutilized.
-//				for(int j = 0; j < colorAUX.size(); j++) {
-//					if(colorAUX.get(j) > bornVal) {
-//						colorAUX.set(j, deathVal);
-//						colorRNA[i] = j;
-//						break;
-//					}    
-//				}
-//
-//				// If no color could be reused. Assigns to a new color.
-//				if(colorRNA[i] == -1) {
-//					colorAUX.add(deathVal);
-//					colorRNA[i] = colorAUX.size()-1;
-//				}
-//
-//			}
-//
-//			// Converting integers to actual colors.
-//
-//			// 0 is always noise and always white.
-//			colors[0] = (new Color(255,255,255));
-//			//dividing the space between the colors
-//			double step = (double)1/(colorAUX.size()+1);
-//
-//			for(int i = 1 ; i < colorRNA.length; i++) {
-//				colors[i] = (WaveLength.toRGB(step*colorRNA[i] + 0.5));
-//			}
-//
-//			HMatrix.setColor(colors);
-//		}
-//		// End color generation.
-
 		if(hierarchyWriter != null) {
 			hierarchyWriter.close();
 			treeWriter.close();
+			orderWriter.close();
 		}
-
+		
+		appendFiles(orderOutputFile, hierarchyOutputFile);
+		
 		return clusters;
 	}
 
+	public static void appendFiles(String orderOutputFile, String hierarchyOutputFile) throws IOException {
+		// Appends file "tmpFile" to the end of "permFile"
+		// Code adapted from:  https://www.daniweb.com/software-development/java/threads/44508/appending-two-java-text-files
 
+		try {
+			// create a writer for permFile
+			BufferedWriter out = new BufferedWriter(new FileWriter(orderOutputFile, true));
+
+			// create a reader for tmpFile
+			BufferedReader in = new BufferedReader(new FileReader(hierarchyOutputFile));
+			
+			String str;
+			
+			while ((str = in.readLine()) != null) {
+				out.write(str);
+				out.newLine();
+			}
+			
+			in.close();
+			out.close();
+			
+		} catch (IOException e) {
+		}
+		
+		File order = new File(orderOutputFile);
+        File hierarchy = new File(hierarchyOutputFile);
+        
+        order.renameTo(hierarchy);
+	}
 
 	/**
 	 * Propagates constraint satisfaction, stability, and lowest child death level from each child
@@ -894,7 +849,7 @@ public class HDBSCANStar implements Serializable {
 		HashMap<Integer, Cluster> elements = new HashMap<Integer, Cluster>();
 
 		for (Cluster cluster: solution) {
-			int lineIdx = matrix.getDensities().indexOf(clusters.get(cluster.getLabel()).getBirthLevel()) +1;
+			long lineIdx = matrix.getDensities().indexOf(clusters.get(cluster.getLabel()).getBirthLevel()) +1;
 			double firstLine = matrix.getDensity(lineIdx);
 
 			IntOpenHashBigSet clusterList = significantLevels.get(firstLine);
@@ -1000,7 +955,7 @@ public class HDBSCANStar implements Serializable {
 		TreeMap<Double, IntAVLTreeSet> splitLevels = new TreeMap<Double, IntAVLTreeSet>();
 
 		for (int i = 2; i < clusters.size(); i++) {
-			int lineIdx = matrix.getDensities().indexOf(clusters.get(i).getBirthLevel()) +1;
+			long lineIdx = matrix.getDensities().indexOf(clusters.get(i).getBirthLevel()) +1;
 			Double firstLine = matrix.getDensity(lineIdx);
 
 			IntAVLTreeSet clusterList = splitLevels.get(firstLine);

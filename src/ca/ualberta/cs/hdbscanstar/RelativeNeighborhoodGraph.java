@@ -142,8 +142,8 @@ public class RelativeNeighborhoodGraph {
 		}
 
 		// Builds the Fair Split Tree T from dataSet.
-		FairSplitTree T = FairSplitTree.build(this.dataSet, this.coreDistances, this.k);
-
+		FairSplitTree T = FairSplitTree.build(this.dataSet, this.coreDistances, this.k, this.distanceFunction);
+				
 		// Finds all the Well-separated Pairs from T.
 		findWSPD(T, s, method);
 
@@ -566,7 +566,7 @@ public class RelativeNeighborhoodGraph {
 	 * @return
 	 */
 	private static boolean separated(FairSplitTree T1, FairSplitTree T2, double s, String method) {
-
+		
 		if (T1.id == T2.id) {
 			return false;
 		}

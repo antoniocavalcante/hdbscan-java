@@ -13,7 +13,6 @@ import java.util.Collection;
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
-import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.util.KdTree;
 
 public class CoreDistances {
@@ -87,8 +86,6 @@ public class CoreDistances {
 		double[][] coreDistances = new double[dataSet.length][numNeighbors];
 		Integer[][] kNN = new Integer[dataSet.length][numNeighbors];
 
-		IncrementalHDBSCANStar.k = k;
-
 		if (k == 1) {
 
 			for (int point = 0; point < dataSet.length; point++) {
@@ -151,8 +148,6 @@ public class CoreDistances {
 		int numNeighbors = k;
 		double[][] coreDistances = new double[dataSet.length][numNeighbors];
 		Integer[][] kNN = new Integer[dataSet.length][numNeighbors];
-
-		IncrementalHDBSCANStar.k = k;
 		
 		if (k == 1) {
 

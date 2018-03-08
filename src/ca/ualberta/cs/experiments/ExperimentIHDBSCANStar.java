@@ -2,11 +2,13 @@ package ca.ualberta.cs.experiments;
 
 import java.io.IOException;
 
-import ca.ualberta.cs.distance.EuclideanDistance;
+import ca.ualberta.cs.SHM.HMatrix.HMatrix;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
+import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner;
 import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
+import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner.HDBSCANStarParameters;
 import ca.ualberta.cs.main.Prim;
 
 public class ExperimentIHDBSCANStar {
@@ -14,30 +16,39 @@ public class ExperimentIHDBSCANStar {
 	public static void main(String[] args) {
 		long start, end, duration;
 		
-		double[][] dataSet = null;
+//		Structure SHM = new Structure();
+		HMatrix HMatrix = new HMatrix();
 
+		//Parse input parameters from program arguments:
+		HDBSCANStarParameters parameters = HDBSCANStarRunner.checkInputParameters(args, HMatrix);
+		
+		String inputFile = parameters.inputFile.split("/")[parameters.inputFile.split("/").length - 1];
+		
+		double[][] dataSet = null;
+		
 		try {
-			dataSet = HDBSCANStar.readInDataSet(args[0], ",");
-		}
-		catch (IOException ioe) {
+			dataSet = HDBSCANStar.readInDataSet(parameters.inputFile, ",");
+		} catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
 			System.out.println(ioe.toString());
 			System.exit(-1);
 		}
+				
+//		int minPoints = Integer.parseInt(args[1]);
+		int minPoints = parameters.minPoints;
 		
-		String inputFile = args[0].split("/")[args[0].split("/").length - 1];
-			
-		int minPoints = Integer.parseInt(args[1]);
 		if (minPoints > dataSet.length) {	
 			minPoints = dataSet.length;
 		}
 
 		// Prints data set, minPoints, Run
-		System.out.print(args[0] + " " + args[1] + " " + args[2]);
+		// System.out.print(args[0] + " " + args[1] + " " + args[2]);
+		System.out.print(parameters.inputFile + " " + parameters.minPoints + " " + parameters.runNumber);
 		
 		// Computes all the core-distances from 1 to minPoints
+
 		long startcore = System.currentTimeMillis();
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, parameters.minPoints, parameters.distanceFunction);
 		System.out.print(" " + (System.currentTimeMillis() - startcore));
 		
 //		double[][] coreDistances = null;
@@ -54,13 +65,17 @@ public class ExperimentIHDBSCANStar {
 //			e.printStackTrace();
 //		}
 		
-		IncrementalHDBSCANStar.k = Integer.parseInt(args[1]);
-		
+//		IncrementalHDBSCANStar.k = Integer.parseInt(args[1]);
+				
 		start = System.currentTimeMillis();
 		
 		// Computes the RNG
 		long startRNG = System.currentTimeMillis();
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, minPoints, Boolean.parseBoolean(args[3]), Boolean.parseBoolean(args[4]), Boolean.parseBoolean(args[5]), Boolean.parseBoolean(args[6]));
+
+		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, 
+				parameters.distanceFunction, parameters.minPoints, parameters.RNGSmart, 
+				parameters.RNGNaive, parameters.RNGIncremental, parameters.index);
+		
 		System.out.print(" " + (System.currentTimeMillis() - startRNG));
 		
 		// Constructs all the the MSTs.
@@ -69,20 +84,15 @@ public class ExperimentIHDBSCANStar {
 		
 		long s = 0;
 		
-		for (int k = minPoints; k > 1; k--) {
+		for (int k = parameters.minPoints; k > 1; k--) {
 			
 			s = System.currentTimeMillis();
 			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, RNG);			
 			mst.quicksortByEdgeWeight();
 			mstTime += (System.currentTimeMillis() - s);
-
-//			if (k == 5) {
-//				for (int i = 0; i < mst.getNumEdges(); i++) {
-//					System.out.println(mst.getEdgeWeightAtIndex(i));
-//				}				
-//			}			
+		
 			s = System.currentTimeMillis();
-			if (Boolean.parseBoolean(args[7])) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "RNG_" + inputFile, k);
+			if (parameters.outputFiles) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "RNG_" + inputFile, k);
 			hierarchyTime += (System.currentTimeMillis() - s);			
 		}
 		

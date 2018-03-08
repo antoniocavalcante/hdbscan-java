@@ -114,7 +114,7 @@ public class ObjInstance implements Serializable {
 				return this.clusterID.getInt(middle);
 			}
 			
-			if (d < this.densityLevels.getDouble(middle) && d > this.densityLevels.getDouble(middle + 1)) {				
+			if (d < this.densityLevels.getDouble(middle) && d > this.densityLevels.getDouble(Math.min(middle + 1, hi))) {				
 				return this.clusterID.getInt(middle + 1);
 			}
 			
@@ -130,7 +130,7 @@ public class ObjInstance implements Serializable {
 		}
 
 		return this.clusterID.getInt(middle);
-	}	
+	}
 	
 	public void put(double density, int clusterID) {
 		this.densityLevels.add(density);
