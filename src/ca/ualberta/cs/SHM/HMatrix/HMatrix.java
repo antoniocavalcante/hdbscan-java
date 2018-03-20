@@ -74,6 +74,9 @@ public class HMatrix implements Serializable {
 	public void setHMatrix(int n) {
 		this.matrix = new ObjInstance[n];
 		this.objectOrderbyID = new int[n];
+		
+		this.level.add(0);
+		this.level.add(n-1);
 	}
 
 	public void setVisParams(String inputFile, int minClSize, int minPts, String distanceFunction, boolean distanceMatrixUsed, boolean isCompact) {
@@ -121,6 +124,10 @@ public class HMatrix implements Serializable {
 		return this.objectOrderbyID[ID];
 	}
 
+	public int getIDByPosition(int position) {
+		return this.matrix[position].getID();
+	}
+	
 	public void setIsShaved(boolean shaved) {
 		this.isShaved = shaved;
 	}
@@ -309,96 +316,47 @@ public class HMatrix implements Serializable {
 	}
 	
 	public IntBigArrayBigList toFileDynamic(int[] labels, double d, BufferedWriter hierarchyWriter) throws IOException {
-		
-//		ArrayList<Integer> level = new ArrayList<Integer>();
-		
+
 		IntBigArrayBigList level = new IntBigArrayBigList();
 		
 		String delimiter = ",";
 
-		IntOpenHashBigSet writtenClusters = new IntOpenHashBigSet();
-
-		writtenClusters.add(0);
-
-		// Write Hierarchy Level to File
-
 		StringBuilder builder = new StringBuilder();
 
-		int i = 0;
-		int cluster = labels[this.matrix[i].getID()];
+		builder.append(d);
 
-		int start = Integer.MIN_VALUE;
-		int end   = Integer.MAX_VALUE;
-		
-		while (writtenClusters.contains(cluster) && i < this.objectOrderbyID.length - 1) {
-			i++;
-			cluster = labels[this.matrix[i].getID()];
-		}
+		for (int j = 0; j < this.level.size64(); j += 2) {
 
-		if (!writtenClusters.contains(cluster)) {
-			builder.append(d + delimiter + cluster + ":" + i + "-");
-			level.add(i);
-		}
-
-		for (int p = i; p < this.matrix.length; p++) {
-
-			int currentCluster = labels[this.matrix[p].getID()];
+			int s = this.level.getInt(j);
+			int e = this.level.getInt(j+1);
 			
-			if (currentCluster != cluster) {
+			// Case where the cluster hasn't changed from previous level OR it's the first level.
+//			if (labels[getIDByPosition(s)] == labels[getIDByPosition(e)]) {
+//				// Checks if this is the root of the hierarchy.
+//				if (labels[getIDByPosition(s)] != 1) {
+//					level.add(s);
+//					level.add(e);
+//					continue;
+//				}
+//			}
 
-				// Noise || Ignored Cluster -> Noise || Ignored Cluster
-				if (writtenClusters.contains(cluster) && writtenClusters.contains(currentCluster)) {
-					cluster = currentCluster;
-					continue;
-				}
+			int last = -1;
+
+			while (s < e) {
 				
-				// End of a cluster
-				// Cluster -> Noise || Ignored Cluster.
-				if (cluster != 0 && (currentCluster == 0 || writtenClusters.contains(currentCluster))) {
-					builder.append(p - 1);
-					level.add(p - 1);
-					end = p - 1;
+				if (labels[getIDByPosition(s)] != 0) {
+					last = last(labels, s, e, labels[getIDByPosition(s)], labels.length);
 					
-					// Check if the cluster has been added in a previous level.
-//					if (!hasReachabilities) {
-//						builder.append(cluster);
-//					}
+					// Add to the string builder and to the current level.
+					builder.append(delimiter + labels[getIDByPosition(s)] + ":" + s + "-" + last);
+
+					level.add(s);
+					level.add(last);
 					
-					//						writtenClusters.add(cluster);
-
-					cluster = currentCluster;
-
+					s = last + 1;
+				} else {
+					s = s + 1;
 				}
-
-				// End of a cluster, beginning of another cluster.
-				// Cluster -> Cluster.
-				if (cluster != 0 && currentCluster != 0 && !writtenClusters.contains(currentCluster)) {
-					builder.append(p - 1);
-					level.add(p-1);
-					
-					//						writtenClusters.add(cluster);
-
-					cluster = currentCluster;
-
-					builder.append(delimiter + cluster + ":" + p + "-");
-					level.add(p);
-				}
-
-				// Beginning of a cluster.
-				// Noise || Ignored Cluster -> Cluster.
-				if (cluster == 0 && currentCluster != 0 && !writtenClusters.contains(currentCluster)) {
-					cluster = currentCluster;
-
-					builder.append(delimiter + cluster + ":" + p + "-");
-					level.add(p);
-				}
-
-			}
-
-			if (p == this.matrix.length - 1 && !writtenClusters.contains(currentCluster)) {			
-				builder.append(Integer.toString(p));
-				level.add(p);
-				//					writtenClusters.add(cluster);
 			}
 		}
 		
@@ -406,27 +364,30 @@ public class HMatrix implements Serializable {
 		if (output != "") {
 			hierarchyWriter.write(output + "\n");
 		}
-		
+
 		return level;
 	}
 
-	
-	public boolean changed(int start, int end) {
-		for (int i = 0; i < this.level.size64(); i = i + 2) {
-			
-			if (this.level.getInt(i) > start) {
-				break;
-			}
-			
-			if (this.level.getInt(i) == start && this.level.getInt(i+1) == end) {
-				return false;
-			}
-			
-		}
-		
-		return true;
-	}
+    
+	public int last(int arr[], int low, int high, int x, int n) {
 
+		if (high >= low) {
+            
+			int mid = low + (high - low)/2;
+			
+	        if (mid == high)
+	        	return mid;	        
+			if (( mid == n-1 || x < arr[getIDByPosition(mid+1)] || arr[getIDByPosition(mid+1)] == 0) && arr[getIDByPosition(mid)] == x)
+                 return mid;
+            else if (x < arr[getIDByPosition(mid)] || arr[getIDByPosition(mid)] == 0)
+                return last(arr, low, (mid - 1), x, n);
+            else
+                return last(arr, (mid + 1), high, x, n);
+        }
+        
+        return -1;
+    }
+	
 	
 	// This method is called to clear both matrix and densities data structures.
 	public void clearAll() {
