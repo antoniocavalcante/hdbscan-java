@@ -19,7 +19,6 @@ import java.awt.Color;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -283,8 +282,16 @@ public class HMatrix implements Serializable {
 					int l1 = labels[o1.getID()];
 					int l2 = labels[o2.getID()];
 
+//					if (l1 == 0 || l2 == 0) {
+//						if (o1.getID() < o2.getID()) return -1;
+//						if (o1.getID() > o2.getID()) return  1;
+//					}
+					
 					if (l1 < l2) return -1;
-					if (l1 > l2) return 1;						
+					if (l1 > l2) return  1;		
+					
+					if (o1.getID() < o2.getID()) return -1;
+					if (o1.getID() > o2.getID()) return  1;
 
 					return 0;
 				}

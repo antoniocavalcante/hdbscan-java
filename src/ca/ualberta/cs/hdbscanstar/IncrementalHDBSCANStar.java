@@ -94,7 +94,7 @@ public class IncrementalHDBSCANStar {
 	 * @param distanceFunction A DistanceCalculator to compute distances between points
 	 * @return An array of core distances
 	 */
-	public static double[][] calculateCoreDistances(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
+	public static double[][] calculateCoreDistancesUseless(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
 		int numNeighbors = k;
 
 		double[][] coreDistances = new double[dataSet.length][numNeighbors];

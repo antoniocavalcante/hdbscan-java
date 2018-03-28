@@ -1,16 +1,20 @@
 package ca.ualberta.cs.experiments;
 
 import java.io.IOException;
+
+import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
-import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
+import ca.ualberta.cs.main.CoreDistances;
 
 
 public class ExperimentMST {
 	
 	public static void main(String[] args) throws IOException {
 		long start, end, duration;
+		
+		DistanceCalculator distanceFunction = new EuclideanDistance();
 		
 		double[][] dataSet = null;
 
@@ -36,12 +40,12 @@ public class ExperimentMST {
 		
 		// Computes all the core-distances from 1 to minPoints
 		long startcore = System.currentTimeMillis();
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, minPoints, distanceFunction);
+
 		System.out.print(" " + (System.currentTimeMillis() - startcore));
 		
-		//  Constructs the MST w.r.t Euclidean Distance (e.g. minPoints = 1)
 		long startmst = System.currentTimeMillis();
-		UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, 1, false, new EuclideanDistance());
+		UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, 1, false, distanceFunction);
 		mst.quicksortByEdgeWeight();
 		System.out.print(" " + (System.currentTimeMillis() - startmst));
 
@@ -54,7 +58,7 @@ public class ExperimentMST {
 			Experiments.writeMSTweight("MST", inputFile, k, mst);
 			
 			if (Boolean.parseBoolean(args[3])) {
-				Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "MST_" + inputFile, k);
+				Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "MST_" + inputFile, k, false);
 				mst.restoreEdges();
 			}
 		}

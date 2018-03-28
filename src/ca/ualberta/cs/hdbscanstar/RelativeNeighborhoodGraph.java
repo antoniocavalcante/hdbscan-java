@@ -6,6 +6,7 @@ import java.util.Stack;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
+import ca.ualberta.cs.main.CoreDistances;
 import ca.ualberta.cs.util.FairSplitTree;
 import ca.ualberta.cs.util.KdTree;
 import ca.ualberta.cs.util.PairInt;
@@ -202,12 +203,12 @@ public class RelativeNeighborhoodGraph {
 			// Check if the points are in each other's k-neighborhood.
 			if (w == Math.max(cdA, cdB)) {
 
-				int[] kNN;
+				Integer[] kNN;
 
 				if (cdA > cdB) {
-					kNN = IncrementalHDBSCANStar.kNN[a];
+					kNN = CoreDistances.kNN[a];
 				} else {
-					kNN = IncrementalHDBSCANStar.kNN[b];
+					kNN = CoreDistances.kNN[b];
 				}
 
 				for (int i = 0; i < kNN.length; i++) {
@@ -225,8 +226,8 @@ public class RelativeNeighborhoodGraph {
 				return true;
 			}
 
-			int[] kNNa = IncrementalHDBSCANStar.kNN[a];
-			int[] kNNb = IncrementalHDBSCANStar.kNN[b];
+			Integer[] kNNa = CoreDistances.kNN[a];
+			Integer[] kNNb = CoreDistances.kNN[b];
 
 			for (int i = 0; i < kNNa.length; i++) {
 

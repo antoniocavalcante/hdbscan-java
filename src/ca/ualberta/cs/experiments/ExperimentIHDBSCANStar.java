@@ -5,10 +5,10 @@ import java.io.IOException;
 import ca.ualberta.cs.SHM.HMatrix.HMatrix;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner;
-import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner.HDBSCANStarParameters;
+import ca.ualberta.cs.main.CoreDistances;
 import ca.ualberta.cs.main.Prim;
 
 public class ExperimentIHDBSCANStar {
@@ -48,7 +48,7 @@ public class ExperimentIHDBSCANStar {
 		// Computes all the core-distances from 1 to minPoints
 
 		long startcore = System.currentTimeMillis();
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, parameters.minPoints, parameters.distanceFunction);
+		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, parameters.minPoints, parameters.distanceFunction);
 		System.out.print(" " + (System.currentTimeMillis() - startcore));
 		
 //		double[][] coreDistances = null;
@@ -92,7 +92,7 @@ public class ExperimentIHDBSCANStar {
 			mstTime += (System.currentTimeMillis() - s);
 		
 			s = System.currentTimeMillis();
-			if (parameters.outputFiles) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "RNG_" + inputFile, k);
+			if (parameters.outputFiles) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "RNG_" + inputFile, k, parameters.compactHierarchy);
 			hierarchyTime += (System.currentTimeMillis() - s);			
 		}
 		

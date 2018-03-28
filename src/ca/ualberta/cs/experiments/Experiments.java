@@ -47,7 +47,7 @@ public class Experiments {
 	}
 
 	@SuppressWarnings("unused")
-	public static void computeOutputFiles(double[][] dataSet, double[][] coreDistances, UndirectedGraph mst, int minPts, String inputFile, int label) {
+	public static void computeOutputFiles(double[][] dataSet, double[][] coreDistances, UndirectedGraph mst, int minPts, String inputFile, int label, boolean compactHierarchy) {
 
 		int numPoints = dataSet.length;
 
@@ -62,8 +62,14 @@ public class Experiments {
 		int[] pointLastClusters = new int[numPoints];
 
 		ArrayList<Cluster> clusters = null;
-
-		String hierarchyFile = outputPrefix + ".hierarchy";
+		
+		String hierarchyFile;
+		
+		if (compactHierarchy) {
+			hierarchyFile = outputPrefix + ".chierarchy";
+		} else {
+			hierarchyFile = outputPrefix + ".hierarchy";
+		}
 		String treeFile = outputPrefix + ".tree";
 		String visFile = outputPrefix + ".vis";
 		String shmFile = outputPrefix + ".shm";
@@ -81,7 +87,7 @@ public class Experiments {
 		WrapInt lineCount = new WrapInt(0);
 
 		try {
-			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minPts, false, null, 
+			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minPts, compactHierarchy, null, 
 					hierarchyFile, treeFile, separator, 
 					pointNoiseLevels, pointLastClusters, HDBSCANStarRunner.BOTH_OUT, HMatrix, lineCount);
 

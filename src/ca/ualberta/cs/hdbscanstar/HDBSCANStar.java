@@ -517,7 +517,7 @@ public class HDBSCANStar implements Serializable {
 							pointNoiseLevels[point] = currentEdgeWeight;
 							pointLastClusters[point] = examinedClusterLabel;
 						}
-					}					
+					}
 				}
 
 				// Finish exploring and cluster the first child cluster if there was a split and it was not already clustered:

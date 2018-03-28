@@ -8,10 +8,10 @@ import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.experiments.Experiments;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
-import ca.ualberta.cs.hdbscanstar.IncrementalHDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.MergeHierarchies;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
+import ca.ualberta.cs.main.CoreDistances;
 import ca.ualberta.cs.main.Prim;
 import ca.ualberta.cs.util.KdTree;
 
@@ -212,8 +212,8 @@ public class Test {
 	
 	public static void mergeHierarchies(double[][] dataSet, int k){
 		
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, k, new EuclideanDistance());
-				
+		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, k, new EuclideanDistance());
+		
 		UndirectedGraph[] MSTs = new UndirectedGraph[k];
 		
 		// Compute RNG.
@@ -226,7 +226,7 @@ public class Test {
 			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, i, false, RNG);
 			mst.quicksortByEdgeWeight();
 			MSTs[i] = mst;
-			Experiments.computeOutputFiles(dataSet, coreDistances, mst, i, inputFile, i);
+			Experiments.computeOutputFiles(dataSet, coreDistances, mst, i, inputFile, i, false);
 		}
 		
 		new MergeHierarchies(dataSet.length);
@@ -237,7 +237,7 @@ public class Test {
 		// Compute MST from resulting graph and extract partitioning from it.
 		UndirectedGraph mst = MergeHierarchies.constructMST(MergeHierarchies.G);
 		MSTs[0] = mst;
-		Experiments.computeOutputFiles(dataSet, coreDistances, mst, 2, inputFile, 0);
+		Experiments.computeOutputFiles(dataSet, coreDistances, mst, 2, inputFile, 0, false);
 	}
 	
 	public static void printData(double[][] dataSet){
@@ -251,7 +251,7 @@ public class Test {
 	}
 	
 	public static void coreDistances(double[][] dataSet, int k){
-		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, k, new EuclideanDistance());
+		double[][] coreDistances2 = CoreDistances.calculateCoreDistances(dataSet, k, new EuclideanDistance());
 
 		for (int j = 1; j <= k; j++) {
 			double[] coreDistances = HDBSCANStar.calculateCoreDistances(dataSet, j, new EuclideanDistance());
@@ -281,14 +281,14 @@ public class Test {
 		/*
 		 * Prim's Algorithm from the Mutual Reachability Graph 
 		 */
-		double[][] coreDistances1 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
+		double[][] coreDistances1 = CoreDistances.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		UndirectedGraph mst1 = HDBSCANStar.constructMST(dataSet, coreDistances1,  maxK, false, new EuclideanDistance());
 		mst1.quicksortByEdgeWeight();
 
 		/*
 		 * Kruskal from the Relative Neighborhood Graph 
 		 */
-		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
+		double[][] coreDistances2 = CoreDistances.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances2, new EuclideanDistance(), maxK, smartFilter, naiveFilter, incremental, index);
 		UndirectedGraph mst2 = Prim.constructMST(dataSet, coreDistances2, maxK, false, RNG);
 		mst2.quicksortByEdgeWeight();
@@ -342,7 +342,7 @@ public class Test {
 	
 	@SuppressWarnings("unused")
 	public static void correctnessRNG(double[][] dataSet, int maxK, boolean incremental, boolean index){
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
+		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 
 		System.out.println("-----------------------------");
 		System.out.println("   core-distances computed   ");
@@ -403,7 +403,7 @@ public class Test {
 	}
 
 	public static void performanceRNG(double[][] dataSet, int maxK, boolean incremental, boolean index){
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
+		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		
 		System.out.println("-----------------------------");
 		System.out.println("   core-distances computed   ");
@@ -464,7 +464,7 @@ public class Test {
 	}
 
 	public static void performanceRNGMSTs(double[][] dataSet, int maxK, boolean incremental, boolean compare, boolean index){
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
+		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		
 		System.out.println("-----------------------------");
 		System.out.println("   core-distances computed   ");
@@ -575,7 +575,7 @@ public class Test {
 		System.out.println("RNG COMPUTATION");
 		
 		start = System.currentTimeMillis();
-		double[][] coreDistances2 = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
+		double[][] coreDistances2 = CoreDistances.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
 
 		start = System.currentTimeMillis();
@@ -616,7 +616,7 @@ public class Test {
 		System.out.println("Incremental HDBSCAN*");
 				
 		long start = System.currentTimeMillis();
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
+		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		System.out.println("Core Distances: " + (System.currentTimeMillis() - start));
 
 		long start1 = System.currentTimeMillis();
