@@ -17,7 +17,7 @@ public class KdTree {
 
 	public KdNode root = null;
 
-	public static double[][] points;
+	public static Dataset points;
 
 	public static int axis = 0;
 
@@ -33,8 +33,8 @@ public class KdTree {
 		 */
 		@Override
 		public int compare(Integer o1, Integer o2) {
-			if (points[o1][axis] < points[o2][axis]) return -1;
-			if (points[o1][axis] > points[o2][axis]) return 1;
+			if (points.get(o1, axis) < points.get(o2, axis)) return -1;
+			if (points.get(o1, axis) > points.get(o2, axis)) return 1;
 			return 0;
 		}
 	};
@@ -61,13 +61,13 @@ public class KdTree {
 	 * 
 	 * @param list of XYZPoints.
 	 */
-	public KdTree(double[][] list) {
+	public KdTree(Dataset list) {
 		points = list;
-		this.d = list[0].length;
+		this.d = list.dimensions();
 
 		List<Integer> l = new ArrayList<Integer>();
 
-		for (int i = 0; i < list.length; i++) {
+		for (int i = 0; i < list.length(); i++) {
 			l.add(i);
 		}
 
@@ -79,15 +79,15 @@ public class KdTree {
 	 * 
 	 * @param list of XYZPoints.
 	 */
-	public KdTree(double[][] list, int leafsize) {
+	public KdTree(Dataset list, int leafsize) {
 		points = list;
-		this.d = list[0].length;
+		this.d = points.length();
 
 		KdTree.leafsize = leafsize;
 
 		List<Integer> l = new ArrayList<Integer>();
 
-		for (int i = 0; i < list.length; i++) {
+		for (int i = 0; i < points.length(); i++) {
 			l.add(i);
 		}
 
@@ -344,7 +344,7 @@ public class KdTree {
 
 		if (leaf != null) {
 			//Used to not re-examine nodes
-			BitSet examined = new BitSet(points.length);
+			BitSet examined = new BitSet(points.length());
 
 			//Go up the tree, looking for better solutions
 			node = leaf;
@@ -380,7 +380,7 @@ public class KdTree {
 			lastDistance = lastNode.distance;
 		}
 
-		double nodeDistance = euclidean.computeDistance(points[node.id], points[value]);
+		double nodeDistance = euclidean.computeDistance(points.row(node.id), points.row(value));
 
 		if (nodeDistance < lastDistance) {
 			if (results.size() == K && lastNode != null) results.remove(lastNode);
@@ -398,7 +398,7 @@ public class KdTree {
 					lastDistance = lastNode.distance;
 				}
 
-				nodeDistance = euclidean.computeDistance(points[i], points[value]);
+				nodeDistance = euclidean.computeDistance(points.row(i), points.row(value));
 
 				if (nodeDistance < lastDistance) {
 					if (results.size() == K && lastNode != null) results.remove(lastNode);
@@ -423,8 +423,8 @@ public class KdTree {
 		if (lesser != null && !examined.get(lesser.id)) {
 			examined.set(lesser.id);
 
-			double p1 = points[node.id][axis];
-			double p2 = points[value][axis] - lastDistance;
+			double p1 = points.get(node.id, axis);
+			double p2 = points.get(value, axis) - lastDistance;
 
 			boolean lineIntersectsCube = ((p2 <= p1) ? true : false);
 
@@ -435,8 +435,8 @@ public class KdTree {
 		if (greater != null && !examined.get(greater.id)) {
 			examined.set(greater.id);
 
-			double p1 = points[node.id][axis];
-			double p2 = points[value][axis] + lastDistance;
+			double p1 = points.get(node.id, axis);
+			double p2 = points.get(value, axis) + lastDistance;
 
 			boolean lineIntersectsCube = ((p2 >= p1) ? true : false);
 
@@ -456,7 +456,7 @@ public class KdTree {
 	}
 
 	public Collection<Integer> range(int value, double eps) {
-		return range(points[value], eps);
+		return range(points.row(value), eps);
 	}
 
 	public boolean empty(double[] value, double eps) {
@@ -469,13 +469,13 @@ public class KdTree {
 		while (!queue.isEmpty()) {
 
 			double axisDistance = -1;
-			double rootDistance = euclidean.computeDistance(value, points[root.id]);
+			double rootDistance = euclidean.computeDistance(value, points.row(root.id));
 
 			int axis = root.depth % root.k;
 			KdNode lesser = root.lesser;
 			KdNode greater = root.greater;
 
-			axisDistance = Math.abs(points[root.id][axis] - value[axis]);
+			axisDistance = Math.abs(points.get(root.id, axis) - value[axis]);
 
 			if (lesser == null || greater == null) {
 
@@ -495,11 +495,11 @@ public class KdTree {
 					queue.add(greater);
 				} else {
 
-					if(value[axis] > points[root.id][axis]) {
+					if(value[axis] > points.get(root.id, axis)) {
 						queue.add(greater);
-					} else if (value[axis] < points[root.id][axis]) {
+					} else if (value[axis] < points.get(root.id, axis)) {
 						queue.add(lesser);
-					} else if (value[axis] == points[root.id][axis]) {
+					} else if (value[axis] == points.get(root.id, axis)) {
 						queue.add(lesser);
 						queue.add(greater);
 					}
@@ -516,13 +516,13 @@ public class KdTree {
 		EuclideanDistance euclidean = new EuclideanDistance();
 
 		double axisDistance = -1;
-		double rootDistance = euclidean.computeDistance(value, points[root.id]);
+		double rootDistance = euclidean.computeDistance(value, points.row(root.id));
 
 		int axis = root.depth % root.k;
 		KdNode lesser = root.lesser;
 		KdNode greater = root.greater;
 
-		axisDistance = Math.abs(points[root.id][axis] - value[axis]);
+		axisDistance = Math.abs(points.get(root.id, axis) - value[axis]);
 
 		if (lesser == null && greater == null) {
 
@@ -531,7 +531,7 @@ public class KdTree {
 			}
 
 			for (int i : root.bucket) {
-				if (euclidean.computeDistance(value, points[i]) < eps) {
+				if (euclidean.computeDistance(value, points.row(i)) < eps) {
 					results.add(i);
 				}
 			}
@@ -548,11 +548,11 @@ public class KdTree {
 				if (greater != null) searchNodeRangeRecursive(value, eps, greater, results);
 
 			} else {
-				if(value[axis] > points[root.id][axis]) {
+				if(value[axis] > points.get(root.id, axis)) {
 					if (greater != null) searchNodeRangeRecursive(value, eps, greater, results);
-				} else if (value[axis] < points[root.id][axis]) {
+				} else if (value[axis] < points.get(root.id, axis)) {
 					if (lesser  != null) searchNodeRangeRecursive(value, eps, lesser,  results);
-				} else if (value[axis] == points[root.id][axis]) {
+				} else if (value[axis] == points.get(root.id, axis)) {
 					if (lesser  != null) searchNodeRangeRecursive(value, eps, lesser,  results);
 					if (greater != null) searchNodeRangeRecursive(value, eps, greater, results);		
 				}
@@ -562,11 +562,11 @@ public class KdTree {
 
 
 	public boolean emptyLune(int a, int b, double eps) {
-		Collection<Integer> neighborsA = range(points[a], eps);
+		Collection<Integer> neighborsA = range(points.row(a), eps);
 		neighborsA.remove(b);
 		if (neighborsA.isEmpty()) return true;
 		
-		Collection<Integer> neighborsB = range(points[b], eps);
+		Collection<Integer> neighborsB = range(points.row(b), eps);
 		neighborsB.remove(a);
 		if (neighborsB.isEmpty()) return true;
 
@@ -576,8 +576,8 @@ public class KdTree {
 
 	public Collection<Integer> lune(int a, int b, double eps) {
 
-		Collection<Integer> neighborsA = range(points[a], eps);
-		Collection<Integer> neighborsB = range(points[b], eps);
+		Collection<Integer> neighborsA = range(points.row(a), eps);
+		Collection<Integer> neighborsB = range(points.row(b), eps);
 
 		//		System.out.println(neighborsA);
 		//		
@@ -613,13 +613,13 @@ public class KdTree {
 		public int compare(KdNode o1, KdNode o2) {
 			EuclideanDistance euclidean = new EuclideanDistance();
 
-			Double d1 = euclidean.computeDistance(points[point], points[o1.id]);
-			Double d2 = euclidean.computeDistance(points[point], points[o2.id]);
+			Double d1 = euclidean.computeDistance(points.row(point), points.row(o1.id));
+			Double d2 = euclidean.computeDistance(points.row(point), points.row(o2.id));
 
 			if (d1.compareTo(d2)<0) return -1;
 			else if (d2.compareTo(d1)<0) return 1;
 
-			return compareTo(points[o1.id], points[o2.id]);
+			return compareTo(points.row(o1.id), points.row(o2.id));
 		}
 	};
 
@@ -631,7 +631,7 @@ public class KdTree {
 			if (o1.distance < o2.distance) return -1;
 			else if (o1.distance > o2.distance) return 1;
 
-			return compareTo(points[o1.id], points[o2.id]);
+			return compareTo(points.row(o1.id), points.row(o2.id));
 		}
 	};
 

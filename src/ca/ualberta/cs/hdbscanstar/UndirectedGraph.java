@@ -3,6 +3,7 @@ package ca.ualberta.cs.hdbscanstar;
 import java.util.ArrayList;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
+import ca.ualberta.cs.util.Dataset;
 
 /**
  * An undirected graph, with weights assigned to each edge.  Vertices in the graph are 0 indexed.
@@ -210,7 +211,7 @@ public class UndirectedGraph implements java.io.Serializable {
 	 * @param distanceFunction
 	 * @param k
 	 */
-	public void updateWeights(double[][] dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
+	public void updateWeights(Dataset dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		for (int i = 0; i < getNumEdges(); i++) {
 			this.edgeWeights[i] = RelativeNeighborhoodGraph.mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, this.verticesA[i], this.verticesB[i], k);
 		}

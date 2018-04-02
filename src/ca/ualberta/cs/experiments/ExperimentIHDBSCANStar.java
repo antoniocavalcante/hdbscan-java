@@ -3,13 +3,15 @@ package ca.ualberta.cs.experiments;
 import java.io.IOException;
 
 import ca.ualberta.cs.SHM.HMatrix.HMatrix;
-import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner.HDBSCANStarParameters;
 import ca.ualberta.cs.main.CoreDistances;
 import ca.ualberta.cs.main.Prim;
+import ca.ualberta.cs.util.Dataset;
+import ca.ualberta.cs.util.DenseDataset;
+import ca.ualberta.cs.util.SparseDataset;
 
 public class ExperimentIHDBSCANStar {
 
@@ -24,10 +26,16 @@ public class ExperimentIHDBSCANStar {
 		
 		String inputFile = parameters.inputFile.split("/")[parameters.inputFile.split("/").length - 1];
 		
-		double[][] dataSet = null;
+		Dataset dataSet = null;
 		
 		try {
-			dataSet = HDBSCANStar.readInDataSet(parameters.inputFile, ",");
+
+			if (parameters.sparse) {
+				dataSet = new SparseDataset(parameters.inputFile, ",", parameters.distanceFunction);
+			} else {
+				dataSet = new DenseDataset(parameters.inputFile, ",", parameters.distanceFunction);
+			}				
+
 		} catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
 			System.out.println(ioe.toString());
@@ -35,10 +43,9 @@ public class ExperimentIHDBSCANStar {
 		}
 				
 //		int minPoints = Integer.parseInt(args[1]);
-		int minPoints = parameters.minPoints;
 		
-		if (minPoints > dataSet.length) {	
-			minPoints = dataSet.length;
+		if (parameters.minPoints > dataSet.length()) {	
+			parameters.minPoints = dataSet.length();
 		}
 
 		// Prints data set, minPoints, Run
@@ -71,7 +78,7 @@ public class ExperimentIHDBSCANStar {
 		
 		// Computes the RNG
 		long startRNG = System.currentTimeMillis();
-
+		
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, 
 				parameters.distanceFunction, parameters.minPoints, parameters.RNGSmart, 
 				parameters.RNGNaive, parameters.RNGIncremental, parameters.index);

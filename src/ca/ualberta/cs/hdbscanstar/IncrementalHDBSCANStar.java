@@ -1,6 +1,7 @@
 package ca.ualberta.cs.hdbscanstar;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
+import ca.ualberta.cs.util.Dataset;
 
 public class IncrementalHDBSCANStar {
 
@@ -94,17 +95,17 @@ public class IncrementalHDBSCANStar {
 	 * @param distanceFunction A DistanceCalculator to compute distances between points
 	 * @return An array of core distances
 	 */
-	public static double[][] calculateCoreDistancesUseless(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
+	public static double[][] calculateCoreDistancesUseless(Dataset dataSet, int k, DistanceCalculator distanceFunction) {
 		int numNeighbors = k;
 
-		double[][] coreDistances = new double[dataSet.length][numNeighbors];
-		int[][] kNN = new int[dataSet.length][numNeighbors];
+		double[][] coreDistances = new double[dataSet.length()][numNeighbors];
+		int[][] kNN = new int[dataSet.length()][numNeighbors];
 
 //		IncrementalHDBSCANStar.k = k;
 
 		if (k == 1) {
 
-			for (int point = 0; point < dataSet.length; point++) {
+			for (int point = 0; point < dataSet.length(); point++) {
 				coreDistances[point][0] = 0;
 				kNN[point][0] = point;
 			}
@@ -114,7 +115,7 @@ public class IncrementalHDBSCANStar {
 			return coreDistances;
 		}
 
-		for (int point = 0; point < dataSet.length; point++) {
+		for (int point = 0; point < dataSet.length(); point++) {
 			double[] kNNDistances = new double[numNeighbors];	//Sorted nearest distances found so far
 
 			for (int i = 0; i < numNeighbors; i++) {
@@ -122,9 +123,9 @@ public class IncrementalHDBSCANStar {
 				kNN[point][i] = Integer.MAX_VALUE;
 			}
 
-			for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
+			for (int neighbor = 0; neighbor < dataSet.length(); neighbor++) {
 
-				double distance = distanceFunction.computeDistance(dataSet[point], dataSet[neighbor]);
+				double distance = dataSet.computeDistance(point, neighbor);
 
 				//Check at which position in the nearest distances the current distance would fit:
 				int neighborIndex = numNeighbors;

@@ -7,7 +7,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 public class FairSplitTree {
 
-	public static double[][] S;
+	public static Dataset S;
 	private static int dimensions;
 	public static Long2ObjectOpenHashMap<FairSplitTree> root;
 
@@ -36,16 +36,16 @@ public class FairSplitTree {
 	 * @param S Set of d-dimensional points.
 	 * @return FairSplitTree from S.
 	 */
-	public static FairSplitTree build(double[][] S, double[][] coreDistances, int k, DistanceCalculator distanceFunction) {
+	public static FairSplitTree build(Dataset S, double[][] coreDistances, int k, DistanceCalculator distanceFunction) {
 		FairSplitTree.S = S;
-		FairSplitTree.dimensions = S[0].length;
+		FairSplitTree.dimensions = S.dimensions();
 		FairSplitTree.root = new Long2ObjectOpenHashMap<FairSplitTree>();
 
 		FairSplitTree.distanceFunction = distanceFunction;
 
 		BigList<Integer> P = new IntBigArrayBigList();
 
-		for (int i = 0; i < S.length; i++) {
+		for (int i = 0; i < S.length(); i++) {
 			P.add(i);
 		}
 
@@ -99,8 +99,8 @@ public class FairSplitTree {
 
 			// Initialize Bounding Box.
 			for (int i = 0; i < dimensions; i++) {
-				this.boundingBox[0][i] = S[P.get(0)][i];
-				this.boundingBox[1][i] = S[P.get(0)][i];
+				this.boundingBox[0][i] = S.get(P.get(0), i);
+				this.boundingBox[1][i] = S.get(P.get(0), i);
 			}
 
 			if (this.count == 1) {
@@ -117,12 +117,12 @@ public class FairSplitTree {
 
 					for (int i = 0; i < dimensions; i++) {
 
-						if (S[p][i] < this.boundingBox[0][i]) {
-							this.boundingBox[0][i] = S[p][i];
+						if (S.get(p, i) < this.boundingBox[0][i]) {
+							this.boundingBox[0][i] = S.get(p, i);
 						}
 
-						if (S[p][i] > this.boundingBox[1][i]) {
-							this.boundingBox[1][i] = S[p][i];
+						if (S.get(p, i) > this.boundingBox[1][i]) {
+							this.boundingBox[1][i] = S.get(p, i);
 						}
 					}
 					this.diameterMRD = Math.max(this.diameterMRD, coreDistances[p][k-1]);
@@ -155,7 +155,7 @@ public class FairSplitTree {
 				double rightMaxCd = -Double.MAX_VALUE;
 
 				for (Integer p : P) {
-					if (S[p][j] < cutPoint) {
+					if (S.get(p, j) < cutPoint) {
 						leftMaxCd = Math.max(leftMaxCd, coreDistances[p][k-1]);
 						left.add(p);
 					} else {

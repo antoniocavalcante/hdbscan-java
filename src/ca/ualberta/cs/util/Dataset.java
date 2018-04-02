@@ -1,16 +1,20 @@
 package ca.ualberta.cs.util;
 
-import org.apache.mahout.math.SparseMatrix;
+import java.io.IOException;
 
-public class Dataset {
+public interface Dataset {
+		
+	public void readInDataSet(String fileName, String delimiter) throws IOException;
+
+	public double get(int i, int j);
+
+	public void set(int i, int j, double d);	
 	
-	double[][] dataset;
+	public int dimensions();
+
+	public int length();
 	
-	SparseMatrix sparseMatrix = new SparseMatrix(10, 10);
-	
-	public void load() {
-//		sparseMatrix.set(row, column, value);
-	}
-	
-	
+	public double[] row(int i);
+
+	public double computeDistance(int i, int j);
 }

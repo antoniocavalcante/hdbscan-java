@@ -13,6 +13,8 @@ import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 import ca.ualberta.cs.main.CoreDistances;
 import ca.ualberta.cs.main.Prim;
+import ca.ualberta.cs.util.Dataset;
+import ca.ualberta.cs.util.DenseDataset;
 import ca.ualberta.cs.util.KdTree;
 
 /**
@@ -21,7 +23,7 @@ import ca.ualberta.cs.util.KdTree;
  */
 public class Test {
 	
-	public static double[][] dataSet = null;
+	public static Dataset dataSet = null;
 //	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/128d-128.dat";
 	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/data#6/2d-16.dat";
 //	public static String datasetFile = "/home/toni/git/HDBSCAN_Star/experiments/debug/jad.dat";
@@ -31,17 +33,18 @@ public class Test {
 	public static void main(String[] args) {
 
 		try {
-			dataSet = HDBSCANStar.readInDataSet(datasetFile, " ");
+//			dataSet = HDBSCANStar.readInDataSet(datasetFile, " ");
+			dataSet = new DenseDataset(datasetFile, ",", new EuclideanDistance());
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
 			System.exit(-1);
 		}
 
-		int numPoints = dataSet.length;
+		int numPoints = dataSet.length();
 		
 		System.out.println("Dataset size: " + numPoints);
-		System.out.println("Dimensions: " + dataSet[0].length);
+		System.out.println("Dimensions: " + dataSet.dimensions());
 		
 		boolean incremental = false;
 		boolean compare = false;
@@ -99,11 +102,11 @@ public class Test {
 	}
 	
 	@SuppressWarnings("unused")
-	public static void testKdTreeRange(double[][] dataSet, int q, double eps, KdTree kdTree) {
+	public static void testKdTreeRange(Dataset dataSet, int q, double eps, KdTree kdTree) {
 		
 //		System.out.println(kdTree.toString());
 		
-		Collection<Integer> r = kdTree.range(dataSet[q], eps);
+		Collection<Integer> r = kdTree.range(dataSet.row(q), eps);
 		
 		System.out.println(r);
 		
@@ -120,13 +123,13 @@ public class Test {
 	}
 	
 	@SuppressWarnings("unused")
-	private static void testRange(double[][] dataSet, int q, double eps) {
+	private static void testRange(Dataset dataSet, int q, double eps) {
 		
 		Collection<Integer> r = new ArrayList<Integer>();
 		
-		for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
+		for (int neighbor = 0; neighbor < dataSet.length(); neighbor++) {
 
-			double distance = (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[neighbor]);
+			double distance = (new EuclideanDistance()).computeDistance(dataSet.row(q), dataSet.row(neighbor));
 			
 			if (distance < eps) {
 				r.add(neighbor);
@@ -146,7 +149,7 @@ public class Test {
 
 	
 	@SuppressWarnings("unused")
-	public static void testKdTree(double[][] dataSet, int q, int k, KdTree kdTree) {
+	public static void testKdTree(Dataset dataSet, int q, int k, KdTree kdTree) {
 		
 //		System.out.println(kdTree.toString());
 		
@@ -156,16 +159,16 @@ public class Test {
 		
 		for (Integer ds : r) {
 			System.out.print(ds + ": ");
-			for (int i = 0; i < dataSet[ds].length; i++) {
-				System.out.print(dataSet[ds][i] + " ");
+			for (int i = 0; i < dataSet.dimensions(); i++) {
+				System.out.print(dataSet.get(ds,i) + " ");
 			}
-			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[ds]));
+			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet.row(q), dataSet.row(ds)));
 		}
 		System.out.println();
 	}
 	
 	@SuppressWarnings("unused")
-	private static void testKnn(double[][] dataSet, int q, int k) {
+	private static void testKnn(Dataset dataSet, int q, int k) {
 		int numNeighbors = k;
 		long time = 0;
 		int[] kNN = new int[numNeighbors];
@@ -176,9 +179,9 @@ public class Test {
 			kNN[i] = Integer.MAX_VALUE;
 		}
 		
-		for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
+		for (int neighbor = 0; neighbor < dataSet.length(); neighbor++) {
 			long u = System.currentTimeMillis();
-			double distance = (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[neighbor]);
+			double distance = (new EuclideanDistance()).computeDistance(dataSet.row(q), dataSet.row(neighbor));
 
 			time += System.currentTimeMillis() - u;
 			
@@ -203,14 +206,14 @@ public class Test {
 		
 		for (int a : kNN) {
 			System.out.print(a + ": ");
-			for (int i = 0; i < dataSet[a].length; i++) {
-				System.out.print(dataSet[a][i] + " ");
+			for (int i = 0; i < dataSet.dimensions(); i++) {
+				System.out.print(dataSet.get(a, i) + " ");
 			}
-			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[a]));
+			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet.row(q), dataSet.row(a)));
 		}
 	}
 	
-	public static void mergeHierarchies(double[][] dataSet, int k){
+	public static void mergeHierarchies(Dataset dataSet, int k){
 		
 		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, k, new EuclideanDistance());
 		
@@ -229,7 +232,7 @@ public class Test {
 			Experiments.computeOutputFiles(dataSet, coreDistances, mst, i, inputFile, i, false);
 		}
 		
-		new MergeHierarchies(dataSet.length);
+		new MergeHierarchies(dataSet.length());
 		
 		// Merge MSTs.
 		MergeHierarchies.merge(MSTs);
@@ -240,17 +243,17 @@ public class Test {
 		Experiments.computeOutputFiles(dataSet, coreDistances, mst, 2, inputFile, 0, false);
 	}
 	
-	public static void printData(double[][] dataSet){
-		for (int i = 0; i < dataSet.length; i++) {
-			for (int j = 0; j < dataSet[i].length; j++) {
-				System.out.print(dataSet[i][j] + " ");
+	public static void printData(Dataset dataSet){
+		for (int i = 0; i < dataSet.length(); i++) {
+			for (int j = 0; j < dataSet.dimensions(); j++) {
+				System.out.print(dataSet.get(i, j) + " ");
 			}
 			System.out.println();
 		}
 		System.out.println("------------------------------------");
 	}
 	
-	public static void coreDistances(double[][] dataSet, int k){
+	public static void coreDistances(Dataset dataSet, int k){
 		double[][] coreDistances2 = CoreDistances.calculateCoreDistances(dataSet, k, new EuclideanDistance());
 
 		for (int j = 1; j <= k; j++) {
@@ -271,12 +274,12 @@ public class Test {
 	 * @param dataSet The data set.
 	 * @param maxK maximum Value of MinPoints.
 	 */
-	public static void correct(double[][] dataSet, int maxK, boolean debug, boolean smartFilter, boolean naiveFilter, boolean incremental, boolean index) {
+	public static void correct(Dataset dataSet, int maxK, boolean debug, boolean smartFilter, boolean naiveFilter, boolean incremental, boolean index) {
 
 		/*
 		 * Maximum minPoints cannot be higher that the size of the data set 
 		 */
-		if (maxK > dataSet.length) maxK = dataSet.length;
+		if (maxK > dataSet.length()) maxK = dataSet.length();
 
 		/*
 		 * Prim's Algorithm from the Mutual Reachability Graph 
@@ -341,7 +344,7 @@ public class Test {
 	}
 	
 	@SuppressWarnings("unused")
-	public static void correctnessRNG(double[][] dataSet, int maxK, boolean incremental, boolean index){
+	public static void correctnessRNG(Dataset dataSet, int maxK, boolean incremental, boolean index){
 		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 
 		System.out.println("-----------------------------");
@@ -402,7 +405,7 @@ public class Test {
 //		}
 	}
 
-	public static void performanceRNG(double[][] dataSet, int maxK, boolean incremental, boolean index){
+	public static void performanceRNG(Dataset dataSet, int maxK, boolean incremental, boolean index){
 		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		
 		System.out.println("-----------------------------");
@@ -448,7 +451,7 @@ public class Test {
 
 	}
 
-	public static void computeMSTs(double[][] dataSet, double[][] coreDistances, RelativeNeighborhoodGraph RNG, int k, boolean compare) {
+	public static void computeMSTs(Dataset dataSet, double[][] coreDistances, RelativeNeighborhoodGraph RNG, int k, boolean compare) {
 		
 		for (int minPoints = k; minPoints > 1; minPoints--) {
 			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, minPoints, false, RNG);
@@ -463,7 +466,7 @@ public class Test {
 		}
 	}
 
-	public static void performanceRNGMSTs(double[][] dataSet, int maxK, boolean incremental, boolean compare, boolean index){
+	public static void performanceRNGMSTs(Dataset dataSet, int maxK, boolean incremental, boolean compare, boolean index){
 		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, maxK, new EuclideanDistance());
 		
 		System.out.println("-----------------------------");
@@ -538,9 +541,9 @@ public class Test {
 		RNG = null;
 	}
 	
-	public static void correctHierarchy(double[][] dataSet, UndirectedGraph mst1, UndirectedGraph mst2, int minPts){
-		double[] pointNoiseLevels = new double[dataSet.length];
-		int[] pointLastClusters = new int[dataSet.length];
+	public static void correctHierarchy(Dataset dataSet, UndirectedGraph mst1, UndirectedGraph mst2, int minPts){
+		double[] pointNoiseLevels = new double[dataSet.length()];
+		int[] pointLastClusters = new int[dataSet.length()];
 
 		try {
 			HDBSCANStar.computeHierarchyAndClusterTree(mst1, minPts, 
@@ -552,8 +555,8 @@ public class Test {
 			System.exit(-1);
 		}
 
-		pointNoiseLevels = new double[dataSet.length];
-		pointLastClusters = new int[dataSet.length];
+		pointNoiseLevels = new double[dataSet.length()];
+		pointLastClusters = new int[dataSet.length()];
 
 		try {
 			HDBSCANStar.computeHierarchyAndClusterTree(mst2, minPts, 
@@ -567,7 +570,7 @@ public class Test {
 	}
 
 	@SuppressWarnings("unused")
-	public static void performance(double[][] dataSet, int maxK, boolean smartFilter, boolean naiveFilter, boolean incremental, boolean index) {
+	public static void performance(Dataset dataSet, int maxK, boolean smartFilter, boolean naiveFilter, boolean incremental, boolean index) {
 
 		long start, end, duration;
 
@@ -607,7 +610,7 @@ public class Test {
 		
 	}
 
-	public static void single(double[][] dataSet, int maxK, double s, String method, boolean smartFilter, boolean naiveFilter, boolean incremental, boolean index) {
+	public static void single(Dataset dataSet, int maxK, double s, String method, boolean smartFilter, boolean naiveFilter, boolean incremental, boolean index) {
 
 		/**
 		 *  Incremental HDBSCAN* 
@@ -626,7 +629,7 @@ public class Test {
 
 	}
 	
-	public static void testEuclideanDistance(double[][] dataSet){
+	public static void testEuclideanDistance(Dataset dataSet){
 		
 		DistanceCalculator euclidean = new EuclideanDistance();
 		Random r = new Random();
@@ -634,11 +637,11 @@ public class Test {
 		long total = 0;
 		
 		for (int i = 0; i < 1000000000; i++) {
-			int a = r.nextInt(dataSet.length - 1);
-			int b = r.nextInt(dataSet.length - 1);
+			int a = r.nextInt(dataSet.length() - 1);
+			int b = r.nextInt(dataSet.length() - 1);
 			
 			long start = System.currentTimeMillis();
-			euclidean.computeDistance(dataSet[a], dataSet[b]);
+			euclidean.computeDistance(dataSet.row(a), dataSet.row(b));
 			total += System.currentTimeMillis() - start;
 		}
 		

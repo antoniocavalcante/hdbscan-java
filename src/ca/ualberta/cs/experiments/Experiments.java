@@ -16,6 +16,7 @@ import ca.ualberta.cs.hdbscanstar.Cluster;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
+import ca.ualberta.cs.util.Dataset;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner.WrapInt;
 
 public class Experiments {
@@ -47,9 +48,9 @@ public class Experiments {
 	}
 
 	@SuppressWarnings("unused")
-	public static void computeOutputFiles(double[][] dataSet, double[][] coreDistances, UndirectedGraph mst, int minPts, String inputFile, int label, boolean compactHierarchy) {
+	public static void computeOutputFiles(Dataset dataSet, double[][] coreDistances, UndirectedGraph mst, int minPts, String inputFile, int label, boolean compactHierarchy) {
 
-		int numPoints = dataSet.length;
+		int numPoints = dataSet.length();
 
 		File output = new File("output");
 

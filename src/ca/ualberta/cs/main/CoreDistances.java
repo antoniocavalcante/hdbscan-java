@@ -12,12 +12,13 @@ import java.util.Collection;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
-import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
+import ca.ualberta.cs.util.Dataset;
+import ca.ualberta.cs.util.DenseDataset;
 import ca.ualberta.cs.util.KdTree;
 
 public class CoreDistances {
 
-	public static double[][] dataSet = null;
+	public static Dataset dataSet = null;
 
 	public static double[][] coreDistances = null;
 	public static Integer[][] kNN = null;
@@ -29,7 +30,7 @@ public class CoreDistances {
 		long start = System.currentTimeMillis();
 		long s = start;
 		try {
-			dataSet = HDBSCANStar.readInDataSet(args[0], ",");
+			dataSet = new DenseDataset(args[0], ",", new EuclideanDistance());
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
@@ -81,21 +82,21 @@ public class CoreDistances {
 	 * @param distanceFunction A DistanceCalculator to compute distances between points
 	 * @return An array of core distances
 	 */
-	public static double[][] calculateCoreDistances(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
+	public static double[][] calculateCoreDistances(Dataset dataSet, int k, DistanceCalculator distanceFunction) {
 		int numNeighbors = k;
-		double[][] coreDistances = new double[dataSet.length][numNeighbors];
-		Integer[][] kNN = new Integer[dataSet.length][numNeighbors];
+		double[][] coreDistances = new double[dataSet.length()][numNeighbors];
+		Integer[][] kNN = new Integer[dataSet.length()][numNeighbors];
 
 		if (k == 1) {
 
-			for (int point = 0; point < dataSet.length; point++) {
+			for (int point = 0; point < dataSet.length(); point++) {
 				coreDistances[point][0] = 0;
 			}
 
 			return coreDistances;
 		}
 
-		for (int point = 0; point < dataSet.length; point++) {
+		for (int point = 0; point < dataSet.length(); point++) {
 			double[] kNNDistances = new double[numNeighbors];	//Sorted nearest distances found so far
 
 			for (int i = 0; i < numNeighbors; i++) {
@@ -103,9 +104,9 @@ public class CoreDistances {
 				kNN[point][i] = Integer.MAX_VALUE;
 			}
 
-			for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
+			for (int neighbor = 0; neighbor < dataSet.length(); neighbor++) {
 
-				double distance = distanceFunction.computeDistance(dataSet[point], dataSet[neighbor]);
+				double distance = distanceFunction.computeDistance(dataSet.row(point), dataSet.row(neighbor));
 
 				//Check at which position in the nearest distances the current distance would fit:
 				int neighborIndex = numNeighbors;
@@ -141,24 +142,24 @@ public class CoreDistances {
 	 * @param distanceFunction A DistanceCalculator to compute distances between points
 	 * @return An array of core distances
 	 */
-	public static double[][] calculateCoreDistancesKdTree(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
+	public static double[][] calculateCoreDistancesKdTree(Dataset dataSet, int k, DistanceCalculator distanceFunction) {
 		
 		if (kdTree == null) kdTree = new KdTree(dataSet);
 		
 		int numNeighbors = k;
-		double[][] coreDistances = new double[dataSet.length][numNeighbors];
-		Integer[][] kNN = new Integer[dataSet.length][numNeighbors];
+		double[][] coreDistances = new double[dataSet.length()][numNeighbors];
+		Integer[][] kNN = new Integer[dataSet.length()][numNeighbors];
 		
 		if (k == 1) {
 
-			for (int point = 0; point < dataSet.length; point++) {
+			for (int point = 0; point < dataSet.length(); point++) {
 				coreDistances[point][0] = 0;
 			}
 
 			return coreDistances;
 		}
 		
-		for (int point = 0; point < dataSet.length; point++) {
+		for (int point = 0; point < dataSet.length(); point++) {
 			double[] kNNDistances = new double[numNeighbors];	//Sorted nearest distances found so far
 
 			for (int i = 0; i < numNeighbors; i++) {
@@ -177,7 +178,7 @@ public class CoreDistances {
 			kNN[point] = r.toArray(kNN[point]);
 			
 			for (int i = 0; i < kNNDistances.length; i++) {
-				kNNDistances[i] = (new EuclideanDistance()).computeDistance(dataSet[point], dataSet[kNN[point][i]]);	
+				kNNDistances[i] = (new EuclideanDistance()).computeDistance(dataSet.row(point), dataSet.row(kNN[point][i]));	
 			}
 			
 			coreDistances[point] = kNNDistances;

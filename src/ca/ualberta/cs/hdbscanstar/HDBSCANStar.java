@@ -21,6 +21,7 @@ import ca.ualberta.cs.SHM.HMatrix.ObjInstance;
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.hdbscanstar.Constraint.CONSTRAINT_TYPE;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner.WrapInt;
+import ca.ualberta.cs.util.Dataset;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntOpenHashBigSet;
 
@@ -164,29 +165,29 @@ public class HDBSCANStar implements Serializable {
 	 * @param distanceFunction A DistanceCalculator to compute distances between points
 	 * @return An array of core distances
 	 */
-	public static double[] calculateCoreDistances(double[][] dataSet, int k, DistanceCalculator distanceFunction) {
+	public static double[] calculateCoreDistances(Dataset dataSet, int k, DistanceCalculator distanceFunction) {
 		int numNeighbors = k -1;
-		double[] coreDistances = new double[dataSet.length];
+		double[] coreDistances = new double[dataSet.length()];
 
 		if (k == 1) {
 
-			for (int point = 0; point < dataSet.length; point++) {
+			for (int point = 0; point < dataSet.length(); point++) {
 				coreDistances[point] = 0;
 			}
 
 			return coreDistances;
 		}
 
-		for (int point = 0; point < dataSet.length; point++) {
+		for (int point = 0; point < dataSet.length(); point++) {
 			double[] kNNDistances = new double[numNeighbors];	//Sorted nearest distances found so far
 			for (int i = 0; i < numNeighbors; i++) {
 				kNNDistances[i] = Double.MAX_VALUE;
 			}
 
-			for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
+			for (int neighbor = 0; neighbor < dataSet.length(); neighbor++) {
 				if (point == neighbor)
 					continue;
-				double distance = distanceFunction.computeDistance(dataSet[point], dataSet[neighbor]);
+				double distance = dataSet.computeDistance(point, neighbor);
 
 				//Check at which position in the nearest distances the current distance would fit:
 				int neighborIndex = numNeighbors;
@@ -218,43 +219,43 @@ public class HDBSCANStar implements Serializable {
 	 * @param distanceFunction A DistanceCalculator to compute distances between points
 	 * @return An MST for the data set using the mutual reachability distances
 	 */
-	public static UndirectedGraph constructMST(double[][] dataSet, double[][] coreDistances, int minPoints,
+	public static UndirectedGraph constructMST(Dataset dataSet, double[][] coreDistances, int minPoints,
 			boolean selfEdges, DistanceCalculator distanceFunction) {
 
 		minPoints--;
 		int selfEdgeCapacity = 0;
 		if (selfEdges)
-			selfEdgeCapacity = dataSet.length;
+			selfEdgeCapacity = dataSet.length();
 
 		// One bit is set (true) for each attached point, or unset (false) for unattached points:
-		BitSet attachedPoints = new BitSet(dataSet.length);
+		BitSet attachedPoints = new BitSet(dataSet.length());
 
 		// Each point has a current neighbor point in the tree, and a current nearest distance:
-		int[] nearestMRDNeighbors = new int[dataSet.length-1 + selfEdgeCapacity];
-		double[] nearestMRDDistances = new double[dataSet.length-1 + selfEdgeCapacity];
+		int[] nearestMRDNeighbors = new int[dataSet.length()-1 + selfEdgeCapacity];
+		double[] nearestMRDDistances = new double[dataSet.length()-1 + selfEdgeCapacity];
 
-		for (int i = 0; i < dataSet.length-1; i++) {
+		for (int i = 0; i < dataSet.length()-1; i++) {
 			nearestMRDDistances[i] = Double.MAX_VALUE;
 		}
 
 		// The MST is expanded starting with the last point in the data set:
-		int currentPoint = dataSet.length-1;
+		int currentPoint = dataSet.length()-1;
 		int numAttachedPoints = 1;
-		attachedPoints.set(dataSet.length-1);
+		attachedPoints.set(dataSet.length()-1);
 
 		// Continue attaching points to the MST until all points are attached:
-		while (numAttachedPoints < dataSet.length) {
+		while (numAttachedPoints < dataSet.length()) {
 			int nearestMRDPoint = -1;
 			double nearestMRDDistance = Double.MAX_VALUE;
 
 			// Iterate through all unattached points, updating distances using the current point:
-			for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
+			for (int neighbor = 0; neighbor < dataSet.length(); neighbor++) {
 				if (currentPoint == neighbor)
 					continue;
 				if (attachedPoints.get(neighbor) == true)
 					continue;
 
-				double distance = distanceFunction.computeDistance(dataSet[currentPoint], dataSet[neighbor]);
+				double distance = dataSet.computeDistance(currentPoint, neighbor);
 
 				double mutualReachabiltiyDistance = distance;
 				if (coreDistances[currentPoint][minPoints] > mutualReachabiltiyDistance)
@@ -281,22 +282,22 @@ public class HDBSCANStar implements Serializable {
 		}
 
 		// Create an array for vertices in the tree that each point attached to:
-		int[] otherVertexIndices = new int[dataSet.length-1 + selfEdgeCapacity];
-		for (int i = 0; i < dataSet.length-1; i++) {
+		int[] otherVertexIndices = new int[dataSet.length()-1 + selfEdgeCapacity];
+		for (int i = 0; i < dataSet.length()-1; i++) {
 			otherVertexIndices[i] = i;
 		}
 
 		// If necessary, attach self edges:
 		if (selfEdges) {
-			for (int i = dataSet.length-1; i < dataSet.length*2-1; i++) {
-				int vertex = i - (dataSet.length-1);
+			for (int i = dataSet.length()-1; i < dataSet.length()*2-1; i++) {
+				int vertex = i - (dataSet.length()-1);
 				nearestMRDNeighbors[i] = vertex;
 				otherVertexIndices[i] = vertex;
 				nearestMRDDistances[i] = coreDistances[vertex][minPoints];
 			}
 		}
 
-		return new UndirectedGraph(dataSet.length, nearestMRDNeighbors, otherVertexIndices, nearestMRDDistances);
+		return new UndirectedGraph(dataSet.length(), nearestMRDNeighbors, otherVertexIndices, nearestMRDDistances);
 	}
 
 

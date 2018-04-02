@@ -10,7 +10,8 @@ import ca.ualberta.cs.distance.ManhattanDistance;
 import ca.ualberta.cs.distance.PearsonCorrelation;
 import ca.ualberta.cs.distance.SupremumDistance;
 import ca.ualberta.cs.main.Prim;
-import ca.ualberta.cs.util.Data;
+import ca.ualberta.cs.util.Dataset;
+import ca.ualberta.cs.util.DenseDataset;
 
 /**
  * Entry point for the HDBSCAN* algorithm.
@@ -52,16 +53,17 @@ public class IncrementalHDBSCANStarRunner {
 				", compact=" + parameters.compactHierarchy + ", dist_function=" + parameters.distanceFunction.getName());
 
 		//Read in input file:
-		double[][] dataSet = null;
+		Dataset dataSet = null;
 		try {
-			dataSet = HDBSCANStar.readInDataSet(parameters.inputFile, ",");		
-			dataSet = Data.normalize(dataSet);
+//			dataSet = HDBSCANStar.readInDataSet(parameters.inputFile, ",");
+			dataSet = new DenseDataset(parameters.inputFile, ",", parameters.distanceFunction);
+//			dataSet = Data.normalize(dataSet);
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
 			System.exit(-1);
 		}
-		int numPoints = dataSet.length;
+		int numPoints = dataSet.length();
 
 		//Read in constraints:
 		ArrayList<Constraint> constraints = null;

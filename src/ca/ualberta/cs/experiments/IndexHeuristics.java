@@ -4,14 +4,15 @@ import java.io.IOException;
 import java.util.Random;
 
 import ca.ualberta.cs.distance.EuclideanDistance;
-import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
+import ca.ualberta.cs.util.Dataset;
+import ca.ualberta.cs.util.DenseDataset;
 import ca.ualberta.cs.util.KdTree;
 
 public class IndexHeuristics {
 
-	public static double[][] dataSet = null;
+	public static Dataset dataSet = null;
 
-	public static long sequential(double[][] dataSet, int q, int k) {
+	public static long sequential(Dataset dataSet2, int q, int k) {
 		long start = System.currentTimeMillis();
 		
 		int[] kNN = new int[k];
@@ -22,9 +23,9 @@ public class IndexHeuristics {
 			kNN[i] = Integer.MAX_VALUE;
 		}
 		
-		for (int neighbor = 0; neighbor < dataSet.length; neighbor++) {
+		for (int neighbor = 0; neighbor < dataSet2.length(); neighbor++) {
 
-			double distance = (new EuclideanDistance()).computeDistance(dataSet[q], dataSet[neighbor]);
+			double distance = (new EuclideanDistance()).computeDistance(dataSet2.row(q), dataSet2.row(neighbor));
 
 			
 			//Check at which position in the nearest distances the current distance would fit:
@@ -60,7 +61,8 @@ public class IndexHeuristics {
 
 		// Loads data set.
 		try {
-			dataSet = HDBSCANStar.readInDataSet(args[0], " ");
+//			dataSet = HDBSCANStar.readInDataSet(args[0], " ");
+			dataSet = new DenseDataset(args[0], ",", new EuclideanDistance());
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
@@ -84,7 +86,7 @@ public class IndexHeuristics {
 		// Runs numQueries random kNN queries using sequential scan and index.
 		for (int i = 0; i < numQueries; i++) {
 			// Selects random point.
-			int q = randomGenerator.nextInt(dataSet.length);
+			int q = randomGenerator.nextInt(dataSet.length());
 			
 			// Runs index.
 			indexTime += index(q, k, kdTree);

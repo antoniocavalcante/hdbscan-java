@@ -21,6 +21,8 @@ import ca.ualberta.cs.distance.ManhattanDistance;
 import ca.ualberta.cs.distance.PearsonCorrelation;
 import ca.ualberta.cs.distance.SupremumDistance;
 import ca.ualberta.cs.main.CoreDistances;
+import ca.ualberta.cs.util.Dataset;
+import ca.ualberta.cs.util.DenseDataset;
 
 import static ca.ualberta.cs.hdbscanstar.HDBSCANStar.WARNING_MESSAGE;
 
@@ -44,6 +46,8 @@ public class HDBSCANStarRunner {
 	private static final String INCREMENTAL_FLAG = "incremental=";
 
 	private static final String RUN_FLAG = "run=";
+
+	private static final String SPARSE_FLAG = "sparse=";
 	
 	public static final String SHM_OUT = "shm";
 	public static final String VIS_OUT = "vis";
@@ -61,7 +65,7 @@ public class HDBSCANStarRunner {
 	private static final String PEARSON_CORRELATION = "pearson";
 	private static final String MANHATTAN_DISTANCE = "manhattan";
 	private static final String SUPREMUM_DISTANCE = "supremum";
-
+	
 	/**
 	 * Runs the HDBSCAN* algorithm given an input data set file and a value for minPoints and
 	 * minClusterSize.  Note that the input file must be a comma-separated value (CSV) file, and
@@ -93,16 +97,16 @@ public class HDBSCANStarRunner {
 				", outputExtension="+ parameters.outType);
 
 		//Read in input file:
-		double[][] dataSet = null;
+		Dataset dataSet = null;
 		try {
-			dataSet = HDBSCANStar.readInDataSet(parameters.inputFile, ",");		
+			dataSet = new DenseDataset(parameters.inputFile, ",", parameters.distanceFunction);		
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
 			System.exit(-1);
 		}
 
-		int numPoints = dataSet.length;
+		int numPoints = dataSet.length();
 
 		HMatrix.setHMatrix(numPoints);
 
@@ -490,7 +494,11 @@ public class HDBSCANStarRunner {
 			else if (argument.startsWith(RUN_FLAG) && argument.length() > RUN_FLAG.length()) {
 				parameters.runNumber = argument.substring(RUN_FLAG.length());
 			}
-			
+		
+			//Assign if the data is sparse or not.
+			else if (argument.startsWith(SPARSE_FLAG) && argument.length() > SPARSE_FLAG.length()) {
+				parameters.sparse = Boolean.parseBoolean(argument.substring(SPARSE_FLAG.length()));
+			}
 		}
 
 		//Check that each input parameter has been assigned:
@@ -649,6 +657,8 @@ public class HDBSCANStarRunner {
 		public boolean RNGSmart;
 		public boolean RNGIncremental;
 		public boolean index;
+		
+		public boolean sparse;
 	}
 
 	public static class WrapInt{
