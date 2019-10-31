@@ -14,6 +14,7 @@ import com.esotericsoftware.kryo.io.Output;
 
 import ca.ualberta.cs.SHM.HMatrix.HMatrix;
 import ca.ualberta.cs.SHM.Structure.Structure;
+import ca.ualberta.cs.distance.AngularDistance;
 import ca.ualberta.cs.distance.CosineSimilarity;
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
@@ -48,6 +49,8 @@ public class HDBSCANStarRunner {
 	private static final String RUN_FLAG = "run=";
 
 	private static final String SPARSE_FLAG = "sparse=";
+
+	private static final String SEPARATOR_FLAG = "separator=";
 	
 	public static final String SHM_OUT = "shm";
 	public static final String VIS_OUT = "vis";
@@ -65,6 +68,10 @@ public class HDBSCANStarRunner {
 	private static final String PEARSON_CORRELATION = "pearson";
 	private static final String MANHATTAN_DISTANCE = "manhattan";
 	private static final String SUPREMUM_DISTANCE = "supremum";
+	private static final String ANGULAR_DISTANCE = "angular";
+
+	private static final String COMMA_SEPARATOR = ",";
+	private static final String TAB_SEPARATOR = "\t";	
 	
 	/**
 	 * Runs the HDBSCAN* algorithm given an input data set file and a value for minPoints and
@@ -99,7 +106,7 @@ public class HDBSCANStarRunner {
 		//Read in input file:
 		Dataset dataSet = null;
 		try {
-			dataSet = new DenseDataset(parameters.inputFile, ",", parameters.distanceFunction);		
+			dataSet = new DenseDataset(parameters.inputFile, parameters.separator, parameters.distanceFunction);		
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
@@ -420,6 +427,11 @@ public class HDBSCANStarRunner {
 					parameters.distanceFunction = new SupremumDistance();
 					HMatrix.setParam_distanceFunction(SUPREMUM_DISTANCE);
 				}
+				else if (functionName.equals(ANGULAR_DISTANCE))
+				{
+					parameters.distanceFunction = new AngularDistance();
+					HMatrix.setParam_distanceFunction(ANGULAR_DISTANCE);
+				}
 				else
 					parameters.distanceFunction = null;
 
@@ -499,6 +511,11 @@ public class HDBSCANStarRunner {
 			else if (argument.startsWith(SPARSE_FLAG) && argument.length() > SPARSE_FLAG.length()) {
 				parameters.sparse = Boolean.parseBoolean(argument.substring(SPARSE_FLAG.length()));
 			}
+
+			//Assign if the data is sparse or not.
+			else if (argument.startsWith(SEPARATOR_FLAG) && argument.length() > SEPARATOR_FLAG.length()) {
+				parameters.separator = argument.substring(SEPARATOR_FLAG.length());
+			}
 		}
 
 		//Check that each input parameter has been assigned:
@@ -516,6 +533,10 @@ public class HDBSCANStarRunner {
 		}
 		else if (parameters.distanceFunction == null) {
 			System.out.println("Missing distance function.");
+			printHelpMessageAndExit();
+		}
+		else if (parameters.separator == null) {
+			System.out.println("Missing separator.");
 			printHelpMessageAndExit();
 		}
 
@@ -659,6 +680,8 @@ public class HDBSCANStarRunner {
 		public boolean index;
 		
 		public boolean sparse;
+
+		public String separator;
 	}
 
 	public static class WrapInt{

@@ -61,7 +61,7 @@ public class ExperimentMST {
 			Experiments.writeMSTweight("MST", inputFile, k, mst);
 			
 			if (Boolean.parseBoolean(args[3])) {
-				Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "MST_" + inputFile, k, false);
+				Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "MST_" + inputFile, k, false, 1);
 				mst.restoreEdges();
 			}
 		}

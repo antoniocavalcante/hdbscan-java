@@ -84,7 +84,7 @@ public class IncrementalHDBSCANStarRunner {
 
 		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, parameters.distanceFunction, parameters.minPoints, 1, "WS", true, false, true, true);
 
-		UndirectedGraph mst;		
+		UndirectedGraph mst;
 
 		for (int k = parameters.minPoints; k > 1; k--) {
 			//Compute minimum spanning tree:
@@ -94,7 +94,6 @@ public class IncrementalHDBSCANStarRunner {
 
 			mst = Prim.constructMST(dataSet, coreDistances, k, false, RNG);
 
-			System.out.println("1st weight: " + mst.getEdgeWeightAtIndex(0));
 			System.out.println("Time to calculate MST (ms): " + (System.currentTimeMillis() - startTime));
 
 			double[] pointNoiseLevels = new double[numPoints];

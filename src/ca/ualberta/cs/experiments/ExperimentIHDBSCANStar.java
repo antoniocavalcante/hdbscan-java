@@ -1,6 +1,13 @@
 package ca.ualberta.cs.experiments;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import com.google.common.io.Files;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
 import ca.ualberta.cs.SHM.HMatrix.HMatrix;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner;
@@ -15,7 +22,7 @@ import ca.ualberta.cs.util.SparseDataset;
 
 public class ExperimentIHDBSCANStar {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		long start, end, duration;
 		
 //		Structure SHM = new Structure();
@@ -53,27 +60,42 @@ public class ExperimentIHDBSCANStar {
 		System.out.print(parameters.inputFile + " " + parameters.minPoints + " " + parameters.runNumber);
 		
 		// Computes all the core-distances from 1 to minPoints
+		
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+//		Path path = Paths.get(parameters.inputFile.replace(inputFile, "progress.json"));
+		Path path = Paths.get(parameters.inputFile.subSequence(0, parameters.inputFile.lastIndexOf(inputFile)) + "progress.json");
+		
+		JsonObject progress = new JsonObject();
+		progress.addProperty("stage", "core-distances");
+		progress.addProperty("message", "Computing core-distances...");
+		
+		JsonObject state = new JsonObject();
+		state.addProperty("current", 0);
+		state.addProperty("end", 1);
 
+		progress.add("state", state);
+		
+		String json = gson.toJson(progress);
+		Files.write(json.getBytes(), path.toFile());
+		
 		long startcore = System.currentTimeMillis();
 		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, parameters.minPoints, parameters.distanceFunction);
 		System.out.print(" " + (System.currentTimeMillis() - startcore));
+
+		CoreDistances.coreDistancesToFile(coreDistances, parameters.inputFile + "-" + parameters.minPoints + ".cd");
+		CoreDistances.kNNToFile(CoreDistances.kNN, parameters.inputFile + "-" + parameters.minPoints + ".knn");
 		
-//		double[][] coreDistances = null;
-//		int[][] kNN = null;
-//		
-//		try {
-//			coreDistances = CoreDistances.fromFile(args[0] + "-" + args[8] + ".cd", minPoints, " ");
-//			kNN = CoreDistances.knnFromFile(args[0] + "-" + args[8] + ".knn", minPoints, " ");
-//
-//			IncrementalHDBSCANStar.kNN = kNN;
-//			
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		progress.addProperty("stage", "rng");
+		progress.addProperty("message", "Computing RNG...");
+
+		state.addProperty("current", 0);
+		state.addProperty("end", 1);
+
+		progress.add("state", state);
 		
-//		IncrementalHDBSCANStar.k = Integer.parseInt(args[1]);
-				
+		json = gson.toJson(progress);
+		Files.write(json.getBytes(), path.toFile());
+		
 		start = System.currentTimeMillis();
 		
 		// Computes the RNG
@@ -83,6 +105,8 @@ public class ExperimentIHDBSCANStar {
 				parameters.distanceFunction, parameters.minPoints, parameters.RNGSmart, 
 				parameters.RNGNaive, parameters.RNGIncremental, parameters.index);
 		
+		RNG.toFile(parameters.inputFile + "-" + parameters.minPoints + ".rng");
+		
 		System.out.print(" " + (System.currentTimeMillis() - startRNG));
 		
 		// Constructs all the the MSTs.
@@ -90,17 +114,42 @@ public class ExperimentIHDBSCANStar {
 		long hierarchyTime = 0;
 		
 		long s = 0;
+
+//		Experiments.outputDir = parameters.inputFile.replace(inputFile, "visualization");
+		Experiments.outputDir = parameters.inputFile.subSequence(0, parameters.inputFile.lastIndexOf(inputFile)) + "visualization";
 		
+		progress.addProperty("stage", "hierarchies");
+		progress.addProperty("message", "Computing hierarchies...");
+
+		state.addProperty("current", 2);
+		state.addProperty("end", parameters.minPoints);
+
+		progress.add("state", state);
+		
+		json = gson.toJson(progress);
+		Files.write(json.getBytes(), path.toFile());
+//		int k = parameters.minPoints;
 		for (int k = parameters.minPoints; k > 1; k--) {
 			
 			s = System.currentTimeMillis();
-			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, false, RNG);			
+			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, true, RNG);			
 			mst.quicksortByEdgeWeight();
 			mstTime += (System.currentTimeMillis() - s);
-		
+			
+//			System.out.println();
+//			for (int i = 0; i < mst.getNumEdges(); i++) {
+//				System.out.println(mst.getFirstVertexAtIndex(i) + " " + mst.getSecondVertexAtIndex(i) + " : " + mst.getEdgeWeightAtIndex(i));
+//			}
+			
 			s = System.currentTimeMillis();
-			if (parameters.outputFiles) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "RNG_" + inputFile, k, parameters.compactHierarchy);
-			hierarchyTime += (System.currentTimeMillis() - s);			
+			if (parameters.outputFiles) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "RNG_" + inputFile, k, parameters.compactHierarchy, parameters.minClusterSize);
+			hierarchyTime += (System.currentTimeMillis() - s);
+			
+			state.addProperty("current", parameters.minPoints - k + 2);
+			progress.add("state", state);
+			json = gson.toJson(progress);
+			Files.write(json.getBytes(), path.toFile());
+
 		}
 		
 		System.out.print(" " + mstTime + " " + hierarchyTime);		
@@ -110,5 +159,17 @@ public class ExperimentIHDBSCANStar {
 		
 		// Data set, minPts, Time, RNG size
 		System.out.println(" " + duration + " " + RNG.numOfEdges);
+		
+		progress.addProperty("stage", "meta-clustering");
+		progress.addProperty("message", "Meta-clustering...");
+
+		state.addProperty("current", 0);
+		state.addProperty("end", 1);
+
+		progress.add("state", state);
+		
+		json = gson.toJson(progress);
+		Files.write(json.getBytes(), path.toFile());
+
 	}
 }

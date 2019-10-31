@@ -349,7 +349,7 @@ public class HMatrix implements Serializable {
 
 			int last = -1;
 
-			while (s < e) {
+			while (s <= e) {
 				
 				if (labels[getIDByPosition(s)] != 0) {
 					last = last(labels, s, e, labels[getIDByPosition(s)], labels.length);

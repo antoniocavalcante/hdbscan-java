@@ -21,6 +21,7 @@ import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner.WrapInt;
 
 public class Experiments {
 
+	public static String outputDir = "";
 
 	public static double[][] loadData(String file) {
 		double[][] dataSet = null;
@@ -48,16 +49,16 @@ public class Experiments {
 	}
 
 	@SuppressWarnings("unused")
-	public static void computeOutputFiles(Dataset dataSet, double[][] coreDistances, UndirectedGraph mst, int minPts, String inputFile, int label, boolean compactHierarchy) {
+	public static void computeOutputFiles(Dataset dataSet, double[][] coreDistances, UndirectedGraph mst, int minPts, String inputFile, int label, boolean compactHierarchy, int minClusterSize) {
 
 		int numPoints = dataSet.length();
 
-		File output = new File("output");
+		File output = new File(outputDir);
 
 		// if the directory does not exist, create it
 		if (!output.exists()) output.mkdir();
 
-		String outputPrefix = "output/" + label + inputFile;
+		String outputPrefix = outputDir + "/" + label + inputFile;
 
 		double[] pointNoiseLevels = new double[numPoints];
 		int[] pointLastClusters = new int[numPoints];
@@ -88,7 +89,7 @@ public class Experiments {
 		WrapInt lineCount = new WrapInt(0);
 
 		try {
-			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minPts, compactHierarchy, null, 
+			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minClusterSize, compactHierarchy, null, 
 					hierarchyFile, treeFile, separator, 
 					pointNoiseLevels, pointLastClusters, HDBSCANStarRunner.BOTH_OUT, HMatrix, lineCount);
 
@@ -103,7 +104,6 @@ public class Experiments {
 		boolean infiniteStability = HDBSCANStar.propagateTree(clusters);
 
 		int[] flatPartitioningSHM = HDBSCANStar.findProminentClustersSHM(clusters, HMatrix);
-
 
 		//Output the flat clustering result:
 		try ( BufferedWriter writer = new BufferedWriter(new FileWriter(partitionFile), 32678)) {

@@ -82,7 +82,7 @@ public class FairSplitTree {
 		// Check the cardinality of the set, to distinguish leaf from internal nodes.
 		this.setCount(P.size());
 
-		// Store the id's of the points under this tree.
+		// Store the ids of the points under this tree.
 		this.P = P;
 
 		this.maxCD = maxCD;
@@ -164,13 +164,18 @@ public class FairSplitTree {
 					}
 				}
 
+				// Check if the split was successful or if points in P are all the same.
+				if (left.isEmpty() && right.size() > 1) {
+					left.add(right.remove(0));
+				}
+				
 				// Recursive call for left and right children.
-
 				this.left = nextId();
 				root.put(this.left, new FairSplitTree(this, left, leftMaxCd, this.level + 1, this.left, k, coreDistances));
 
 				this.right = nextId();
 				root.put(this.right, new FairSplitTree(this, right, rightMaxCd, this.level + 1, this.right, k, coreDistances));
+
 			}
 		}
 	}

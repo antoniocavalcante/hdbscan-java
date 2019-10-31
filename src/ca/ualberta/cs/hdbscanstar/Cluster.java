@@ -9,6 +9,7 @@ import java.util.TreeMap;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntOpenHashBigSet;
 
+import org.apache.commons.math3.special.Gamma;
 
 /**
  * An HDBSCAN* cluster, which will have a birth level, death level, stability, and constraint 
@@ -119,14 +120,19 @@ public class Cluster implements Serializable {
 	 */
 	public void detachPoints(long numPoints, double level) {
 		this.numPoints-=numPoints;
-		this.stability+=(numPoints * (1/level - 1/this.birthLevel));
-
+		int d = 2;
+//		this.stability+=(numPoints * (1/level - 1/this.birthLevel));
+		double v1 = Math.pow(Math.PI, d/2) * Math.pow(level, d) / Gamma.gamma(d/2 + 1);
+		double v2 = Math.pow(Math.PI, d/2) * Math.pow(this.birthLevel, d) / Gamma.gamma(d/2 + 1);
+		
+		this.stability+=(numPoints * (1/v1 - 1/v2));
+		
 		if (this.numPoints == 0)
 			this.deathLevel = level;
 		else if (this.numPoints < 0)
 			throw new IllegalStateException("Cluster cannot have less than 0 points.");
 	}
-
+	
 	/**
 	 * This cluster will propagate itself to its parent if its number of satisfied constraints is
 	 * higher than the number of propagated constraints.  Otherwise, this cluster propagates its

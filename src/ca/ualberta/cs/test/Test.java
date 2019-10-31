@@ -229,7 +229,7 @@ public class Test {
 			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, i, false, RNG);
 			mst.quicksortByEdgeWeight();
 			MSTs[i] = mst;
-			Experiments.computeOutputFiles(dataSet, coreDistances, mst, i, inputFile, i, false);
+			Experiments.computeOutputFiles(dataSet, coreDistances, mst, i, inputFile, i, false,1);
 		}
 		
 		new MergeHierarchies(dataSet.length());
@@ -240,7 +240,7 @@ public class Test {
 		// Compute MST from resulting graph and extract partitioning from it.
 		UndirectedGraph mst = MergeHierarchies.constructMST(MergeHierarchies.G);
 		MSTs[0] = mst;
-		Experiments.computeOutputFiles(dataSet, coreDistances, mst, 2, inputFile, 0, false);
+		Experiments.computeOutputFiles(dataSet, coreDistances, mst, 2, inputFile, 0, false, 1);
 	}
 	
 	public static void printData(Dataset dataSet){

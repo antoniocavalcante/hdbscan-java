@@ -98,7 +98,7 @@ public class HDBSCANStar implements Serializable {
 			dataSet.add(attributes);
 			line = reader.readLine();
 		}
-
+		
 		reader.close();
 		double[][] finalDataSet = new double[dataSet.size()][numAttributes];
 
@@ -396,7 +396,7 @@ public class HDBSCANStar implements Serializable {
 		while(currentEdgeIndex >= 0) {
 			// Retrieves the largest edge weight in the current tree.
 			double currentEdgeWeight = mst.getEdgeWeightAtIndex(currentEdgeIndex);
-
+//			System.out.println("Current Edge Weight: " + currentEdgeWeight);
 			// ArrayList to store the clusters being created at this iteration.
 			ArrayList<Cluster> newClusters = new ArrayList<Cluster>();
 

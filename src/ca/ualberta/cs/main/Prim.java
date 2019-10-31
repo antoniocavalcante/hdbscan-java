@@ -12,45 +12,7 @@ import ca.ualberta.cs.util.FibonacciHeapNode;
 
 public class Prim {
 
-	@SuppressWarnings("unused")
-	private static class Pair implements Comparable<Pair> {
-		public int vertex;
-		public double priority;
-
-		public Pair(int vertex, double priority) {
-			this.vertex = vertex;
-			this.priority = priority;
-		}
-
-		@Override
-		public int compareTo(Pair o) {
-			return Double.compare(this.priority, o.priority);
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + vertex;
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Pair other = (Pair) obj;
-			if (vertex != other.vertex)
-				return false;
-			return true;
-		}
-	}
-
-	public static UndirectedGraph constructMST(Dataset dataSet, double[][] coreDistances, int minPoints,	boolean selfEdges, RelativeNeighborhoodGraph RNG) {
+	public static UndirectedGraph constructMST(Dataset dataSet, double[][] coreDistances, int minPoints, boolean selfEdges, RelativeNeighborhoodGraph RNG) {
 
 		int selfEdgeCapacity = 0;
 		if (selfEdges)
@@ -107,7 +69,7 @@ public class Prim {
 					if (mutualReachabiltiyDistance < nearestMRDDistances[neighbor]) {
 						nearestMRDDistances[neighbor] = mutualReachabiltiyDistance;
 						nearestMRDNeighbors[neighbor] = currentPoint;
-
+						
 						q.decreaseKey(map.get(neighbor), mutualReachabiltiyDistance);
 					}
 				}
@@ -145,7 +107,7 @@ public class Prim {
 				int vertex = i - (dataSet.length()-1);
 				nearestMRDNeighbors[i] = vertex;
 				otherVertexIndices[i] = vertex;
-				nearestMRDDistances[i] = coreDistances[vertex][minPoints];
+				nearestMRDDistances[i] = coreDistances[vertex][minPoints-1];
 			}
 		}
 

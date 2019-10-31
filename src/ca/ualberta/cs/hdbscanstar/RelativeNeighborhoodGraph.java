@@ -1,7 +1,11 @@
 package ca.ualberta.cs.hdbscanstar;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Stack;
 
 import ca.ualberta.cs.distance.DistanceCalculator;
@@ -705,4 +709,35 @@ public class RelativeNeighborhoodGraph {
 			this.level = level;
 		}
 	}
+	
+	public void toFile(String fileName) {
+
+		try ( BufferedWriter writer = new BufferedWriter(new FileWriter(fileName), 32678)) {
+			if (this.extended) {
+				for (int i = 0; i < this.ExtendedRNG.length; i++) {
+					for (Iterator<Integer> j = this.ExtendedRNG[i].keySet().iterator(); j.hasNext();) {
+
+						int neighbor = j.next();
+						
+						if (i < neighbor) {
+							writer.write(i + " " + neighbor + "\n");
+						}
+					}
+				}			
+			} else {
+				for (int i = 0; i < this.RNG.length; i++) {
+					for (int j = 0; j < this.RNG[i].size64(); j++) {
+						if (i < this.RNG[i].getInt(j)) {
+							writer.write(i + " " + this.RNG[i].getInt(j) + "\n");
+						}
+					}
+				}
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 }
