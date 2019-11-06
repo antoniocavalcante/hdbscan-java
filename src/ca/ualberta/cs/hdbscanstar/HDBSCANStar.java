@@ -332,7 +332,7 @@ public class HDBSCANStar implements Serializable {
 		BufferedWriter orderWriter = null;
 
 		String orderOutputFile = treeOutputFile.replace("tree", "order");
-
+		
 		if (outType != HDBSCANStarRunner.SHM_OUT) {
 			hierarchyWriter = new BufferedWriter(new FileWriter(hierarchyOutputFile), FILE_BUFFER_SIZE);
 			treeWriter = new BufferedWriter(new FileWriter(treeOutputFile), FILE_BUFFER_SIZE);
@@ -396,7 +396,7 @@ public class HDBSCANStar implements Serializable {
 		while(currentEdgeIndex >= 0) {
 			// Retrieves the largest edge weight in the current tree.
 			double currentEdgeWeight = mst.getEdgeWeightAtIndex(currentEdgeIndex);
-//			System.out.println("Current Edge Weight: " + currentEdgeWeight);
+
 			// ArrayList to store the clusters being created at this iteration.
 			ArrayList<Cluster> newClusters = new ArrayList<Cluster>();
 

@@ -9,6 +9,7 @@ import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.distance.ManhattanDistance;
 import ca.ualberta.cs.distance.PearsonCorrelation;
 import ca.ualberta.cs.distance.SupremumDistance;
+import ca.ualberta.cs.main.CoreDistances;
 import ca.ualberta.cs.main.Prim;
 import ca.ualberta.cs.util.Dataset;
 import ca.ualberta.cs.util.DenseDataset;
@@ -17,7 +18,7 @@ import ca.ualberta.cs.util.DenseDataset;
  * Entry point for the HDBSCAN* algorithm.
  * @author zjullion
  */
-public class IncrementalHDBSCANStarRunner {
+public class RNGHDBSCANStarRunner {
 
 	private static final String FILE_FLAG = "file=";
 	private static final String CONSTRAINTS_FLAG = "constraints=";
@@ -52,12 +53,11 @@ public class IncrementalHDBSCANStarRunner {
 				", minClSize=" + parameters.minClusterSize + ", constraints=" + parameters.constraintsFile + 
 				", compact=" + parameters.compactHierarchy + ", dist_function=" + parameters.distanceFunction.getName());
 
-		//Read in input file:
+		// Read in input file:
 		Dataset dataSet = null;
+		
 		try {
-//			dataSet = HDBSCANStar.readInDataSet(parameters.inputFile, ",");
 			dataSet = new DenseDataset(parameters.inputFile, ",", parameters.distanceFunction);
-//			dataSet = Data.normalize(dataSet);
 		}
 		catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
@@ -65,7 +65,7 @@ public class IncrementalHDBSCANStarRunner {
 		}
 		int numPoints = dataSet.length();
 
-		//Read in constraints:
+		// Read in constraints:
 		ArrayList<Constraint> constraints = null;
 		if (parameters.constraintsFile != null) {
 			try {
@@ -79,11 +79,11 @@ public class IncrementalHDBSCANStarRunner {
 
 		//Compute core distances:
 		long startTime = System.currentTimeMillis();
-		double[][] coreDistances = IncrementalHDBSCANStar.calculateCoreDistancesUseless(dataSet, parameters.minPoints, parameters.distanceFunction);
+		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, parameters.minPoints, parameters.distanceFunction);
 		System.out.println("Time to compute core distances (ms): " + (System.currentTimeMillis() - startTime));
-
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, parameters.distanceFunction, parameters.minPoints, 1, "WS", true, false, true, true);
-
+		
+		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, parameters.distanceFunction, parameters.minPoints, 1, "WS", true, false, false, true);
+		
 		UndirectedGraph mst;
 
 		for (int k = parameters.minPoints; k > 1; k--) {
@@ -99,14 +99,16 @@ public class IncrementalHDBSCANStarRunner {
 			double[] pointNoiseLevels = new double[numPoints];
 			int[] pointLastClusters = new int[numPoints];
 
-			//Compute hierarchy and cluster tree:
+			// Compute hierarchy and cluster tree:
 			@SuppressWarnings("unused")
 			ArrayList<Cluster> clusters = null;
+
 			try {
 				startTime = System.currentTimeMillis();
 				clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, parameters.minClusterSize, 
 						parameters.compactHierarchy, constraints, k + parameters.hierarchyFile, 
 						k + parameters.clusterTreeFile, ",", pointNoiseLevels, pointLastClusters, k + parameters.visualizationFile, null, null);
+				
 				System.out.println("Time to compute hierarchy and cluster tree (ms): " + (System.currentTimeMillis() - startTime));
 			}
 			catch (IOException ioe) {
@@ -114,10 +116,10 @@ public class IncrementalHDBSCANStarRunner {
 				System.exit(-1);
 			}
 			
-			//Propagate clusters:
+			// Propagate clusters:
 			boolean infiniteStability = HDBSCANStar.propagateTree(clusters);
 
-			//Compute final flat partitioning:
+			// Compute final flat partitioning:
 			try {
 				startTime = System.currentTimeMillis();
 				HDBSCANStar.findProminentClusters(clusters, parameters.hierarchyFile, parameters.partitionFile, 
@@ -130,7 +132,7 @@ public class IncrementalHDBSCANStarRunner {
 			}
 
 
-			//Compute outlier scores for each point:
+			// Compute outlier scores for each point:
 			try {
 				startTime = System.currentTimeMillis();
 				HDBSCANStar.calculateOutlierScores(clusters, pointNoiseLevels, pointLastClusters, 

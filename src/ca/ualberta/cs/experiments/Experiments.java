@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+
 import ca.ualberta.cs.SHM.HMatrix.HMatrix;
 import ca.ualberta.cs.SHM.Structure.Structure;
 import ca.ualberta.cs.hdbscanstar.Cluster;
@@ -55,7 +56,6 @@ public class Experiments {
 
 		File output = new File(outputDir);
 
-		// if the directory does not exist, create it
 		if (!output.exists()) output.mkdir();
 
 		String outputPrefix = outputDir + "/" + label + inputFile;
@@ -104,8 +104,8 @@ public class Experiments {
 		boolean infiniteStability = HDBSCANStar.propagateTree(clusters);
 
 		int[] flatPartitioningSHM = HDBSCANStar.findProminentClustersSHM(clusters, HMatrix);
-
-		//Output the flat clustering result:
+		
+		// Output the flat clustering result:
 		try ( BufferedWriter writer = new BufferedWriter(new FileWriter(partitionFile), 32678)) {
 			if (infiniteStability)
 				writer.write(WARNING_MESSAGE + "\n");
@@ -121,7 +121,7 @@ public class Experiments {
 		
 		writeMST(mst, mstFile);
 
-		//Remove references to unneeded objects:
+		// Remove references to unneeded objects:
 		mst = null;
 	}
 

@@ -8,7 +8,6 @@ import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.experiments.Experiments;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
-import ca.ualberta.cs.hdbscanstar.MergeHierarchies;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 import ca.ualberta.cs.main.CoreDistances;
@@ -211,36 +210,6 @@ public class Test {
 			}
 			System.out.println("  ---  " + (new EuclideanDistance()).computeDistance(dataSet.row(q), dataSet.row(a)));
 		}
-	}
-	
-	public static void mergeHierarchies(Dataset dataSet, int k){
-		
-		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, k, new EuclideanDistance());
-		
-		UndirectedGraph[] MSTs = new UndirectedGraph[k];
-		
-		// Compute RNG.
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, new EuclideanDistance(), k, true, true, false, true);
-		
-		String inputFile = datasetFile.split("/")[datasetFile.split("/").length - 1];
-
-		// Compute k MSTs and extract partitioning from each one.
-		for (int i = 1; i < k; i++) {
-			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, i, false, RNG);
-			mst.quicksortByEdgeWeight();
-			MSTs[i] = mst;
-			Experiments.computeOutputFiles(dataSet, coreDistances, mst, i, inputFile, i, false,1);
-		}
-		
-		new MergeHierarchies(dataSet.length());
-		
-		// Merge MSTs.
-		MergeHierarchies.merge(MSTs);
-		
-		// Compute MST from resulting graph and extract partitioning from it.
-		UndirectedGraph mst = MergeHierarchies.constructMST(MergeHierarchies.G);
-		MSTs[0] = mst;
-		Experiments.computeOutputFiles(dataSet, coreDistances, mst, 2, inputFile, 0, false, 1);
 	}
 	
 	public static void printData(Dataset dataSet){
