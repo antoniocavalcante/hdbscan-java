@@ -15,10 +15,10 @@ import ca.ualberta.cs.SHM.HMatrix.HMatrix;
 import ca.ualberta.cs.SHM.Structure.Structure;
 import ca.ualberta.cs.hdbscanstar.Cluster;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
-import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
 import ca.ualberta.cs.util.Dataset;
-import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner.WrapInt;
+import ca.ualberta.cs.hdbscanstar.Runner.WrapInt;
+import ca.ualberta.cs.hdbscanstar.Runner;
 
 public class Experiments {
 
@@ -78,7 +78,7 @@ public class Experiments {
 		String partitionFile = outputPrefix + ".partition";
 		String mstFile = outputPrefix + ".mst";
 		String separator = ",";
-
+		
 		Structure SHM = new Structure();
 		HMatrix HMatrix = new HMatrix();
 
@@ -91,7 +91,7 @@ public class Experiments {
 		try {
 			clusters = HDBSCANStar.computeHierarchyAndClusterTree(mst, minClusterSize, compactHierarchy, null, 
 					hierarchyFile, treeFile, separator, 
-					pointNoiseLevels, pointLastClusters, HDBSCANStarRunner.BOTH_OUT, HMatrix, lineCount);
+					pointNoiseLevels, pointLastClusters, Runner.BOTH_OUT, HMatrix, lineCount);
 
 		} catch (IOException ioe) {
 			System.err.println("Error writing to hierarchy file or cluster tree file.");

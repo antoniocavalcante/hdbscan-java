@@ -2,53 +2,61 @@ package ca.ualberta.cs.experiments;
 
 import java.io.IOException;
 
+import ca.ualberta.cs.SHM.HMatrix.HMatrix;
 import ca.ualberta.cs.distance.EuclideanDistance;
 import ca.ualberta.cs.hdbscanstar.HDBSCANStar;
+import ca.ualberta.cs.hdbscanstar.Runner;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
+import ca.ualberta.cs.hdbscanstar.Runner.Environment;
 import ca.ualberta.cs.main.CoreDistances;
 import ca.ualberta.cs.util.DenseDataset;
+import ca.ualberta.cs.util.SparseDataset;
 
 public class ExperimentHDBSCANStar {
 
 	public static void main(String[] args) {
 		long start;
 		
-		DenseDataset dataSet = null;
+		HMatrix HMatrix = new HMatrix();
 
+		Runner.parameters = Runner.checkInputParameters(args, HMatrix);
+
+		String inputFile = Runner.parameters.inputFile.split("/")[Runner.parameters.inputFile.split("/").length - 1];
+		
+		Runner.environment = new Environment();
+
+		
 		try {
-//			dataSet = HDBSCANStar.readInDataSet(args[0], ",");
-			dataSet = new DenseDataset(args[0], ",", new EuclideanDistance());
-		}
-		catch (IOException ioe) {
+			if (Runner.parameters.sparse) {
+				Runner.environment.dataset = new SparseDataset(Runner.parameters.inputFile, ",", Runner.parameters.distanceFunction);
+			} else {
+				Runner.environment.dataset = new DenseDataset(Runner.parameters.inputFile, ",", Runner.parameters.distanceFunction);
+			}				
+
+		} catch (IOException ioe) {
 			System.err.println("Error reading input data set file.");
 			System.exit(-1);
 		}
 
-		String inputFile = args[0].split("/")[args[0].split("/").length - 1];
-		
-		int minPoints = Integer.parseInt(args[1]);
-		if (minPoints > dataSet.length()) {
-			minPoints = dataSet.length();
+		if (Runner.parameters.minPoints > Runner.environment.dataset.length()) {	
+			Runner.parameters.minPoints = Runner.environment.dataset.length();
 		}
 
+		
 		// Prints data set, minPoints, Run
-		System.out.print(args[0] + " " + args[1] + " " + args[2]);
+		System.out.print(Runner.parameters.inputFile + " " + Runner.parameters.minPoints);
 		
 		// Computes all the core-distances from 1 to minPoints
 		long startcore = System.currentTimeMillis();
-		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, minPoints, new EuclideanDistance());
+		Runner.environment.coreDistances = CoreDistances.calculateCoreDistances(
+				Runner.environment.dataset, Runner.parameters.minPoints, Runner.parameters.distanceFunction);
 		System.out.print(" " + (System.currentTimeMillis() - startcore));
 
-//		double[][] coreDistances = null;
-//		
-//		try {
-//			coreDistances = CoreDistances.fromFile(args[0] + ".cd", minPoints, " ");
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-
+		CoreDistances.coreDistancesToFile(Runner.environment.coreDistances, Runner.parameters.inputFile + "-" + Runner.parameters.minPoints + ".cd");
+		
 		start = System.currentTimeMillis();
+		
+		Experiments.outputDir = Runner.parameters.inputFile.subSequence(0, Runner.parameters.inputFile.lastIndexOf(inputFile)) + "visualization";
 		
 		// Constructs all the the MSTs.
 		long mstTime = 0;
@@ -56,15 +64,18 @@ public class ExperimentHDBSCANStar {
 		
 		long s = 0;
 		
-		for (int k = minPoints; k > 1; k--) {
-			
+		for (int k = Runner.parameters.minPoints; k > 1; k--) {
 			s = System.currentTimeMillis();
-			UndirectedGraph mst = HDBSCANStar.constructMST(dataSet, coreDistances, k, false, new EuclideanDistance());			
+			UndirectedGraph mst = HDBSCANStar.constructMST(Runner.environment.dataset, Runner.environment.coreDistances, k, true, new EuclideanDistance());			
 			mst.quicksortByEdgeWeight();
 			mstTime += (System.currentTimeMillis() - s);
 					
 			s = System.currentTimeMillis();
-			if (Boolean.parseBoolean(args[3])) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "ORI_" + inputFile, k, false, 1);
+			if (Runner.parameters.outputFiles) Experiments.computeOutputFiles(
+					Runner.environment.dataset, Runner.environment.coreDistances, 
+					mst, k, "ORI_" + inputFile, k, Runner.parameters.compactHierarchy, 
+					Runner.parameters.minClusterSize);
+			
 			hierarchyTime += (System.currentTimeMillis() - s);
 		}
 

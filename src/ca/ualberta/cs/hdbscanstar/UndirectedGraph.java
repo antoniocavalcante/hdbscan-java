@@ -213,7 +213,7 @@ public class UndirectedGraph implements java.io.Serializable {
 	 */
 	public void updateWeights(Dataset dataSet, double[][] coreDistances, DistanceCalculator distanceFunction, int k) {
 		for (int i = 0; i < getNumEdges(); i++) {
-			this.edgeWeights[i] = RelativeNeighborhoodGraph.mutualReachabilityDistance(dataSet, coreDistances, distanceFunction, this.verticesA[i], this.verticesB[i], k);
+			this.edgeWeights[i] = MutualReachabilityDistance.mutualReachabilityDistance(this.verticesA[i], this.verticesB[i], k);
 		}
 	}
 	

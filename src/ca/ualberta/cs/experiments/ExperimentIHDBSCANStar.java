@@ -10,13 +10,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import ca.ualberta.cs.SHM.HMatrix.HMatrix;
-import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner;
+import ca.ualberta.cs.hdbscanstar.Runner;
 import ca.ualberta.cs.hdbscanstar.RelativeNeighborhoodGraph;
 import ca.ualberta.cs.hdbscanstar.UndirectedGraph;
-import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner.HDBSCANStarParameters;
+import ca.ualberta.cs.hdbscanstar.Runner.Environment;
 import ca.ualberta.cs.main.CoreDistances;
 import ca.ualberta.cs.main.Prim;
-import ca.ualberta.cs.util.Dataset;
 import ca.ualberta.cs.util.DenseDataset;
 import ca.ualberta.cs.util.SparseDataset;
 
@@ -27,18 +26,18 @@ public class ExperimentIHDBSCANStar {
 
 		HMatrix HMatrix = new HMatrix();
 
-		HDBSCANStarParameters parameters = HDBSCANStarRunner.checkInputParameters(args, HMatrix);
-
-		String inputFile = parameters.inputFile.split("/")[parameters.inputFile.split("/").length - 1];
-
-		Dataset dataSet = null;
-
+		Runner.parameters = Runner.checkInputParameters(args, HMatrix);
+		
+		String inputFile = Runner.parameters.inputFile.split("/")[Runner.parameters.inputFile.split("/").length - 1];
+		
+		Runner.environment = new Environment();
+		
 		try {
 
-			if (parameters.sparse) {
-				dataSet = new SparseDataset(parameters.inputFile, ",", parameters.distanceFunction);
+			if (Runner.parameters.sparse) {
+				Runner.environment.dataset = new SparseDataset(Runner.parameters.inputFile, ",", Runner.parameters.distanceFunction);
 			} else {
-				dataSet = new DenseDataset(parameters.inputFile, ",", parameters.distanceFunction);
+				Runner.environment.dataset = new DenseDataset(Runner.parameters.inputFile, ",", Runner.parameters.distanceFunction);
 			}				
 
 		} catch (IOException ioe) {
@@ -46,18 +45,18 @@ public class ExperimentIHDBSCANStar {
 			System.exit(-1);
 		}
 
-		if (parameters.minPoints > dataSet.length()) {	
-			parameters.minPoints = dataSet.length();
+		if (Runner.parameters.minPoints > Runner.environment.dataset.length()) {	
+			Runner.parameters.minPoints = Runner.environment.dataset.length();
 		}
 
 		// Prints data set, minPoints, Run
-		System.out.print(parameters.inputFile + " " + parameters.minPoints + " " + parameters.runNumber);
+		System.out.print(Runner.parameters.inputFile + " " + Runner.parameters.minPoints);
 
 		// Computes all the core-distances from 1 to minPoints
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		
-		Path path = Paths.get(parameters.inputFile.subSequence(0, parameters.inputFile.lastIndexOf(inputFile)) + "progress.json");
+		Path path = Paths.get(Runner.parameters.inputFile.subSequence(0, Runner.parameters.inputFile.lastIndexOf(inputFile)) + "progress.json");
 
 		JsonObject progress = new JsonObject();
 		progress.addProperty("stage", "core-distances");
@@ -73,12 +72,13 @@ public class ExperimentIHDBSCANStar {
 		Files.write(json.getBytes(), path.toFile());
 
 		long startcore = System.currentTimeMillis();
-		double[][] coreDistances = CoreDistances.calculateCoreDistances(dataSet, parameters.minPoints, parameters.distanceFunction);
+		Runner.environment.coreDistances = CoreDistances.calculateCoreDistances(
+				Runner.environment.dataset, Runner.parameters.minPoints, Runner.parameters.distanceFunction);
 		System.out.print(" " + (System.currentTimeMillis() - startcore));
 
-		CoreDistances.coreDistancesToFile(coreDistances, parameters.inputFile + "-" + parameters.minPoints + ".cd");
-		CoreDistances.kNNToFile(CoreDistances.kNN, parameters.inputFile + "-" + parameters.minPoints + ".knn");
-
+		CoreDistances.coreDistancesToFile(Runner.environment.coreDistances, Runner.parameters.inputFile + "-" + Runner.parameters.minPoints + ".cd");
+		CoreDistances.kNNToFile(CoreDistances.kNN, Runner.parameters.inputFile + "-" + Runner.parameters.minPoints + ".knn");
+		
 		progress.addProperty("stage", "rng");
 		progress.addProperty("message", "Computing RNG...");
 
@@ -94,12 +94,12 @@ public class ExperimentIHDBSCANStar {
 
 		// Computes the RNG
 		long startRNG = System.currentTimeMillis();
-
-		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(dataSet, coreDistances, 
-				parameters.distanceFunction, parameters.minPoints, parameters.RNGSmart, 
-				parameters.RNGNaive, parameters.RNGIncremental, parameters.index);
-
-		RNG.toFile(parameters.inputFile + "-" + parameters.minPoints + ".rng");
+				
+		RelativeNeighborhoodGraph RNG = new RelativeNeighborhoodGraph(
+				Runner.parameters.distanceFunction, Runner.parameters.minPoints, Runner.parameters.RNGSmart, 
+				Runner.parameters.RNGNaive, Runner.parameters.RNGIncremental, Runner.parameters.index);
+				
+		RNG.toFile(Runner.parameters.inputFile + "-" + Runner.parameters.minPoints + ".rng");
 
 		System.out.print(" " + (System.currentTimeMillis() - startRNG));
 
@@ -110,31 +110,34 @@ public class ExperimentIHDBSCANStar {
 		long s = 0;
 
 		//		Experiments.outputDir = parameters.inputFile.replace(inputFile, "visualization");
-		Experiments.outputDir = parameters.inputFile.subSequence(0, parameters.inputFile.lastIndexOf(inputFile)) + "visualization";
+		Experiments.outputDir = Runner.parameters.inputFile.subSequence(0, Runner.parameters.inputFile.lastIndexOf(inputFile)) + "visualization";
 
 		progress.addProperty("stage", "hierarchies");
 		progress.addProperty("message", "Computing hierarchies...");
 
 		state.addProperty("current", 2);
-		state.addProperty("end", parameters.minPoints);
+		state.addProperty("end", Runner.parameters.minPoints);
 
 		progress.add("state", state);
 
 		json = gson.toJson(progress);
 		Files.write(json.getBytes(), path.toFile());
 
-		for (int k = parameters.minPoints; k > 1; k--) {
+		for (int k = Runner.parameters.minPoints; k > 1; k--) {
 
 			s = System.currentTimeMillis();
-			UndirectedGraph mst = Prim.constructMST(dataSet, coreDistances, k, true, RNG);			
+			UndirectedGraph mst = Prim.constructMST(Runner.environment.dataset, Runner.environment.coreDistances, k, true, RNG);			
 			mst.quicksortByEdgeWeight();
 			mstTime += (System.currentTimeMillis() - s);
 
 			s = System.currentTimeMillis();
-			if (parameters.outputFiles) Experiments.computeOutputFiles(dataSet, coreDistances, mst, k, "RNG_" + inputFile, k, parameters.compactHierarchy, parameters.minClusterSize);
+			if (Runner.parameters.outputFiles) Experiments.computeOutputFiles(
+					Runner.environment.dataset, Runner.environment.coreDistances, 
+					mst, k, "RNG_" + inputFile, k, Runner.parameters.compactHierarchy, 
+					Runner.parameters.minClusterSize);
 			hierarchyTime += (System.currentTimeMillis() - s);
 
-			state.addProperty("current", parameters.minPoints - k + 2);
+			state.addProperty("current", Runner.parameters.minPoints - k + 2);
 			progress.add("state", state);
 			json = gson.toJson(progress);
 			Files.write(json.getBytes(), path.toFile());

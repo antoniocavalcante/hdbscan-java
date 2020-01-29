@@ -14,7 +14,7 @@ public class RNGHDBSCANStar {
 	 * @param distanceFunction A DistanceCalculator to compute distances between points
 	 * @return An array of core distances
 	 */
-	public static double[][] calculateCoreDistancesUseless(Dataset dataSet, int k, DistanceCalculator distanceFunction) {
+	public static double[][] calculateCoreDistancesUselesslll(Dataset dataSet, int k, DistanceCalculator distanceFunction) {
 		int numNeighbors = k;
 
 		double[][] coreDistances = new double[dataSet.length()][numNeighbors];

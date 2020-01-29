@@ -65,7 +65,7 @@ public class Prim {
 					}					
 
 					double mutualReachabiltiyDistance = RNG.edgeWeight(currentPoint, neighbor, minPoints);
-
+					
 					if (mutualReachabiltiyDistance < nearestMRDDistances[neighbor]) {
 						nearestMRDDistances[neighbor] = mutualReachabiltiyDistance;
 						nearestMRDNeighbors[neighbor] = currentPoint;

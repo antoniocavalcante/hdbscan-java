@@ -55,6 +55,20 @@ public class HMatrix implements Serializable {
 	private static final long serialVersionUID = 10L;
 
 	public HMatrix() {
+		this.reset();
+	}
+
+	public void setHMatrix(int n) {
+		this.matrix = new ObjInstance[n];
+		this.objectOrderbyID = new int[n];
+		
+		this.level.add(0);
+		this.level.add(n-1);
+	}
+
+	public void reset() {
+		this.next = 0;
+
 		this.densities = new DoubleBigArrayBigList();
 		this.maxClusterID = 0;
 		this.maxLabelValue = -1;
@@ -69,15 +83,7 @@ public class HMatrix implements Serializable {
 
 		this.level = new IntBigArrayBigList();
 	}
-
-	public void setHMatrix(int n) {
-		this.matrix = new ObjInstance[n];
-		this.objectOrderbyID = new int[n];
-		
-		this.level.add(0);
-		this.level.add(n-1);
-	}
-
+	
 	public void setVisParams(String inputFile, int minClSize, int minPts, String distanceFunction, boolean distanceMatrixUsed, boolean isCompact) {
 		this.setParam_inputFile(inputFile);
 		this.setParam_minClSize(minClSize);

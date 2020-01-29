@@ -1,4 +1,4 @@
-package ca.ualberta.cs.hdbscanstar;
+package ca.ualberta.cs.util;
 
 /******************************************************************************
  *  Compilation:  javac UF.java

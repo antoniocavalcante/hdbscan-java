@@ -20,7 +20,7 @@ import ca.ualberta.cs.SHM.HMatrix.HMatrix;
 import ca.ualberta.cs.SHM.HMatrix.ObjInstance;
 import ca.ualberta.cs.distance.DistanceCalculator;
 import ca.ualberta.cs.hdbscanstar.Constraint.CONSTRAINT_TYPE;
-import ca.ualberta.cs.hdbscanstar.HDBSCANStarRunner.WrapInt;
+import ca.ualberta.cs.hdbscanstar.Runner.WrapInt;
 import ca.ualberta.cs.util.Dataset;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntOpenHashBigSet;
@@ -33,13 +33,10 @@ public class HDBSCANStar implements Serializable {
 
 	// ------------------------------ PRIVATE VARIABLES ------------------------------
 
+	
 	// ------------------------------ CONSTANTS ------------------------------
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
-
 
 	public static final String WARNING_MESSAGE = 
 			"----------------------------------------------- WARNING -----------------------------------------------\n" + 
@@ -57,7 +54,7 @@ public class HDBSCANStar implements Serializable {
 	// ------------------------------ CONSTRUCTORS ------------------------------
 
 	// ------------------------------ PUBLIC METHODS ------------------------------
-
+	
 	/**
 	 * Reads in the input data set from the file given, assuming the delimiter separates attributes
 	 * for each data point, and each point is given on a separate line.  Error messages are printed
@@ -154,60 +151,61 @@ public class HDBSCANStar implements Serializable {
 		}
 
 		reader.close();
+		
 		return constraints;
 	}
 
 
-	/**
-	 * Calculates the core distances for each point in the data set, given some value for k.
-	 * @param dataSet A double[][] where index [i][j] indicates the jth attribute of data point i
-	 * @param k Each point's core distance will be it's distance to the kth nearest neighbor
-	 * @param distanceFunction A DistanceCalculator to compute distances between points
-	 * @return An array of core distances
-	 */
-	public static double[] calculateCoreDistances(Dataset dataSet, int k, DistanceCalculator distanceFunction) {
-		int numNeighbors = k -1;
-		double[] coreDistances = new double[dataSet.length()];
-
-		if (k == 1) {
-
-			for (int point = 0; point < dataSet.length(); point++) {
-				coreDistances[point] = 0;
-			}
-
-			return coreDistances;
-		}
-
-		for (int point = 0; point < dataSet.length(); point++) {
-			double[] kNNDistances = new double[numNeighbors];	//Sorted nearest distances found so far
-			for (int i = 0; i < numNeighbors; i++) {
-				kNNDistances[i] = Double.MAX_VALUE;
-			}
-
-			for (int neighbor = 0; neighbor < dataSet.length(); neighbor++) {
-				if (point == neighbor)
-					continue;
-				double distance = dataSet.computeDistance(point, neighbor);
-
-				//Check at which position in the nearest distances the current distance would fit:
-				int neighborIndex = numNeighbors;
-				while (neighborIndex >= 1 && distance < kNNDistances[neighborIndex-1]) {
-					neighborIndex--;
-				}
-
-				//Shift elements in the array to make room for the current distance:
-				if (neighborIndex < numNeighbors) {
-					for (int shiftIndex = numNeighbors - 1; shiftIndex > neighborIndex; shiftIndex--) {
-						kNNDistances[shiftIndex] = kNNDistances[shiftIndex-1];
-					}
-					kNNDistances[neighborIndex] = distance;
-				}
-			}
-			coreDistances[point] = kNNDistances[numNeighbors-1];
-		}
-
-		return coreDistances;
-	}
+//	/**
+//	 * Calculates the core distances for each point in the data set, given some value for k.
+//	 * @param dataSet A double[][] where index [i][j] indicates the jth attribute of data point i
+//	 * @param k Each point's core distance will be it's distance to the kth nearest neighbor
+//	 * @param distanceFunction A DistanceCalculator to compute distances between points
+//	 * @return An array of core distances
+//	 */
+//	public static double[] calculateCoreDistances(Dataset dataSet, int k, DistanceCalculator distanceFunction) {
+//		int numNeighbors = k -1;
+//		double[] coreDistances = new double[dataSet.length()];
+//
+//		if (k == 1) {
+//
+//			for (int point = 0; point < dataSet.length(); point++) {
+//				coreDistances[point] = 0;
+//			}
+//
+//			return coreDistances;
+//		}
+//
+//		for (int point = 0; point < dataSet.length(); point++) {
+//			double[] kNNDistances = new double[numNeighbors];	//Sorted nearest distances found so far
+//			for (int i = 0; i < numNeighbors; i++) {
+//				kNNDistances[i] = Double.MAX_VALUE;
+//			}
+//
+//			for (int neighbor = 0; neighbor < dataSet.length(); neighbor++) {
+//				if (point == neighbor)
+//					continue;
+//				double distance = dataSet.computeDistance(point, neighbor);
+//
+//				//Check at which position in the nearest distances the current distance would fit:
+//				int neighborIndex = numNeighbors;
+//				while (neighborIndex >= 1 && distance < kNNDistances[neighborIndex-1]) {
+//					neighborIndex--;
+//				}
+//
+//				//Shift elements in the array to make room for the current distance:
+//				if (neighborIndex < numNeighbors) {
+//					for (int shiftIndex = numNeighbors - 1; shiftIndex > neighborIndex; shiftIndex--) {
+//						kNNDistances[shiftIndex] = kNNDistances[shiftIndex-1];
+//					}
+//					kNNDistances[neighborIndex] = distance;
+//				}
+//			}
+//			coreDistances[point] = kNNDistances[numNeighbors-1];
+//		}
+//
+//		return coreDistances;
+//	}
 
 
 	/**
@@ -222,7 +220,6 @@ public class HDBSCANStar implements Serializable {
 	public static UndirectedGraph constructMST(Dataset dataSet, double[][] coreDistances, int minPoints,
 			boolean selfEdges, DistanceCalculator distanceFunction) {
 
-		minPoints--;
 		int selfEdgeCapacity = 0;
 		if (selfEdges)
 			selfEdgeCapacity = dataSet.length();
@@ -255,14 +252,16 @@ public class HDBSCANStar implements Serializable {
 				if (attachedPoints.get(neighbor) == true)
 					continue;
 
-				double distance = dataSet.computeDistance(currentPoint, neighbor);
+//				double distance = dataSet.computeDistance(currentPoint, neighbor);
+//
+//				double mutualReachabiltiyDistance = distance;
+//				if (coreDistances[currentPoint][minPoints] > mutualReachabiltiyDistance)
+//					mutualReachabiltiyDistance = coreDistances[currentPoint][minPoints];
+//				if (coreDistances[neighbor][minPoints] > mutualReachabiltiyDistance)
+//					mutualReachabiltiyDistance = coreDistances[neighbor][minPoints];
 
-				double mutualReachabiltiyDistance = distance;
-				if (coreDistances[currentPoint][minPoints] > mutualReachabiltiyDistance)
-					mutualReachabiltiyDistance = coreDistances[currentPoint][minPoints];
-				if (coreDistances[neighbor][minPoints] > mutualReachabiltiyDistance)
-					mutualReachabiltiyDistance = coreDistances[neighbor][minPoints];
-
+				double mutualReachabiltiyDistance = MutualReachabilityDistance.mutualReachabilityDistance(currentPoint, neighbor, minPoints);		
+				
 				if (mutualReachabiltiyDistance < nearestMRDDistances[neighbor]) {
 					nearestMRDDistances[neighbor] = mutualReachabiltiyDistance;
 					nearestMRDNeighbors[neighbor] = currentPoint;
@@ -293,7 +292,7 @@ public class HDBSCANStar implements Serializable {
 				int vertex = i - (dataSet.length()-1);
 				nearestMRDNeighbors[i] = vertex;
 				otherVertexIndices[i] = vertex;
-				nearestMRDDistances[i] = coreDistances[vertex][minPoints];
+				nearestMRDDistances[i] = coreDistances[vertex][minPoints-1];
 			}
 		}
 
@@ -333,7 +332,7 @@ public class HDBSCANStar implements Serializable {
 
 		String orderOutputFile = treeOutputFile.replace("tree", "order");
 		
-		if (outType != HDBSCANStarRunner.SHM_OUT) {
+		if (outType != Runner.SHM_OUT) {
 			hierarchyWriter = new BufferedWriter(new FileWriter(hierarchyOutputFile), FILE_BUFFER_SIZE);
 			treeWriter = new BufferedWriter(new FileWriter(treeOutputFile), FILE_BUFFER_SIZE);
 			orderWriter = new BufferedWriter(new FileWriter(orderOutputFile), FILE_BUFFER_SIZE);
@@ -349,7 +348,7 @@ public class HDBSCANStar implements Serializable {
 		int[] lastValuesValues = new int[mst.getNumVertices()];
 
 		// If it outputs the .shm file, adding the objects to HMatrix structure.
-		if(outType != HDBSCANStarRunner.VIS_OUT) {
+		if(outType != Runner.VIS_OUT) {
 			for(int id = 0; id < mst.getNumVertices(); id++) {
 				HMatrix.add(new ObjInstance(id));
 
@@ -547,7 +546,7 @@ public class HDBSCANStar implements Serializable {
 
 				int outputLength = 0;
 
-				if(!outType.equals(HDBSCANStarRunner.VIS_OUT))
+				if(!outType.equals(Runner.VIS_OUT))
 				{
 					//updating densities
 					HMatrix.getDensities().add(currentEdgeWeight);
@@ -606,7 +605,7 @@ public class HDBSCANStar implements Serializable {
 
 		//Write out the final level of the hierarchy (all points noise):
 
-		if(!outType.equals(HDBSCANStarRunner.VIS_OUT))
+		if(!outType.equals(Runner.VIS_OUT))
 		{
 
 			HMatrix.getDensities().add(0.0);
@@ -628,11 +627,12 @@ public class HDBSCANStar implements Serializable {
 		}
 
 		// Write out the cluster tree:
-		if(outType != HDBSCANStarRunner.SHM_OUT) {
+		if(outType != Runner.SHM_OUT) {
+
 			for (Cluster cluster : clusters) {
 				if (cluster == null)
 					continue;
-
+//				System.out.println(cluster.getLabel() + " " + cluster.getBirthLevel());
 				treeWriter.write(cluster.getLabel() + delimiter);
 				treeWriter.write(cluster.getBirthLevel() + delimiter);
 				treeWriter.write(cluster.getDeathLevel() + delimiter);
@@ -906,7 +906,7 @@ public class HDBSCANStar implements Serializable {
 				score = 1-(epsilon_max/epsilon);
 
 			outlierScores.add(new OutlierScore(score, coreDistances[i][minPoints-1], i));
-			if(!outType.equals(HDBSCANStarRunner.VIS_OUT)) {
+			if(!outType.equals(Runner.VIS_OUT)) {
 				HMatrix.getObjInstanceByID(i).setOutlierScore(score);
 				HMatrix.getObjInstanceByID(i).setCoreDistance(coreDistances[i][minPoints-1]);
 			}
@@ -915,7 +915,7 @@ public class HDBSCANStar implements Serializable {
 		//Sort the outlier scores:
 		Collections.sort(outlierScores);
 
-		if(!outType.equals(HDBSCANStarRunner.SHM_OUT)) {
+		if(!outType.equals(Runner.SHM_OUT)) {
 			//Output the outlier scores:
 			BufferedWriter writer = new BufferedWriter(new FileWriter(outlierScoresOutputFile), FILE_BUFFER_SIZE);
 			if (infiniteStability)

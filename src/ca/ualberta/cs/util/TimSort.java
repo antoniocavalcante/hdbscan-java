@@ -23,7 +23,7 @@
  * have any questions.
  */
 
-package ca.ualberta.cs.hdbscanstar;
+package ca.ualberta.cs.util;
 
 import java.util.Arrays;
 import java.util.Comparator;
